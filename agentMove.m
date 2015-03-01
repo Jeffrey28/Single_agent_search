@@ -6,18 +6,18 @@ function [outPara] = agentMove(inPara)
 campus = inPara.campus;
 agents = inPara.agents;
 % way_pts = inPara.way_pts;
-h_tar_wp = inPara.h_tar_wp;
-obv_traj = inPara.obv_traj;
-est_state = inPara.est_state;
-pre_traj = inPara.pre_traj;
+% h_tar_wp = inPara.h_tar_wp;
+% obv_traj = inPara.obv_traj;
+% est_state = inPara.est_state;
+% pre_traj = inPara.pre_traj;
 plan_state = inPara.plan_state;
 r_state = inPara.r_state;
 r_input = inPara.r_input;
 k = inPara.k;
 hor = inPara.hor;
-pre_type = inPara.pre_type;
-samp_rate = inPara.samp_rate;
-safe_dis = inPara.safe_dis;
+% pre_type = inPara.pre_type;
+% samp_rate = inPara.samp_rate;
+% safe_dis = inPara.safe_dis;
 mpc_dt = inPara.mpc_dt;
 safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
@@ -66,11 +66,11 @@ plan_type = inPara.plan_type;
         
     %% robot predicts and moves
     elseif strcmp(agent.type,'robot')  
-        samp_num = inPara.samp_num;
-        h = agents(1);
-        cur_hd = h.currentPos(3);
+%         samp_num = inPara.samp_num;
+%         h = agents(1);
+%         cur_hd = h.currentPos(3);
         %% estimate human position
-        %
+        %{
         [x_est,y_est,x_pre,y_pre,x_pos_est,input,time] = IMM_Com_run();
         est_state([1,2],:,k) = x_est((k-1)*samp_num+1:end-1,:)';
         est_state([3,4],:,k) = y_est((k-1)*samp_num+1:end-1,:)';
@@ -83,6 +83,7 @@ plan_type = inPara.plan_type;
         %}
         
         %%  predict human future path
+        %{
         % prediction by IMM
         if strcmp(pre_type,'IMM')
             pre_traj(:,:,k) = [[x_est((k-1)*samp_num+1,1);y_est((k-1)*samp_num+1,1)],[x_pre(k,:);y_pre(k,:)]];
@@ -96,14 +97,14 @@ plan_type = inPara.plan_type;
             pre_traj(:,:,k) = predictHumanTraj(agent,inPara_phj);
         end     
         pos_pre_imm = inPara.pos_pre_imm;
+        %}
         %% robot path planning
         %
-        if strcmp(plan_type,'MPC')
-%             inPara_pp = struct('pre_traj',pre_traj(:,:,k),'hor',hor,...
+        if strcmp(plan_type,'mpc')
+%             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
 %                 'obs_info',campus.obs_info,'safe_marg',safe_marg);
-            inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
-                'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
+            inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg);
             outPara_pp = pathPlanner(agent,inPara_pp);
             opt_x = outPara_pp.opt_x;
@@ -144,10 +145,10 @@ plan_type = inPara.plan_type;
 % end
 %% define output arguments
 % outPara = struct('agents',agents,'obv_traj',obv_traj,'est_state',est_state,...
-%     'pre_traj',pre_traj,'plan_state',plan_state,'r_state',fut_x(:,2),'r_input',fut_u(:,1));
-outPara = struct('agents',agents,'obv_traj',obv_traj,'est_state',est_state,...
-    'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
-    'samp_num',samp_num);
+%     'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
+%     'samp_num',samp_num);
+outPara = struct('agents',agents,'plan_state',plan_state,'r_state',r_state,...
+    'r_input',r_input);
 end
 
 function next_act = getNextActionWithFixedHeading(a_pos,t_pos,v,deg_dev,mpc_dt)

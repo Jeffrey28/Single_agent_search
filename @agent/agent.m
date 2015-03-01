@@ -24,6 +24,8 @@ classdef agent
         currentPos; % current position for the agent, [x y psi]
         currentV; % current velocity
         traj; % current and planned trajectory for agent at each time step
+        sigma_s = 2^2*eye(2); % covariance for sensor model
+        intgr_step = 0.5; % step size for integral over x when calculating POD
 %         FOVcoords; % grid coordinates contained in agent field of view
 %         human
         % No entry zone: 
