@@ -1,6 +1,6 @@
 function outPara = pathPlanner(agent,inPara)
 % include IPOPT in YALMIP
-% addpath('D:\Program Files\MATLAB\2013a_crack\IPOPT3.11.8');
+addpath('D:\Program Files\MATLAB\2013a_crack\IPOPT3.11.8');
 % addpath('D:\Chang Liu\ipopt');
 % define input arguments
 % x_h = inPara.pre_traj; % predicted human trajectory
@@ -294,7 +294,7 @@ yMin = campus.endpoints(3);
 yMax = campus.endpoints(4);
 x_p = xMin+intgr_step/2:intgr_step:xMax-intgr_step/2; % integral points on x axis
 y_p = yMin+intgr_step/2:intgr_step:yMax-intgr_step/2;
-pond_mat = ones(length(x_p),length(y_p)); % matrix of Pr(ND)
+pond_mat = sdpvar(length(x_p),length(y_p)); % matrix of Pr(ND)
 sigma_s_inv = eye(2)/agent.sigma_s;
 for x1 = 1:length(x_p)
     for x2 = 1:length(y_p)
@@ -302,8 +302,11 @@ for x1 = 1:length(x_p)
         for ii = 1:hor            
             x_r = x(1:2,ii+1);
             pond = 1-exp(-1/2*(x_t-x_r)'*sigma_s_inv*(x_t-x_r));
-%             [~,pond,~] = agent.sensorSim([x_p(x1);y_p(x2)],x(1:2,ii+1));
-            pond_mat(x1,x2) = pond_mat(x1,x2)*pond;
+            if ii == 1
+                pond_mat(x1,x2) = pond;
+            else
+                pond_mat(x1,x2) = pond_mat(x1,x2)*pond;
+            end
         end
     end
 end
