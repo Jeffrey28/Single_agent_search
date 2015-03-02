@@ -99,7 +99,13 @@ plan_type = inPara.plan_type;
         pos_pre_imm = inPara.pos_pre_imm;
         %}
         %% robot path planning
-        %
+        % record current trajectory before moving
+        if k == 1
+            tmp_agent_traj = agent.currentPos;
+        else
+            tmp_agent_traj = agent.traj;
+        end
+        
         if strcmp(plan_type,'mpc')
 %             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
@@ -107,13 +113,16 @@ plan_type = inPara.plan_type;
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg);
             outPara_pp = pathPlanner(agent,inPara_pp);
-            opt_x = outPara_pp.opt_x;
+%             opt_x = outPara_pp.opt_x;
             opt_u = outPara_pp.opt_u;
-            agent.currentPos = opt_x(1:3,2); % update robot position
-            agent.currentV = opt_x(4,2); % update robot speed
-            r_state(:,k) = opt_x(:,2);
+            new_state = updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
+                opt_u,mpc_dt); % contains current and future states
+            agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
+            agent.currentV = new_state(3,2); % update robot speed
+            r_state(:,k) = new_state(:,2);
             r_input(:,k) = opt_u(:,1);
-            plan_state(:,:,k) = opt_x;
+            plan_state(:,:,k) = new_state;
+            
         elseif strcmp(plan_type,'greedy1') || strcmp(plan_type,'greedy0')
             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',...
@@ -129,11 +138,6 @@ plan_type = inPara.plan_type;
             plan_state(:,:,k) = opt_x;
         end
         %}
-        if k == 1
-            tmp_agent_traj = agent.currentPos;
-        else
-            tmp_agent_traj = agent.traj;
-        end
         
         agent.traj = [tmp_agent_traj,agent.currentPos];
         agents(agentIndex) = agent;
@@ -149,6 +153,21 @@ plan_type = inPara.plan_type;
 %     'samp_num',samp_num);
 outPara = struct('agents',agents,'plan_state',plan_state,'r_state',r_state,...
     'r_input',r_input);
+end
+
+function new_x = updState(x,u,mpc_dt)
+% update robot state using its dynamics
+new_x = zeros(size(x,1),size(u,2)+1);
+new_x(:,1) = x; % current state
+for ii = 1:size(new_x,2)-1
+    new_x(1:2,ii+1) = new_x(1:2,ii)+new_x(3,ii)*[cos(new_x(4,ii));sin(new_x(4,ii))]*mpc_dt;
+    new_x(3,ii+1) = new_x(3,ii)+u(1,ii)*mpc_dt;
+    new_x(4,ii+1) = new_x(4,ii)+u(2,ii)*mpc_dt;
+    % normalize the heading to [0,2*pi)
+    tmp = new_x(4,ii+1);
+    tmp = tmp - floor(tmp/(2*pi))*2*pi;
+    new_x(4,ii+1) = tmp;
+end
 end
 
 function next_act = getNextActionWithFixedHeading(a_pos,t_pos,v,deg_dev,mpc_dt)

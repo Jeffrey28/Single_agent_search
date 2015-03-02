@@ -37,11 +37,11 @@ mix_num = length(w);
 mu = [25,50,75;25,30,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 for ii = 1:mix_num
-    sigma(:,:,ii) = (5*scale)^2*eye(2);
+    sigma(:,:,ii) = 3^2*eye(2);
 end
 
 % define vertices of obstacles. Here use round obstacles
-c_set = [50,90,30,70;33,50,65,40]*scale;
+c_set = [50,90,30,70;70,80,65,40]*scale;
 r_set = [5,5,5,5]*scale;
 theta_set = {{0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi}};
 inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta_set',theta_set,'type','obs');
@@ -66,7 +66,7 @@ h_way_pts = getWayPts(inPara_gwp);
 % simulation parameters
 kf = 500; % simulation length (/s)
 agents = r;
-hor = 5; % MPC horizon 
+hor = 2; % MPC horizon 
 % pre_type = 'IMM';%'extpol'; % 'extpol','IMM'. specify the method for predicting human motion
 plan_type = 'mpc'; % 'MPC','greedy1','greedy0'. specify the method for robot controller
 % samp_rate = 20; % sampling rate (/Hz)
@@ -83,7 +83,7 @@ r_state = zeros(4,kf); % robot's actual state [x,y,theta,v]
 r_input = zeros(2,kf); % robot's actual control input [w,a]
 % wp_cnt = 1; % the waypoint that the human is heading for
 % h_tar_wp = h_way_pts(:,wp_cnt); % the way point that the human is heading for
-sensor_reading = zeros(length(agents),kf); % record the sensor readings of each agent
+sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of each agent
 prob_map_set = []; % record probability map for each step
 tar_found = 0; % binary variable. 1 indicates that the target is found
 % addpath('.\sim_res')
@@ -108,6 +108,13 @@ for k = 1:kf
         sensor_reading(agentIndex,k) = sim_reading;
         [w,mu,sigma] = agent.updateProbPara(w,mu,sigma,sim_reading,cur_pos,agent.sigma_s);
     end
+    % remove terms with very small weights
+    max_w = max(w);
+    rv_id = (abs(w) < max_w*1e-4);
+    w(rv_id) = [];
+    w = w/sum(w);
+    mu(:,rv_id) = [];
+    sigma(:,:,rv_id) = [];
     campus.w = w;
     campus.mu = mu;
     campus.sigma = sigma;
@@ -128,7 +135,7 @@ for k = 1:kf
         end
     end
     
-    %% continue searching
+    %% search
     if tar_found == 0
         %% change human speed
         %{
@@ -210,6 +217,7 @@ for k = 1:kf
     color_agent = {'r','g','r','g'};
     marker_agent = {'o','^','*','d'};
     line_agent = {'-','-','-','-'};
+    line_w_agent = [7,7,5,5];
     orange = [1 204/255 0];
     color_target = {'m','b',orange};
     figure;
@@ -226,24 +234,26 @@ for k = 1:kf
     end
     
     % draw obstacles
+    %
     for jj = 1:size(obs_pos)
         tmp_pos = obs_pos{jj};
         fill(tmp_pos(1,:),tmp_pos(2,:),'b');
     end
-    
+    %}
     xlim([0,campus.endpoints(2)]);
     ylim([0,campus.endpoints(4)]);
     
     % draw agent trajectory
     for ii = 1:length(agents)
         tmp_agent = agents(ii);
-        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',10);
+        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',50);
         set(h1,'MarkerFaceColor',color_agent{ii});
         set(h1,'MarkerEdgeColor',color_agent{ii});
         set(h1,'Color',color_agent{ii});
         set(h1,'LineStyle',line_agent{ii});
         set(h1,'Marker',marker_agent{ii});
-        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',15);
+        set(h1,'LineWidth',line_w_agent(ii));
+        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',70);
         set(h2,'MarkerFaceColor',color_agent{ii});
         set(h2,'MarkerEdgeColor',color_agent{ii});
         set(h2,'Color',color_agent{ii});
@@ -262,12 +272,13 @@ for k = 1:kf
     
     % planned robot trajectory
     if (tar_found == 0)
-        h4 = plot(plan_state(1,:,k),plan_state(2,:,k),color_agent{4},'markers',10);
+        h4 = plot(plan_state(1,2:end,k),plan_state(2,2:end,k),color_agent{2},'markers',15);
         set(h4,'MarkerFaceColor',color_agent{4});
         set(h4,'MarkerEdgeColor',color_agent{4});
         set(h4,'Color',color_agent{4});
         set(h4,'LineStyle',line_agent{4});
         set(h4,'Marker',marker_agent{4});
+        set(h1,'LineWidth',line_w_agent(4));
         grid minor
         set(gca,'MinorGridLineStyle','-','XColor',[0.5 0.5 0.5],'YColor',[0.5 0.5 0.5])
         axis equal

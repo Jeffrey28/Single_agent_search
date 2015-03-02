@@ -20,7 +20,7 @@ tmp_hor = hor;
 intgr_step = agent.intgr_step;
 % h_v_value = norm(h_v,2);
 
-init_state = [agent.currentPos;agent.currentV];
+init_state = [agent.currentPos(1:2);agent.currentV;agent.currentPos(3)];
 while(tmp_hor > 0)
     % define MPC
     x = sdpvar(4,tmp_hor+1); %[x,y,theta,v]
@@ -45,12 +45,14 @@ while(tmp_hor > 0)
     [obj,constr] = genMPC(inPara_cg); 
     
     % solve MPC
-    opt = sdpsettings('solver','ipopt','usex0',1,'debug',1);
+    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
+    opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem == 0
         opt_x = value(x); % current and future states
         opt_u = value(u); % future input
+        break
     else
         display('Fail to solve MPC')
         sol.info
@@ -241,12 +243,6 @@ if tmp_hor == 0 % if the MPC fails, just find the input at the next step to maxi
 end
 %}
 
-% normalize the heading to [0,2*pi)
-for ii = 1:size(opt_x,2)
-    tmp = opt_x(3,ii);
-    tmp = tmp - floor(tmp/(2*pi))*2*pi;
-    opt_x(3,ii) = tmp;
-end
 outPara = struct('opt_x',opt_x,'opt_u',opt_u);
 end
 
@@ -282,12 +278,14 @@ constr = inPara.constr;
 agent = inPara.agent;
 dt = inPara.dt;
 safe_marg2 = inPara.safe_marg2;
-intgr_step = inPara.intgr_step;
+% intgr_step = inPara.intgr_step;
 campus = inPara.campus;
 % init_state = inPara.init_state;
 
 % [A,B,c] = linearize_model(init_state,mpc_dt);
 % objective function
+% integral format
+%{
 xMin = campus.endpoints(1);
 xMax = campus.endpoints(2);
 yMin = campus.endpoints(3);
@@ -311,15 +309,47 @@ for x1 = 1:length(x_p)
     end
 end
 obj = sum(pond_mat(:));
+%}
+% compact format
+% this is for horizon of 2
+w = campus.w;
+mu = campus.mu;
+sigma = campus.sigma;
+A2 = A_fct(agent,x(1:2,2),agent.sigma_s);
+A3 = A_fct(agent,x(1:2,3),agent.sigma_s);
+for jj = 1:length(w)
+    A1 = A_fct(agent,mu(:,jj),sigma(:,:,jj));
+    alpha = sdpvar(3,1);
+    tmp_para = updPara([mu(:,jj),x(1:2,2),x(1:2,3)],cat(3,sigma(:,:,jj),agent.sigma_s,agent.sigma_s));
+    tmp_sigma = tmp_para.sigma;
+    tmp_mu = tmp_para.mu;
+    alpha(3) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A2-A3;
+    tmp_para = updPara([mu(:,jj),x(1:2,3)],cat(3,sigma(:,:,jj),agent.sigma_s));
+    tmp_sigma = tmp_para.sigma;
+    tmp_mu = tmp_para.mu;
+    alpha(2) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A3;
+    tmp_para = updPara([mu(:,jj),x(1:2,2)],cat(3,sigma(:,:,jj),agent.sigma_s));
+    tmp_sigma = tmp_para.sigma;
+    tmp_mu = tmp_para.mu;
+    alpha(1) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A2;
+    if jj == 1
+        obj = w(jj)*(1-exp(alpha(1))-exp(alpha(2))+exp(alpha(3)));
+    else
+        obj = obj+w(jj)*(1-exp(alpha(1))-exp(alpha(2))+exp(alpha(3)));
+    end
+end
 
 % constraints
 for ii = 1:hor
     % constraints on robot dynamics
-    constr = [constr,x(1:2,ii+1) == x(1:2,ii)+x(4,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
-        x(3,ii+1) == x(3,ii) + u(1,ii)*mpc_dt, x(4,ii+1) == x(4,ii)+u(2,ii)*mpc_dt,...
-        x(4,ii+1)>=0,agent.a_lb<=u(2,ii)<=agent.a_ub,agent.w_lb<=u(1,ii)<=agent.w_ub];%
-    %     constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c];
-    %     constr = [constr,x(4,ii+1)>=0,agent.a_lb<=u(2,ii)<=agent.a_ub,-agent.maxW<=u(1,ii)<=agent.maxW];%
+    % nonlinear constraint
+    %     constr = [constr,x(1:2,ii+1) == x(1:2,ii)+x(3,ii)*[cos(x(4,ii));sin(x(4,ii))]*mpc_dt,...
+    %         x(3,ii+1) == x(3,ii) + u(1,ii)*mpc_dt, x(4,ii+1) == x(4,ii)+u(2,ii)*mpc_dt,...
+    %         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
+    % linear constraint
+    [A,B,c] = agent.linearize_model([agent.currentV;agent.currentPos(3)]);
+    constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
+        x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
     % constraint on safe distance
 %     constr = [constr,sum((x(1:2,ii+1)-x_h(:,ii+1)).^2) >= safe_dis^2];
 %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
@@ -344,6 +374,22 @@ for ii = 1:hor
     end    
 
 end
+end
+
+function [outPara] = updPara(mu,sigma)
+% This function is similar to updateProbPara. However, this one will deal
+% with the case for several parameters (such as updating mu using mu_i, 
+% mu_k, mu_k+1, etc...)
+num = size(mu,2);
+tmp1 = 0;
+tmp2 = 0;
+for ii = 1:num
+    tmp = eye(2)/sigma(:,:,ii);
+    tmp1 = tmp1+tmp*mu(:,ii);
+    tmp2 = tmp2+tmp;
+end
+outPara.sigma = eye(2)/tmp2;
+outPara.mu = outPara.sigma*tmp1;
 end
 
 function [obj,constr] = genMPCinfea(inPara)

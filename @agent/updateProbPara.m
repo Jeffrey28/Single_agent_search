@@ -1,10 +1,12 @@
 function [w,mu,sigma] = updateProbPara(agent,w,mu,sigma,obs,mu_s,sigma_s)
+% update probability map parameters based on observation results
+% called before the updateProbMap.m
 num = length(w);
 if obs == 1 % positive observation
     for ii = 1:num      
         tmp_sigma = inv(inv(sigma_s)+inv(sigma(:,:,ii)));
         tmp_mu = tmp_sigma*(sigma_s\mu_s+sigma(:,:,ii)\mu(ii));        
-        alpha_i = A(tmp_mu,tmp_sigma)-A(mu(ii),sigma(:,:,ii))-A(mu_s,sigma_s);
+        alpha_i = A_fct(agent,tmp_mu,tmp_sigma)-A_fct(agent,mu(ii),sigma(:,:,ii))-A_fct(agent,mu_s,sigma_s);
         w(ii) = w(ii)*exp(alpha_i);
         mu(ii) = tmp_mu;
         sigma(ii) = tmp_sigma;        
@@ -19,7 +21,7 @@ elseif obs == 0 % negative observation
     for ii = num+1:2*num 
         tmp_sigma = inv(inv(sigma_s)+inv(sigma(:,:,ii)));
         tmp_mu = tmp_sigma*(sigma_s\mu_s+sigma(:,:,ii)\mu(:,ii));
-        alpha_i = A(tmp_mu,tmp_sigma)-A(mu(:,ii),sigma(:,:,ii))-A(mu_s,sigma_s);
+        alpha_i = A_fct(agent,tmp_mu,tmp_sigma)-A_fct(agent,mu(:,ii),sigma(:,:,ii))-A_fct(agent,mu_s,sigma_s);
         w(ii) = -w(ii)*exp(alpha_i);
         mu(:,ii) = tmp_mu;
         sigma(:,:,ii) = tmp_sigma;        
@@ -27,8 +29,3 @@ elseif obs == 0 % negative observation
     w = w/sum(w);
 end
 end
-
-function value = A(mu,sigma)
-% log partition function in exponential family for Gaussian distribution
-value = 1/2*mu'*(sigma\mu)+1/2*log(det(sigma))+1/2*log(2*pi);
-end    
