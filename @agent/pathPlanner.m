@@ -340,14 +340,15 @@ for jj = 1:length(w)
 end
 
 % constraints
+% linearize system
+[A,B,c] = agent.linearize_model([agent.currentV;agent.currentPos(3)],mpc_dt);
 for ii = 1:hor
     % constraints on robot dynamics
     % nonlinear constraint
     %     constr = [constr,x(1:2,ii+1) == x(1:2,ii)+x(3,ii)*[cos(x(4,ii));sin(x(4,ii))]*mpc_dt,...
     %         x(3,ii+1) == x(3,ii) + u(1,ii)*mpc_dt, x(4,ii+1) == x(4,ii)+u(2,ii)*mpc_dt,...
     %         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
-    % linear constraint
-    [A,B,c] = agent.linearize_model([agent.currentV;agent.currentPos(3)]);
+    % linear constraint   
     constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
     % constraint on safe distance

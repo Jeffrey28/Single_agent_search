@@ -5,11 +5,11 @@ num = length(w);
 if obs == 1 % positive observation
     for ii = 1:num      
         tmp_sigma = inv(inv(sigma_s)+inv(sigma(:,:,ii)));
-        tmp_mu = tmp_sigma*(sigma_s\mu_s+sigma(:,:,ii)\mu(ii));        
-        alpha_i = A_fct(agent,tmp_mu,tmp_sigma)-A_fct(agent,mu(ii),sigma(:,:,ii))-A_fct(agent,mu_s,sigma_s);
+        tmp_mu = tmp_sigma*(sigma_s\mu_s+sigma(:,:,ii)\mu(:,ii));        
+        alpha_i = A_fct(agent,tmp_mu,tmp_sigma)-A_fct(agent,mu(:,ii),sigma(:,:,ii))-A_fct(agent,mu_s,sigma_s);
         w(ii) = w(ii)*exp(alpha_i);
-        mu(ii) = tmp_mu;
-        sigma(ii) = tmp_sigma;        
+        mu(:,ii) = tmp_mu;
+        sigma(:,:,ii) = tmp_sigma;        
     end
     w = w/(sum(w)); % normalize weights
 elseif obs == 0 % negative observation

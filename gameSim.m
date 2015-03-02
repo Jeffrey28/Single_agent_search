@@ -22,7 +22,7 @@ r.a_lb = -3;
 r.a_ub = 2;
 r.w_lb = -pi/6;
 r.w_ub = pi/6;
-
+r.sigma_s = 2*eye(2);
 %%% Set field %%%
 xLength = 100*scale; 
 yLength = 100*scale; 
@@ -34,10 +34,10 @@ grid_step = 0.5; % the side length of a probability cell
 tar_pos = [75;55]*scale; % target positions
 w = [0.3;0.3;0.4]; % initial weight of normal distribution
 mix_num = length(w);
-mu = [25,50,75;25,30,55]*scale; % mean of normal distribution
+mu = [25,50,75;25,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 for ii = 1:mix_num
-    sigma(:,:,ii) = 3^2*eye(2);
+    sigma(:,:,ii) = 5*eye(2);
 end
 
 % define vertices of obstacles. Here use round obstacles
@@ -110,7 +110,7 @@ for k = 1:kf
     end
     % remove terms with very small weights
     max_w = max(w);
-    rv_id = (abs(w) < max_w*1e-4);
+    rv_id = (abs(w) < max_w*1e-2);
     w(rv_id) = [];
     w = w/sum(w);
     mu(:,rv_id) = [];
@@ -225,9 +225,11 @@ for k = 1:kf
 
     % draw probability map
     plot_prob_map = [prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
-    pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map);
+%     pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map);
+    surf(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map);
     
     % draw targets
+    %{
     for jj = 1:campus.targetNum
         h = plot(campus.targetPos(1,jj),campus.targetPos(2,jj),'MarkerSize',30);
         set(h,'Marker','p');
@@ -244,6 +246,7 @@ for k = 1:kf
     ylim([0,campus.endpoints(4)]);
     
     % draw agent trajectory
+    %{
     for ii = 1:length(agents)
         tmp_agent = agents(ii);
         h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',50);
@@ -260,6 +263,8 @@ for k = 1:kf
         set(h2,'LineStyle',line_agent{ii});
         set(h2,'Marker',marker_agent{ii});
     end
+    %}
+    
     % predicted human positions
     %{
     h3 = plot(pre_traj(1,:,k),pre_traj(2,:,k),color_agent{3},'markers',1);
@@ -271,6 +276,7 @@ for k = 1:kf
     %}
     
     % planned robot trajectory
+    %{
     if (tar_found == 0)
         h4 = plot(plan_state(1,2:end,k),plan_state(2,2:end,k),color_agent{2},'markers',15);
         set(h4,'MarkerFaceColor',color_agent{4});
