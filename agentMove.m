@@ -6,35 +6,35 @@ function [outPara] = agentMove(inPara)
 campus = inPara.campus;
 agents = inPara.agents;
 % way_pts = inPara.way_pts;
-% h_tar_wp = inPara.h_tar_wp;
-% obv_traj = inPara.obv_traj;
-% est_state = inPara.est_state;
-% pre_traj = inPara.pre_traj;
+
+obv_traj = inPara.obv_traj;
+est_state = inPara.est_state;
+pre_traj = inPara.pre_traj;
 plan_state = inPara.plan_state;
 r_state = inPara.r_state;
 r_input = inPara.r_input;
 k = inPara.k;
 hor = inPara.hor;
-% pre_type = inPara.pre_type;
-% samp_rate = inPara.samp_rate;
-% safe_dis = inPara.safe_dis;
+pre_type = inPara.pre_type;
+samp_rate = inPara.samp_rate;
+safe_dis = inPara.safe_dis;
 mpc_dt = inPara.mpc_dt;
 safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
-
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
     
     %% human moves
-    if strcmp(agent.type,'human')         
+    if strcmp(agent.type,'human') 
+        h_tar_wp = inPara.h_tar_wp; % get human current target waypoint
+        
         h_next_actions = getNextActionWithFixedHeading(agent.currentPos...
             ,h_tar_wp,agent.currentV,0,mpc_dt); % last argument is for zero deg_dev
         
         if k == 1
             tmp_agent_traj = agent.currentPos;
-%             obv_traj = [0;agent.currentPos(1:2)];
         else
             tmp_agent_traj = agent.traj;
         end
@@ -43,6 +43,7 @@ plan_type = inPara.plan_type;
         cur_pos = agent.currentPos(1:2);
         %
         % compute human heading
+        %{
         if k == 1
             % we assume that human heading at the beginning is known.
             cur_hd = agent.currentPos(3)+h_next_actions(3);
@@ -76,18 +77,24 @@ plan_type = inPara.plan_type;
         est_state([3,4],:,k) = y_est((k-1)*samp_num+1:end-1,:)';
         %}
         % estimation with no measurement noise
-        %{
-            est_state([1,3],k) = obv_traj(2:3,(k-1)*samp_rate*mpc_dt+1);
-            hd = cur_hd;
-            est_state([2,4],k) = h.currentV*[cos(hd);sin(hd)];
+        %
+        % estimated current state
+%         est_state(:,k) = obv_traj(2:3,(k-1)*samp_rate*mpc_dt+1); 
+%             est_state([1,3],k) = obv_traj(2:3,(k-1)*samp_rate*mpc_dt+1);
+%             hd = cur_hd;
+%             est_state([2,4],k) = h.currentV*[cos(hd);sin(hd)];
         %}
         
         %%  predict human future path
-        %{
-        % prediction by IMM
-        if strcmp(pre_type,'IMM')
-            pre_traj(:,:,k) = [[x_est((k-1)*samp_num+1,1);y_est((k-1)*samp_num+1,1)],[x_pre(k,:);y_pre(k,:)]];
+        %
+        % prediction by GP
+        if strcmp(pre_type,'GP')
+            inPara_phj = struct('obv_traj',obv_traj,...
+                'hor',hor,'pre_type',pre_type,'mpc_dt',mpc_dt);
+            pre_traj(:,:,k) = predictHumanTraj(agent,inPara_phj);
+%             pre_traj(:,:,k) = [[x_est((k-1)*samp_num+1,1);y_est((k-1)*samp_num+1,1)],[x_pre(k,:);y_pre(k,:)]];
 %             pre_traj(:,:,k) = [x_pos_pre_imm(:,k)';y_pos_pre_imm(:,k)'];
+
         % prediction by extrapolation
         elseif strcmp(pre_type,'extpol')
 %             inPara_phj = struct('state',est_state(:,k),'hor',hor,'pre_type',pre_type,...
@@ -148,11 +155,11 @@ plan_type = inPara.plan_type;
     end
 % end
 %% define output arguments
-% outPara = struct('agents',agents,'obv_traj',obv_traj,'est_state',est_state,...
-%     'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
-%     'samp_num',samp_num);
-outPara = struct('agents',agents,'plan_state',plan_state,'r_state',r_state,...
-    'r_input',r_input);
+outPara = struct('agents',agents,'obv_traj',obv_traj,'est_state',est_state,...
+    'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
+    'samp_num',samp_num);
+% outPara = struct('agents',agents,'plan_state',plan_state,'r_state',r_state,...
+%     'r_input',r_input);
 end
 
 function new_x = updState(x,u,mpc_dt)

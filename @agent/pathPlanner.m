@@ -1,6 +1,6 @@
 function outPara = pathPlanner(agent,inPara)
 % include IPOPT in YALMIP
-addpath('D:\Program Files\MATLAB\2013a_crack\IPOPT3.11.8');
+% addpath('D:\Program Files\MATLAB\2013a_crack\IPOPT3.11.8');
 % addpath('D:\Chang Liu\ipopt');
 % define input arguments
 % x_h = inPara.pre_traj; % predicted human trajectory
@@ -18,6 +18,7 @@ dt = 0.05; % time interval for sampling the points on the line of the robot's pa
 safe_marg2 = 0.1; % margin for the robot's path line from the obstacle
 tmp_hor = hor;
 intgr_step = agent.intgr_step;
+tc_scale = 1e-4; % scale for terminal cost
 % h_v_value = norm(h_v,2);
 
 init_state = [agent.currentPos(1:2);agent.currentV;agent.currentPos(3)];
@@ -39,7 +40,7 @@ while(tmp_hor > 0)
         'safe_marg',safe_marg,'obs_info',obs_info,...
         'non_intersect_flag',non_intersect_flag,'constr',constr,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'intgr_step',intgr_step,'campus',campus);
+        'intgr_step',intgr_step,'campus',campus,'tc_scale',tc_scale);
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     [obj,constr] = genMPC(inPara_cg); 
@@ -280,6 +281,7 @@ dt = inPara.dt;
 safe_marg2 = inPara.safe_marg2;
 % intgr_step = inPara.intgr_step;
 campus = inPara.campus;
+tc_scale = inPara.tc_scale;
 % init_state = inPara.init_state;
 
 % [A,B,c] = linearize_model(init_state,mpc_dt);
@@ -315,6 +317,7 @@ obj = sum(pond_mat(:));
 w = campus.w;
 mu = campus.mu;
 sigma = campus.sigma;
+prob_map = agent.updateProbMap(campus);
 A2 = A_fct(agent,x(1:2,2),agent.sigma_s);
 A3 = A_fct(agent,x(1:2,3),agent.sigma_s);
 for jj = 1:length(w)
@@ -338,6 +341,9 @@ for jj = 1:length(w)
         obj = obj+w(jj)*(1-exp(alpha(1))-exp(alpha(2))+exp(alpha(3)));
     end
 end
+inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
+    'campus',campus);
+obj = obj + termCost(inPara_tc);
 
 % constraints
 % linearize system
@@ -345,21 +351,24 @@ end
 for ii = 1:hor
     % constraints on robot dynamics
     % nonlinear constraint
-    %     constr = [constr,x(1:2,ii+1) == x(1:2,ii)+x(3,ii)*[cos(x(4,ii));sin(x(4,ii))]*mpc_dt,...
-    %         x(3,ii+1) == x(3,ii) + u(1,ii)*mpc_dt, x(4,ii+1) == x(4,ii)+u(2,ii)*mpc_dt,...
-    %         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
+%     constr = [constr,x(1:2,ii+1) == x(1:2,ii)+x(3,ii)*[cos(x(4,ii));sin(x(4,ii))]*mpc_dt,...
+%         x(3,ii+1) == x(3,ii) + u(1,ii)*mpc_dt, x(4,ii+1) == x(4,ii)+u(2,ii)*mpc_dt,...
+%         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
+    
     % linear constraint   
     constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
+    
     % constraint on safe distance
 %     constr = [constr,sum((x(1:2,ii+1)-x_h(:,ii+1)).^2) >= safe_dis^2];
 %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
+
     % constraint on obstacle avoidance
     % robot should not be inside the obstacles, i.e. robot waypoints should
     % not be inside the obstacle and the line connecting the waypoints 
     % should not intersect with the obstacle
 %     [a,b,c] = getLine(x(1:2,ii+1),x(1:2,ii));
-
+    %
     for jj = 1:size(obs_info,2)
         % waypoints not inside the obstacle
         constr = [constr,sum((x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg)^2];
@@ -373,7 +382,7 @@ for ii = 1:hor
             end
         end
     end    
-
+    %}
 end
 end
 
@@ -392,6 +401,32 @@ end
 outPara.sigma = eye(2)/tmp2;
 outPara.mu = outPara.sigma*tmp1;
 end
+
+function cost = termCost(inPara)
+% use the distance to the nearest high probability positions as the
+% terminal cost. need to rescale this cost.
+prob_map = inPara.prob_map;
+campus = inPara.campus;
+x_r = inPara.x_r;
+tc_scale = inPara.tc_scale;
+
+xMin = campus.endpoints(1);
+xMax = campus.endpoints(2);
+yMin = campus.endpoints(3);
+yMax = campus.endpoints(4);
+step = campus.grid_step;
+
+% find the positions with top n largest probabilities
+n = 5;
+tmp_value = sort(prob_map(:),'descend');
+[x_idx,y_idx] = find(prob_map >= tmp_value(n));
+x_axis = xMin+step/2:step:xMax-step/2;
+y_axis = yMin+step/2:step:yMax-step/2;
+dif = x_r*ones(1,length(x_idx)) - [x_axis(x_idx);y_axis(y_idx)];
+dif = reshape(dif,numel(dif),1);
+cost = min(dif'*dif)*tc_scale;
+end
+
 
 function [obj,constr] = genMPCinfea(inPara)
 % solve optimization problem when the initial condition is infeasible
