@@ -88,9 +88,10 @@ plan_type = inPara.plan_type;
         %%  predict human future path
         %
         % prediction by GP
+        samp_num = inPara.samp_num; % not used in current code. just put here so the outPara will not cause an error.
         if strcmp(pre_type,'GP')
-            inPara_phj = struct('obv_traj',obv_traj,...
-                'hor',hor,'pre_type',pre_type,'mpc_dt',mpc_dt);
+            inPara_phj = struct('obv_traj',obv_traj,'hor',hor,'pre_type',pre_type,...
+                'mpc_dt',mpc_dt,'samp_rate',samp_rate);
             pre_traj(:,:,k) = predictHumanTraj(agent,inPara_phj);
 %             pre_traj(:,:,k) = [[x_est((k-1)*samp_num+1,1);y_est((k-1)*samp_num+1,1)],[x_pre(k,:);y_pre(k,:)]];
 %             pre_traj(:,:,k) = [x_pos_pre_imm(:,k)';y_pos_pre_imm(:,k)'];
@@ -103,7 +104,7 @@ plan_type = inPara.plan_type;
                 'hor',hor,'pre_type',pre_type,'mpc_dt',mpc_dt);
             pre_traj(:,:,k) = predictHumanTraj(agent,inPara_phj);
         end     
-        pos_pre_imm = inPara.pos_pre_imm;
+%         pos_pre_imm = inPara.pos_pre_imm;
         %}
         %% robot path planning
         % record current trajectory before moving

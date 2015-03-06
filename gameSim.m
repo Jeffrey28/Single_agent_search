@@ -13,7 +13,7 @@ set(0,'DefaultFigureWindowStyle','docked');
 %%% define agents %%%
 % Human agent 1
 h = agent('human');
-h.currentPos = [30;10;0]*scale;%[290;30;0]; % [x y heading]
+h.currentPos = [30;20;0]*scale;%[290;30;0]; % [x y heading]
 % h.maxV = 1.5;
 h.currentV = 1.5;
 
@@ -23,9 +23,10 @@ r.currentPos = [20;10;0]*scale;%[310;30;0]; %[23.5;0.5;0];
 r.currentV = 2;
 r.a_lb = -3; 
 r.a_ub = 2;
-r.w_lb = -pi/6;
-r.w_ub = pi/6;
+r.w_lb = -pi/2;
+r.w_ub = pi/2;
 r.sigma_s = eye(2);
+r.k_s = 2*pi*sqrt(det(r.sigma_s));
 %%% Set field %%%
 xLength = 100*scale; 
 yLength = 100*scale; 
@@ -40,7 +41,7 @@ mix_num = length(w);
 mu = [25,50,75;25,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 for ii = 1:mix_num
-    sigma(:,:,ii) = 10*eye(2);
+    sigma(:,:,ii) = 30*eye(2);
 end
 
 % define vertices of obstacles. Here use round obstacles
@@ -78,9 +79,9 @@ safe_marg = 2; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
 
 % initialize variables
-obv_traj = zeros(3,0); % observed human trajectory; first row denotes the time [t,x,y]
+obv_traj = zeros(3,0); % observed human trajectory; first row denotes the time. [t,x,y]
 est_state = zeros(4,mpc_dt*samp_rate,kf); % estimated human states for every second [x,vx,y,vy];
-pre_traj = zeros(2,hor+1,kf); % current and predicted future human trajectory [x,y]
+pre_traj = zeros(3,hor+1,kf); % current and predicted future human trajectory [t,x,y]
 plan_state = zeros(4,hor+1,kf); % robot's current and planned future state [x,y,v]
 r_state = zeros(4,kf); % robot's actual state [x,y,theta,v]
 r_input = zeros(2,kf); % robot's actual control input [w,a]
@@ -200,7 +201,7 @@ for k = 1:kf
         %     obv_traj1=obv_traj';
         %     parameter;  % parameter for IMM
         inPara_ams = struct('campus',campus,'agents',agents,'h_tar_wp',h_tar_wp,...
-            'obv_traj',obv_traj','est_state',est_state,...
+            'obv_traj',obv_traj,'est_state',est_state,...
             'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...

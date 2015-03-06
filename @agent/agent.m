@@ -25,6 +25,7 @@ classdef agent
         currentV; % current velocity
         traj; % current and planned trajectory for agent at each time step
         sigma_s; % covariance for sensor model
+        k_s; % the scaling constant for sensor model
         intgr_step = 0.5; % step size for integral over x when calculating POD
 %         FOVcoords; % grid coordinates contained in agent field of view
 %         human

@@ -18,11 +18,12 @@ elseif obs == 0 % negative observation
     sigma = cat(3,sigma,sigma);
     % update the mean and covariance for the second half parameters. 
     % The first half don't change except the weights
+    k = agent.k_s;
     for ii = num+1:2*num 
         tmp_sigma = inv(inv(sigma_s)+inv(sigma(:,:,ii)));
         tmp_mu = tmp_sigma*(sigma_s\mu_s+sigma(:,:,ii)\mu(:,ii));
         alpha_i = A_fct(agent,tmp_mu,tmp_sigma)-A_fct(agent,mu(:,ii),sigma(:,:,ii))-A_fct(agent,mu_s,sigma_s);
-        w(ii) = -w(ii)*exp(alpha_i);
+        w(ii) = -k*w(ii)*exp(alpha_i);
         mu(:,ii) = tmp_mu;
         sigma(:,:,ii) = tmp_sigma;        
     end

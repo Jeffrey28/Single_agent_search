@@ -318,8 +318,11 @@ w = campus.w;
 mu = campus.mu;
 sigma = campus.sigma;
 prob_map = agent.updateProbMap(campus);
+k_s = agent.k_s;
+
 A2 = A_fct(agent,x(1:2,2),agent.sigma_s);
 A3 = A_fct(agent,x(1:2,3),agent.sigma_s);
+obj = 0;
 for jj = 1:length(w)
     A1 = A_fct(agent,mu(:,jj),sigma(:,:,jj));
     alpha = sdpvar(3,1);
@@ -335,15 +338,15 @@ for jj = 1:length(w)
     tmp_sigma = tmp_para.sigma;
     tmp_mu = tmp_para.mu;
     alpha(1) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A2;
-    if jj == 1
-        obj = w(jj)*(1-exp(alpha(1))-exp(alpha(2))+exp(alpha(3)));
-    else
-        obj = obj+w(jj)*(1-exp(alpha(1))-exp(alpha(2))+exp(alpha(3)));
-    end
+%     if jj == 1
+%         obj = w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
+%     else
+        obj = obj+w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
+%     end
 end
 inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
     'campus',campus);
-obj = obj + termCost(inPara_tc);
+% obj = obj + termCost(inPara_tc);
 
 % constraints
 % linearize system
