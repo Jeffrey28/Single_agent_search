@@ -26,7 +26,9 @@ classdef agent
         traj; % current and planned trajectory for agent at each time step
         sigma_s; % covariance for sensor model
         k_s; % the scaling constant for sensor model
-        intgr_step = 0.5; % step size for integral over x when calculating POD
+        cur_clt; % robot's current goal cluster
+        clt_res; % clustering result
+        hp_pt; % coordinates of high probability points [x,y]
 %         FOVcoords; % grid coordinates contained in agent field of view
 %         human
         % No entry zone: 

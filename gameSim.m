@@ -21,12 +21,15 @@ h.currentV = 1.5;
 r = agent('robot');
 r.currentPos = [20;10;0]*scale;%[310;30;0]; %[23.5;0.5;0];
 r.currentV = 2;
-r.a_lb = -3; 
-r.a_ub = 2;
-r.w_lb = -pi/2;
-r.w_ub = pi/2;
-r.sigma_s = eye(2);
+r.maxV = 5;
+r.a_lb = -1; 
+r.a_ub = 1;
+r.w_lb = -pi/4;
+r.w_ub = pi/4;
+r.sigma_s = 10*eye(2);
 r.k_s = 2*pi*sqrt(det(r.sigma_s));
+r.cur_clt = 0; % current goal cluster
+
 %%% Set field %%%
 xLength = 100*scale; 
 yLength = 100*scale; 
@@ -90,6 +93,7 @@ h_tar_wp = h_way_pts(:,wp_cnt); % the way point that the human is heading for
 sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of each agent
 prob_map_set = []; % record probability map for each step
 tar_found = 0; % binary variable. 1 indicates that the target is found
+clt_thresh = 2.5e-6; %threshold for choosing points to be clustered
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -116,7 +120,7 @@ for k = 1:kf
     end
     % remove terms with very small weights
     max_w = max(w);
-    rv_id = (abs(w) < max_w*1e-2);
+    rv_id = (abs(w) < max_w/50);
     w(rv_id) = [];
     w = w/sum(w);
     mu(:,rv_id) = [];
@@ -205,7 +209,8 @@ for k = 1:kf
             'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
-            'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num);
+            'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
+            'prob_map',prob_map,'clt_thresh',clt_thresh);
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;

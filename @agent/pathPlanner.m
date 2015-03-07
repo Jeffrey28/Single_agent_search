@@ -17,7 +17,6 @@ non_intersect_flag = 0; % flag for showing whether imposing the non-intersection
 dt = 0.05; % time interval for sampling the points on the line of the robot's path. used for imposing non-intersection constriant
 safe_marg2 = 0.1; % margin for the robot's path line from the obstacle
 tmp_hor = hor;
-intgr_step = agent.intgr_step;
 tc_scale = 1e-4; % scale for terminal cost
 % h_v_value = norm(h_v,2);
 
@@ -40,14 +39,14 @@ while(tmp_hor > 0)
         'safe_marg',safe_marg,'obs_info',obs_info,...
         'non_intersect_flag',non_intersect_flag,'constr',constr,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'intgr_step',intgr_step,'campus',campus,'tc_scale',tc_scale);
+        'campus',campus,'tc_scale',tc_scale);
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     [obj,constr] = genMPC(inPara_cg); 
     
     % solve MPC
     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
-    opt.Algorithm = 'sqp';
+    opt.Algorithm = 'interior-point';
     sol = optimize(constr,obj,opt);
     
     if sol.problem == 0
@@ -282,6 +281,11 @@ safe_marg2 = inPara.safe_marg2;
 % intgr_step = inPara.intgr_step;
 campus = inPara.campus;
 tc_scale = inPara.tc_scale;
+
+cur_clt = agent.cur_clt;
+clt_res = agent.clt_res;
+hp_pt = agent.hp_pt;
+grid_step = campus.grid_step;
 % init_state = inPara.init_state;
 
 % [A,B,c] = linearize_model(init_state,mpc_dt);
@@ -344,8 +348,20 @@ for jj = 1:length(w)
         obj = obj+w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
 %     end
 end
-inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
-    'campus',campus);
+
+% determine whether the robot is already in the cur_clt region.
+tmp_pt = hp_pt(clt_res == cur_clt,:);
+tmp_vec = tmp_pt*grid_step - ones(size(tmp_pt,1),1)*agent.currentPos(1:2)';
+tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,2));
+tmp_min = min(tmp_dis);
+tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:);
+if tmp_dis > agent.currentV * mpc_dt
+    tmp_vec2 = x(1:2,end) - tmp_min_pt;
+    obj = 0.5*obj+0.5*norm(tmp_vec2)*1e-2;
+end
+
+% inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
+%     'campus',campus);
 % obj = obj + termCost(inPara_tc);
 
 % constraints

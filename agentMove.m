@@ -22,6 +22,8 @@ mpc_dt = inPara.mpc_dt;
 safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
+
+
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
@@ -113,6 +115,16 @@ plan_type = inPara.plan_type;
         else
             tmp_agent_traj = agent.traj;
         end
+        % clustering data
+        prob_map = inPara.prob_map;
+        clt_thresh = inPara.clt_thresh;
+        if k == 1
+            [agent.clt_res,agent.hp_pt] = agent.mapCluster(prob_map,clt_thresh);
+        end
+        
+        % decide which cluster to go. current strategy: go to the nearest
+        % one
+        agent.cur_clt = selectCluster(agent,campus.grid_step,prob_map);
         
         if strcmp(plan_type,'mpc')
 %             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
