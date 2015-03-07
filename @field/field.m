@@ -12,10 +12,12 @@ classdef field
         w; % mixture weight for gaussian mixture model
         mu; % vector of mean
         sigma; % matrix of covariance 
+        lambda;
+        psi;
     end
    
     methods
-        function obj=field(endpoints,step,targetPos,w,mu,sigma) 
+        function obj=field(endpoints,step,targetPos,w,mu,sigma,lambda,psi) 
             obj.endpoints = endpoints;
             obj.grid_step = step;      
             obj.targetPos = targetPos;
@@ -23,6 +25,8 @@ classdef field
             obj.w = w;
             obj.mu = mu;
             obj.sigma = sigma;
+            obj.lambda = lambda;
+            obj.psi = psi;
         end       
     end
 end

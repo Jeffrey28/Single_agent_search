@@ -25,6 +25,7 @@ classdef agent
         currentV; % current velocity
         traj; % current and planned trajectory for agent at each time step
         sigma_s; % covariance for sensor model
+        psi_s;
         k_s; % the scaling constant for sensor model
         cur_clt; % robot's current goal cluster
         clt_res; % clustering result

@@ -1,7 +1,8 @@
 % 11/24/2014
 % this file is for the ME 290J course project
 
-% 3/
+% 3/2/2015
+% adjust the file for human-robot search scenario
 
 clc 
 clear % clear global variables
@@ -27,6 +28,7 @@ r.a_ub = 1;
 r.w_lb = -pi/4;
 r.w_ub = pi/4;
 r.sigma_s = 10*eye(2);
+r.psi_s = 1/2*eye(2)/r.sigma_s;
 r.k_s = 2*pi*sqrt(det(r.sigma_s));
 r.cur_clt = 0; % current goal cluster
 
@@ -43,8 +45,12 @@ w = [0.3;0.3;0.4]; % initial weight of normal distribution
 mix_num = length(w);
 mu = [25,50,75;25,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
+lambda = zeros(size(mu));
+psi = zeros(size(sigma));
 for ii = 1:mix_num
     sigma(:,:,ii) = 30*eye(2);
+    lambda(:,ii) = sigma(:,:,ii)\mu(:,ii);
+    psi(:,:,ii) = 1/2*eye(2)/sigma(:,:,ii);
 end
 
 % define vertices of obstacles. Here use round obstacles
@@ -54,7 +60,7 @@ theta_set = {{0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi}};
 inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta_set',theta_set,'type','obs');
 obs_pos = getWayPts(inPara_gwp);
 
-campus = field([xMin xMax yMin yMax],grid_step,tar_pos,w,mu,sigma);
+campus = field([xMin xMax yMin yMax],grid_step,tar_pos,w,mu,sigma,lambda,psi);
 campus.agentNum = 1;
 campus.obs_info = [c_set;r_set]; % gives the center and radius of each obstacle
 
@@ -93,7 +99,7 @@ h_tar_wp = h_way_pts(:,wp_cnt); % the way point that the human is heading for
 sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of each agent
 prob_map_set = []; % record probability map for each step
 tar_found = 0; % binary variable. 1 indicates that the target is found
-clt_thresh = 2.5e-6; %threshold for choosing points to be clustered
+clt_thresh = 1e-5; %threshold for choosing points to be clustered
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -115,19 +121,28 @@ for k = 1:kf
             cur_pos = agent.currentPos(1:2);
             [~,~,sim_reading] = sensorSim(agent,tar_pos,cur_pos);
             sensor_reading(agentIndex,k) = sim_reading;
-            [w,mu,sigma] = agent.updateProbPara(w,mu,sigma,sim_reading,cur_pos,agent.sigma_s);
+            cur_lambda = agent.sigma_s\cur_pos;
+            cur_psi = 1/2*eye(2)/agent.sigma_s;
+%             [w,mu,sigma] = agent.updateProbPara(w,lambda,psi,sim_reading,cur_pos,agent.sigma_s);
+            [w,mu,sigma,lambda,psi] = agent.updateProbPara2(w,lambda,psi,sim_reading,cur_lambda,cur_psi);
         end
     end
     % remove terms with very small weights
+    %
     max_w = max(w);
-    rv_id = (abs(w) < max_w/50);
+    rv_id = (abs(w) < max_w/100);
     w(rv_id) = [];
     w = w/sum(w);
-    mu(:,rv_id) = [];
-    sigma(:,:,rv_id) = [];
+    lambda(:,rv_id) = [];
+    psi(:,:,rv_id) = [];
+    %}
+%     mu(:,rv_id) = [];
+%     sigma(:,:,rv_id) = [];
     campus.w = w;
-    campus.mu = mu;
+    campus.lambda = lambda;
+    campus.psi = psi;
     campus.sigma = sigma;
+    campus.mu = mu;
     % Save current probability distribution
     prob_map = agent.updateProbMap(campus);
     prob_map_set(:,:,k) = matrixToCartesian(prob_map);

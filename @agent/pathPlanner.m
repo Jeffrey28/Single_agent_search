@@ -20,10 +20,10 @@ tmp_hor = hor;
 tc_scale = 1e-4; % scale for terminal cost
 % h_v_value = norm(h_v,2);
 
-init_state = [agent.currentPos(1:2);agent.currentV;agent.currentPos(3)];
+init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentV;agent.currentPos(3)];
 while(tmp_hor > 0)
     % define MPC
-    x = sdpvar(4,tmp_hor+1); %[x,y,theta,v]
+    x = sdpvar(4,tmp_hor+1); %[lambda(2-D),theta,v]
     u = sdpvar(2,tmp_hor); %[w,a]
     
     % impose constraints
@@ -319,29 +319,30 @@ obj = sum(pond_mat(:));
 % compact format
 % this is for horizon of 2
 w = campus.w;
-mu = campus.mu;
-sigma = campus.sigma;
+lambda = campus.lambda;
+psi = campus.psi;
 prob_map = agent.updateProbMap(campus);
 k_s = agent.k_s;
 
-A2 = A_fct(agent,x(1:2,2),agent.sigma_s);
-A3 = A_fct(agent,x(1:2,3),agent.sigma_s);
+A2 = A_fct2(agent,x(1:2,2),agent.psi_s);
+A3 = A_fct2(agent,x(1:2,3),agent.psi_s);
 obj = 0;
 for jj = 1:length(w)
-    A1 = A_fct(agent,mu(:,jj),sigma(:,:,jj));
+    A1 = A_fct2(agent,lambda(:,jj),psi(:,:,jj));
     alpha = sdpvar(3,1);
-    tmp_para = updPara([mu(:,jj),x(1:2,2),x(1:2,3)],cat(3,sigma(:,:,jj),agent.sigma_s,agent.sigma_s));
-    tmp_sigma = tmp_para.sigma;
-    tmp_mu = tmp_para.mu;
-    alpha(3) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A2-A3;
-    tmp_para = updPara([mu(:,jj),x(1:2,3)],cat(3,sigma(:,:,jj),agent.sigma_s));
-    tmp_sigma = tmp_para.sigma;
-    tmp_mu = tmp_para.mu;
-    alpha(2) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A3;
-    tmp_para = updPara([mu(:,jj),x(1:2,2)],cat(3,sigma(:,:,jj),agent.sigma_s));
-    tmp_sigma = tmp_para.sigma;
-    tmp_mu = tmp_para.mu;
-    alpha(1) = A_fct(agent,tmp_mu,tmp_sigma)-A1-A2;
+    tmp_para = updPara2([lambda(:,jj),x(1:2,2),x(1:2,3)],...
+        cat(3,psi(:,:,jj),agent.psi_s,agent.psi_s));
+    tmp_psi = tmp_para.psi;
+    tmp_lambda = tmp_para.lambda;
+    alpha(3) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A2-A3;
+    tmp_para = updPara2([lambda(:,jj),x(1:2,3)],cat(3,psi(:,:,jj),agent.psi_s));
+    tmp_psi = tmp_para.psi;
+    tmp_lambda = tmp_para.lambda;
+    alpha(2) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A3;
+    tmp_para = updPara2([lambda(:,jj),x(1:2,2)],cat(3,psi(:,:,jj),agent.psi_s));
+    tmp_psi = tmp_para.psi;
+    tmp_lambda = tmp_para.lambda;
+    alpha(1) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A2;
 %     if jj == 1
 %         obj = w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
 %     else
@@ -355,8 +356,9 @@ tmp_vec = tmp_pt*grid_step - ones(size(tmp_pt,1),1)*agent.currentPos(1:2)';
 tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,2));
 tmp_min = min(tmp_dis);
 tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:);
-if tmp_dis > agent.currentV * mpc_dt
-    tmp_vec2 = x(1:2,end) - tmp_min_pt;
+% if the agent is not in the cur_clt region, add a terminal cost in the obj.
+if tmp_min > agent.currentV * mpc_dt 
+    tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt';
     obj = 0.5*obj+0.5*norm(tmp_vec2)*1e-2;
 end
 
@@ -366,7 +368,7 @@ end
 
 % constraints
 % linearize system
-[A,B,c] = agent.linearize_model([agent.currentV;agent.currentPos(3)],mpc_dt);
+[A,B,c] = agent.linearize_model2([agent.currentV;agent.currentPos(3)],mpc_dt);
 for ii = 1:hor
     % constraints on robot dynamics
     % nonlinear constraint
@@ -376,7 +378,7 @@ for ii = 1:hor
     
     % linear constraint   
     constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
-        x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
+        0<=x(3,ii+1)<=agent.maxV,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
     
     % constraint on safe distance
 %     constr = [constr,sum((x(1:2,ii+1)-x_h(:,ii+1)).^2) >= safe_dis^2];
@@ -387,7 +389,7 @@ for ii = 1:hor
     % not be inside the obstacle and the line connecting the waypoints 
     % should not intersect with the obstacle
 %     [a,b,c] = getLine(x(1:2,ii+1),x(1:2,ii));
-    %
+    %{
     for jj = 1:size(obs_info,2)
         % waypoints not inside the obstacle
         constr = [constr,sum((x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg)^2];
@@ -419,6 +421,14 @@ for ii = 1:num
 end
 outPara.sigma = eye(2)/tmp2;
 outPara.mu = outPara.sigma*tmp1;
+end
+
+function [outPara] = updPara2(lambda,psi)
+% This function is similar to updateProbPara. However, this one will deal
+% with the case for several parameters (such as updating mu using mu_i, 
+% mu_k, mu_k+1, etc...)
+outPara.psi = sum(psi,3);
+outPara.lambda = sum(lambda,2);
 end
 
 function cost = termCost(inPara)
