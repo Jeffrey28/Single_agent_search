@@ -12,6 +12,14 @@ yLength = (yMax-yMin)/step;
 w = field.w;
 mu = field.mu;
 sigma = field.sigma;
+% remove small weights
+max_w = max(w);
+rv_id = (abs(w) < 1e-4);
+w(rv_id) = [];
+w = w/sum(w);
+mu(:,rv_id) = [];
+sigma(:,:,rv_id) = [];
+
 mix_num = length(w);
 [x_axis,y_axis] = meshgrid(xMin+step/2:step:xMax-step/2,yMin+step/2:step:yMax-step/2);
 prob_map = zeros(xLength,yLength);

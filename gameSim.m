@@ -9,7 +9,7 @@ clear % clear global variables
 close all
 
 %% Setup
-scale = 1; % scale the size of the field
+scale = 1/2; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');
 %%% define agents %%%
 % Human agent 1
@@ -48,7 +48,7 @@ sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 lambda = zeros(size(mu));
 psi = zeros(size(sigma));
 for ii = 1:mix_num
-    sigma(:,:,ii) = 30*eye(2);
+    sigma(:,:,ii) = 10*eye(2);
     lambda(:,ii) = sigma(:,:,ii)\mu(:,ii);
     psi(:,:,ii) = 1/2*eye(2)/sigma(:,:,ii);
 end
@@ -100,6 +100,8 @@ sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of eac
 prob_map_set = []; % record probability map for each step
 tar_found = 0; % binary variable. 1 indicates that the target is found
 clt_thresh = 1e-5; %threshold for choosing points to be clustered
+
+a_g_0 = []; % save positive alpha_i
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -125,19 +127,20 @@ for k = 1:kf
             cur_psi = 1/2*eye(2)/agent.sigma_s;
 %             [w,mu,sigma] = agent.updateProbPara(w,lambda,psi,sim_reading,cur_pos,agent.sigma_s);
             [w,mu,sigma,lambda,psi] = agent.updateProbPara2(w,lambda,psi,sim_reading,cur_lambda,cur_psi);
+%             a_g_0 = [a_g_0,tmp_a_g_0];
         end
     end
     % remove terms with very small weights
     %
     max_w = max(w);
-    rv_id = (abs(w) < max_w/100);
+    rv_id = (abs(w) < 1e-3);
     w(rv_id) = [];
     w = w/sum(w);
     lambda(:,rv_id) = [];
     psi(:,:,rv_id) = [];
+    mu(:,rv_id) = [];
+    sigma(:,:,rv_id) = [];
     %}
-%     mu(:,rv_id) = [];
-%     sigma(:,:,rv_id) = [];
     campus.w = w;
     campus.lambda = lambda;
     campus.psi = psi;

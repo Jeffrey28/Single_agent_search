@@ -12,7 +12,7 @@ if cur_clt ~= 0
     tmp_pt = hp_pt(clt_res == cur_clt,:);
     idx = sub2ind(size(prob_map),tmp_pt(:,1),tmp_pt(:,2));
     tmp_max_prob = max(prob_map(idx));
-    if tmp_max_prob > max_prob
+    if tmp_max_prob > max_prob/10 % may add another condition on the average probability mass
         return
     end
 end

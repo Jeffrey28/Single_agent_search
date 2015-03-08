@@ -324,6 +324,15 @@ psi = campus.psi;
 prob_map = agent.updateProbMap(campus);
 k_s = agent.k_s;
 
+% remove terms with very small weights to speed up the optimization
+max_w = max(w);
+rv_id = (abs(w) < max_w/20);
+w(rv_id) = [];
+sprintf('number of w is %d',length(w));
+w = w/sum(w);
+lambda(:,rv_id) = [];
+psi(:,:,rv_id) = [];
+
 A2 = A_fct2(agent,x(1:2,2),agent.psi_s);
 A3 = A_fct2(agent,x(1:2,3),agent.psi_s);
 obj = 0;
@@ -355,10 +364,10 @@ tmp_pt = hp_pt(clt_res == cur_clt,:);
 tmp_vec = tmp_pt*grid_step - ones(size(tmp_pt,1),1)*agent.currentPos(1:2)';
 tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,2));
 tmp_min = min(tmp_dis);
-tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:);
+tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several points
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
 if tmp_min > agent.currentV * mpc_dt 
-    tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt';
+    tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)';
     obj = 0.5*obj+0.5*norm(tmp_vec2)*1e-2;
 end
 
