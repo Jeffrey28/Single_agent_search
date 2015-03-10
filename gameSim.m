@@ -42,9 +42,9 @@ xMax = xMin+xLength;
 yMax = yMin+yLength;
 grid_step = 0.5; % the side length of a probability cell
 tar_pos = [75;55]*scale; % target positions
-w = [0.2;0.2;0.3;0.3]; % initial weight of normal distribution
+w = [0.2;0.2;0.2;0.2;0.2]; % initial weight of normal distribution
 mix_num = length(w);
-mu = [25,30,50,75;25,45,70,55]*scale; % mean of normal distribution
+mu = [25,30,50,70,75;25,45,70,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 lambda = zeros(size(mu));
 psi = zeros(size(sigma));
@@ -134,7 +134,7 @@ for k = 1:kf
     % remove terms with very small weights
     %
     max_w = max(w);
-    rv_id = (abs(w) < 1e-3);
+    rv_id = (abs(w) < max(w)*1e-3);
     w(rv_id) = [];
     w = w/sum(w);
     lambda(:,rv_id) = [];
@@ -247,9 +247,9 @@ for k = 1:kf
     
     % plot specifications
     color_agent = {'r','g','r','g'};
-    marker_agent = {'o','^','*','d'};
+    marker_agent = {'o','o','^','^'};
     line_agent = {'-','-','-','-'};
-    line_w_agent = [2,2,3,3];
+    line_w_agent = [3,3,3,3];
     orange = [1 204/255 0];
     color_target = {'m','b',orange};
     figure;
@@ -263,7 +263,7 @@ for k = 1:kf
     colorbar
     
     % draw targets
-    %{
+    %
     for jj = 1:campus.targetNum
         h = plot(campus.targetPos(1,jj),campus.targetPos(2,jj),'MarkerSize',30);
         set(h,'Marker','p');
@@ -285,14 +285,14 @@ for k = 1:kf
     
     for ii = 1:length(agents)
         tmp_agent = agents(ii);
-        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',3);
+        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',5);
         set(h1,'MarkerFaceColor',color_agent{ii});
         set(h1,'MarkerEdgeColor',color_agent{ii});
         set(h1,'Color',color_agent{ii});
         set(h1,'LineStyle',line_agent{ii});
         set(h1,'Marker',marker_agent{ii});
         set(h1,'LineWidth',line_w_agent(ii));
-        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',5);
+        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',9);
         set(h2,'MarkerFaceColor',color_agent{ii});
         set(h2,'MarkerEdgeColor',color_agent{ii});
         set(h2,'Color',color_agent{ii});
@@ -301,29 +301,29 @@ for k = 1:kf
         % get hte points to draw the safe region around the human and the size
         % of the robot
         % human
-        if strcmp(tmp_agent.type,'human')
-            c_set = [tmp_agent.traj(1,:);tmp_agent.traj(2,:)];
-            r_set = safe_dis;
-            theta = 0:pi/8:2*pi;
-            inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
-            circle_pos = getWayPts(inPara_gwp);
-            for jj = 1:size(circle_pos)
-                tmp_pos = circle_pos{jj};
-                fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{ii});
-            end
-        elseif strcmp(tmp_agent.type,'robot')
+%         if strcmp(tmp_agent.type,'human')
+%             c_set = [tmp_agent.traj(1,:);tmp_agent.traj(2,:)];
+%             r_set = safe_dis;
+%             theta = 0:pi/8:2*pi;
+%             inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+%             circle_pos = getWayPts(inPara_gwp);
+%             for jj = 1:size(circle_pos)
+%                 tmp_pos = circle_pos{jj};
+%                 fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{ii});
+%             end
+%         elseif strcmp(tmp_agent.type,'robot')
             % the following line can be problematic, need to change after
             % fixing the problem in time series of sensor data
-            c_set = [tmp_agent.traj(1,1:end-1);tmp_agent.traj(2,1:end-1)];
-            r_set = tmp_agent.d;
-            theta = 0:pi/8:2*pi;
-            inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
-            circle_pos = getWayPts(inPara_gwp);
-            for jj = 1:size(circle_pos)
-                tmp_pos = circle_pos{jj};
-                fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{ii});
-            end
-        end
+%             c_set = [tmp_agent.traj(1,:);tmp_agent.traj(2,:)];
+%             r_set = tmp_agent.d;
+%             theta = 0:pi/8:2*pi;
+%             inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+%             circle_pos = getWayPts(inPara_gwp);
+%             for jj = 1:size(circle_pos)
+%                 tmp_pos = circle_pos{jj};
+%                 fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{ii});
+%             end
+%         end
     end
     %}
     
@@ -335,20 +335,38 @@ for k = 1:kf
     set(h3,'Color',color_agent{3});
     set(h3,'LineStyle',line_agent{3});
     set(h3,'Marker',marker_agent{3});
-    set(h1,'LineWidth',line_w_agent(3));
+    set(h1,'LineWidth',7);%line_w_agent(3)
+    c_set = [pre_traj(2,2:end,k);pre_traj(3,2:end,k)];
+    r_set = safe_dis;
+    theta = 0:pi/8:2*pi;
+    inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+    circle_pos = getWayPts(inPara_gwp);
+    for jj = 1:size(circle_pos)
+        tmp_pos = circle_pos{jj};
+        fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{3});
+    end
     %}
     
     % planned robot trajectory
     %
     if (tar_found == 0)
         
-        h4 = plot(plan_state(1,2:end,k),plan_state(2,2:end,k),color_agent{2},'markers',15);
+        h4 = plot(plan_state(1,:,k),plan_state(2,:,k),color_agent{2},'markers',2);
         set(h4,'MarkerFaceColor',color_agent{4});
         set(h4,'MarkerEdgeColor',color_agent{4});
         set(h4,'Color',color_agent{4});
         set(h4,'LineStyle',line_agent{4});
         set(h4,'Marker',marker_agent{4});
-        set(h1,'LineWidth',line_w_agent(4));
+        set(h1,'LineWidth',7);%line_w_agent(4)
+        c_set = [plan_state(1,2:end,k);plan_state(2,2:end,k)];
+        r_set = r.d;
+        theta = 0:pi/8:2*pi;
+        inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+        circle_pos = getWayPts(inPara_gwp);
+        for jj = 1:size(circle_pos)
+            tmp_pos = circle_pos{jj};
+            fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{4});
+        end
         grid minor
         set(gca,'MinorGridLineStyle','-','XColor',[0.5 0.5 0.5],'YColor',[0.5 0.5 0.5])
         axis equal

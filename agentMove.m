@@ -113,11 +113,11 @@ plan_type = inPara.plan_type;
         %}
         %% robot path planning
         % record current trajectory before moving
-        if k == 1
-            tmp_agent_traj = agent.currentPos;
-        else
+%         if k == 1
+%             tmp_agent_traj = agent.currentPos;
+%         else
             tmp_agent_traj = agent.traj;
-        end
+%         end
         % clustering data
         prob_map = inPara.prob_map;
         clt_thresh = inPara.clt_thresh;
@@ -133,6 +133,8 @@ plan_type = inPara.plan_type;
 %             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
 %                 'obs_info',campus.obs_info,'safe_marg',safe_marg);
+            agent.currentPos = [r_state(1:2,k);r_state(4,k)]; % update robot position and orientation
+            agent.currentV = r_state(3,k); % update robot speed
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj,...
                 'safe_dis',safe_dis);
@@ -141,9 +143,9 @@ plan_type = inPara.plan_type;
             opt_u = outPara_pp.opt_u;
             new_state = updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
                 opt_u,mpc_dt); % contains current and future states
-            agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
-            agent.currentV = new_state(3,2); % update robot speed
-            r_state(:,k+1) = new_state(:,2);
+%             agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
+%             agent.currentV = new_state(3,2); % update robot speed
+            r_state(:,k+1) = new_state(:,2); % save the human's next state
             r_input(:,k) = opt_u(:,1);
             plan_state(:,:,k) = new_state;
             

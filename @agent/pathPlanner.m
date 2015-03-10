@@ -391,7 +391,7 @@ for ii = 1:hor
         0<=x(3,ii+1)<=agent.maxV,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
     
     % constraint on safe distance
-    constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(1:2,ii+1)).^2) >= safe_dis^2];
+    constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(1:2,ii+1)).^2) >= (safe_dis+agent.d)^2];
 %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
 
     % constraint on obstacle avoidance
@@ -399,10 +399,10 @@ for ii = 1:hor
     % not be inside the obstacle and the line connecting the waypoints 
     % should not intersect with the obstacle
 %     [a,b,c] = getLine(x(1:2,ii+1),x(1:2,ii));
-    %{
+    %
     for jj = 1:size(obs_info,2)
         % waypoints not inside the obstacle
-        constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg)^2];
+        constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg+agent.d)^2];
         if non_intersect_flag == 1
             % line not intersecting with the obstacle
             n = floor(mpc_dt/dt);
