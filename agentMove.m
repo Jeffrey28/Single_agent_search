@@ -23,7 +23,6 @@ safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
 
-
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
@@ -59,8 +58,8 @@ plan_type = inPara.plan_type;
         samp_num = double(uint16(t*samp_rate)); % get the number of observations of human position
         for ii = 1:samp_num
              % observed human position
-             tmp_t = (k-1)*mpc_dt+(ii-1)/samp_rate;
-             obv_traj = [obv_traj,[tmp_t;cur_pos+(next_pos-cur_pos)*(ii-1)/samp_num]];
+             tmp_t = (k-1)*mpc_dt+ii/samp_rate;
+             obv_traj = [obv_traj,[tmp_t;cur_pos+(next_pos-cur_pos)*ii/samp_num]];
         end
         
         % update human position
@@ -91,10 +90,13 @@ plan_type = inPara.plan_type;
         %
         % prediction by GP
         samp_num = inPara.samp_num; % not used in current code. just put here so the outPara will not cause an error.
+        pre_cov = inPara.pre_cov;
         if strcmp(pre_type,'GP')
             inPara_phj = struct('obv_traj',obv_traj,'hor',hor,'pre_type',pre_type,...
-                'mpc_dt',mpc_dt,'samp_rate',samp_rate);
-            pre_traj(:,:,k) = predictHumanTraj(agent,inPara_phj);
+                'mpc_dt',mpc_dt,'samp_rate',samp_rate,'pre_cov',pre_cov);
+            outPara_phj = predictHumanTraj(agent,inPara_phj);
+            pre_traj(:,:,k) = outPara_phj.pre_traj;
+            pre_cov(:,:,:,k) = outPara_phj.pre_cov;
 %             pre_traj(:,:,k) = [[x_est((k-1)*samp_num+1,1);y_est((k-1)*samp_num+1,1)],[x_pre(k,:);y_pre(k,:)]];
 %             pre_traj(:,:,k) = [x_pos_pre_imm(:,k)';y_pos_pre_imm(:,k)'];
 
@@ -102,9 +104,10 @@ plan_type = inPara.plan_type;
         elseif strcmp(pre_type,'extpol')
 %             inPara_phj = struct('state',est_state(:,k),'hor',hor,'pre_type',pre_type,...
 %                 'mpc_dt',mpc_dt);
-            inPara_phj = struct('state',[x_est((k-1)*samp_num+1,:)';y_est((k-1)*samp_num+1,:)'],...
+            inPara_phj = struct('obv_traj',obv_traj,...
                 'hor',hor,'pre_type',pre_type,'mpc_dt',mpc_dt);
-            pre_traj(:,:,k) = predictHumanTraj(agent,inPara_phj);
+            outPara_phj = predictHumanTraj(agent,inPara_phj);
+            pre_traj(:,:,k) = outPara_phj.pre_traj;
         end     
 %         pos_pre_imm = inPara.pos_pre_imm;
         %}
@@ -131,7 +134,8 @@ plan_type = inPara.plan_type;
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
 %                 'obs_info',campus.obs_info,'safe_marg',safe_marg);
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
-                'obs_info',campus.obs_info,'safe_marg',safe_marg);
+                'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj,...
+                'safe_dis',safe_dis);
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             opt_u = outPara_pp.opt_u;
@@ -139,7 +143,7 @@ plan_type = inPara.plan_type;
                 opt_u,mpc_dt); % contains current and future states
             agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
             agent.currentV = new_state(3,2); % update robot speed
-            r_state(:,k) = new_state(:,2);
+            r_state(:,k+1) = new_state(:,2);
             r_input(:,k) = opt_u(:,1);
             plan_state(:,:,k) = new_state;
             
@@ -153,7 +157,7 @@ plan_type = inPara.plan_type;
             opt_u = outPara_pp.opt_u;
             agent.currentPos = opt_x(1:3,2); % robot moves
             agent.currentV = opt_x(4,2); % robot updates its speed
-            r_state(:,k) = opt_x(:,2);
+            r_state(:,k+1) = opt_x(:,2);
             r_input(:,k) = opt_u(:,1);
             plan_state(:,:,k) = opt_x;
         end
@@ -171,8 +175,10 @@ plan_type = inPara.plan_type;
 outPara = struct('agents',agents,'obv_traj',obv_traj,'est_state',est_state,...
     'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
     'samp_num',samp_num);
-% outPara = struct('agents',agents,'plan_state',plan_state,'r_state',r_state,...
-%     'r_input',r_input);
+if exist('pre_cov', 'var')
+    outPara.pre_cov = pre_cov;
+end
+    
 end
 
 function new_x = updState(x,u,mpc_dt)

@@ -14,15 +14,15 @@ set(0,'DefaultFigureWindowStyle','docked');
 %%% define agents %%%
 % Human agent 1
 h = agent('human');
-h.currentPos = [30;20;0]*scale;%[290;30;0]; % [x y heading]
+h.currentPos = [25;10;0]*scale;%[290;30;0]; % [x y heading]
 % h.maxV = 1.5;
-h.currentV = 1.5;
+h.currentV = 2;
 
 % Robot agent 1
 r = agent('robot');
 r.currentPos = [20;10;0]*scale;%[310;30;0]; %[23.5;0.5;0];
-r.currentV = 2;
-r.maxV = 5;
+r.currentV = 1;
+r.maxV = 3;
 r.a_lb = -1; 
 r.a_ub = 1;
 r.w_lb = -pi/4;
@@ -31,6 +31,7 @@ r.sigma_s = 10*eye(2);
 r.psi_s = 1/2*eye(2)/r.sigma_s;
 r.k_s = 2*pi*sqrt(det(r.sigma_s));
 r.cur_clt = 0; % current goal cluster
+r.d = 0.5; %robot diameter 
 
 %%% Set field %%%
 xLength = 100*scale; 
@@ -41,9 +42,9 @@ xMax = xMin+xLength;
 yMax = yMin+yLength;
 grid_step = 0.5; % the side length of a probability cell
 tar_pos = [75;55]*scale; % target positions
-w = [0.3;0.3;0.4]; % initial weight of normal distribution
+w = [0.2;0.2;0.3;0.3]; % initial weight of normal distribution
 mix_num = length(w);
-mu = [25,50,75;25,70,55]*scale; % mean of normal distribution
+mu = [25,30,50,75;25,45,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 lambda = zeros(size(mu));
 psi = zeros(size(sigma));
@@ -54,8 +55,8 @@ for ii = 1:mix_num
 end
 
 % define vertices of obstacles. Here use round obstacles
-c_set = [50,90,30,70;70,80,65,40]*scale;
-r_set = [5,5,5,5]*scale;
+c_set = [50,90,30,70;50,50,50,60]*scale;
+r_set = [2,2,2,2]*scale;
 theta_set = {{0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi}};
 inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta_set',theta_set,'type','obs');
 obs_pos = getWayPts(inPara_gwp);
@@ -80,28 +81,29 @@ h_way_pts = getWayPts(inPara_gwp);
 kf = 500; % simulation length (/s)
 agents = [h,r];
 hor = 2; % MPC horizon 
-pre_type = 'GP';%'extpol'; % 'extpol','IMM'. specify the method for predicting human motion
+pre_type = 'extpol';%'extpol'; % 'extpol','IMM'. specify the method for predicting human motion
 plan_type = 'mpc'; % 'MPC','greedy1','greedy0'. specify the method for robot controller
 samp_rate = 20; % sampling rate (/Hz)
-safe_dis = 2; %safe distance between human and robot
-safe_marg = 2; % safety margin between human the the obstacle
+safe_dis = 0.5; %safe distance between human and robot
+safe_marg = 0; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
 
 % initialize variables
-obv_traj = zeros(3,0); % observed human trajectory; first row denotes the time. [t,x,y]
+% obv_traj = zeros(3,0); % observed human trajectory; first row denotes the time. [t,x,y]
+obv_traj = [0;h.currentPos(1:2)]; % observed human trajectory; first row denotes the time. [t,x,y]
 est_state = zeros(4,mpc_dt*samp_rate,kf); % estimated human states for every second [x,vx,y,vy];
 pre_traj = zeros(3,hor+1,kf); % current and predicted future human trajectory [t,x,y]
 plan_state = zeros(4,hor+1,kf); % robot's current and planned future state [x,y,v]
-r_state = zeros(4,kf); % robot's actual state [x,y,theta,v]
+r_state = zeros(4,kf); % robot's actual state [x,y,v,theta]
+r_state(:,1) = [r.currentPos(1:2);r.currentV;r.currentPos(3)];
 r_input = zeros(2,kf); % robot's actual control input [w,a]
 wp_cnt = 1; % the waypoint that the human is heading for
 h_tar_wp = h_way_pts(:,wp_cnt); % the way point that the human is heading for
 sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of each agent
-prob_map_set = []; % record probability map for each step
+prob_map_set = []; % record probability map for each stepR
 tar_found = 0; % binary variable. 1 indicates that the target is found
-clt_thresh = 1e-5; %threshold for choosing points to be clustered
-
-a_g_0 = []; % save positive alpha_i
+clt_thresh = 1e-4; %threshold for choosing points to be clustered
+pre_cov = zeros(hor,hor,hor,kf); % covariance of the predicted x and y trajectory.
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -127,7 +129,6 @@ for k = 1:kf
             cur_psi = 1/2*eye(2)/agent.sigma_s;
 %             [w,mu,sigma] = agent.updateProbPara(w,lambda,psi,sim_reading,cur_pos,agent.sigma_s);
             [w,mu,sigma,lambda,psi] = agent.updateProbPara2(w,lambda,psi,sim_reading,cur_lambda,cur_psi);
-%             a_g_0 = [a_g_0,tmp_a_g_0];
         end
     end
     % remove terms with very small weights
@@ -155,7 +156,7 @@ for k = 1:kf
     % detection. Human agent will be the first agent in the array agents.
     for ii = 1:length(agents)
         agent = agents(ii);
-        if strcmp(agent.type,'robot') && (norm((agent.currentPos(1:2)-campus.targetPos),1) <= campus.grid_step/2 ...
+        if strcmp(agent.type,'robot') && (norm((agent.currentPos(1:2)-campus.targetPos),1) <= agent.currentV*mpc_dt ...
             && sim_reading(ii) == 1)
             sprintf('Target has been found! Game ends at t=%d.',t)
             tar_found = 1;
@@ -191,6 +192,7 @@ for k = 1:kf
         
         if (k == 1)
            h_tar_wp = h_way_pts(:,1);
+           
         end
         if arr_wp_flag == 1
             wp_cnt = wp_cnt+1;
@@ -228,12 +230,13 @@ for k = 1:kf
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
-            'prob_map',prob_map,'clt_thresh',clt_thresh);
+            'prob_map',prob_map,'clt_thresh',clt_thresh,'pre_cov',pre_cov);
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;
         est_state = outPara_ams.est_state;
         pre_traj = outPara_ams.pre_traj;
+        pre_cov = outPara_ams.pre_cov;
         plan_state = outPara_ams.plan_state;
         r_state = outPara_ams.r_state;
         r_input = outPara_ams.r_input;
@@ -246,7 +249,7 @@ for k = 1:kf
     color_agent = {'r','g','r','g'};
     marker_agent = {'o','^','*','d'};
     line_agent = {'-','-','-','-'};
-    line_w_agent = [7,7,5,5];
+    line_w_agent = [2,2,3,3];
     orange = [1 204/255 0];
     color_target = {'m','b',orange};
     figure;
@@ -279,37 +282,66 @@ for k = 1:kf
     
     % draw agent trajectory
     %
+    
     for ii = 1:length(agents)
         tmp_agent = agents(ii);
-        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',5);
+        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',3);
         set(h1,'MarkerFaceColor',color_agent{ii});
         set(h1,'MarkerEdgeColor',color_agent{ii});
         set(h1,'Color',color_agent{ii});
         set(h1,'LineStyle',line_agent{ii});
         set(h1,'Marker',marker_agent{ii});
         set(h1,'LineWidth',line_w_agent(ii));
-        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',7);
+        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',5);
         set(h2,'MarkerFaceColor',color_agent{ii});
         set(h2,'MarkerEdgeColor',color_agent{ii});
         set(h2,'Color',color_agent{ii});
         set(h2,'LineStyle',line_agent{ii});
         set(h2,'Marker',marker_agent{ii});
+        % get hte points to draw the safe region around the human and the size
+        % of the robot
+        % human
+        if strcmp(tmp_agent.type,'human')
+            c_set = [tmp_agent.traj(1,:);tmp_agent.traj(2,:)];
+            r_set = safe_dis;
+            theta = 0:pi/8:2*pi;
+            inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+            circle_pos = getWayPts(inPara_gwp);
+            for jj = 1:size(circle_pos)
+                tmp_pos = circle_pos{jj};
+                fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{ii});
+            end
+        elseif strcmp(tmp_agent.type,'robot')
+            % the following line can be problematic, need to change after
+            % fixing the problem in time series of sensor data
+            c_set = [tmp_agent.traj(1,1:end-1);tmp_agent.traj(2,1:end-1)];
+            r_set = tmp_agent.d;
+            theta = 0:pi/8:2*pi;
+            inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+            circle_pos = getWayPts(inPara_gwp);
+            for jj = 1:size(circle_pos)
+                tmp_pos = circle_pos{jj};
+                fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{ii});
+            end
+        end
     end
     %}
     
     % predicted human positions
-    %{
-    h3 = plot(pre_traj(1,:,k),pre_traj(2,:,k),color_agent{3},'markers',1);
+    %
+    h3 = plot(pre_traj(2,:,k),pre_traj(3,:,k),color_agent{3},'markers',2);
     set(h3,'MarkerFaceColor',color_agent{3});
     set(h3,'MarkerEdgeColor',color_agent{3});
     set(h3,'Color',color_agent{3});
     set(h3,'LineStyle',line_agent{3});
     set(h3,'Marker',marker_agent{3});
+    set(h1,'LineWidth',line_w_agent(3));
     %}
     
     % planned robot trajectory
-    %{
+    %
     if (tar_found == 0)
+        
         h4 = plot(plan_state(1,2:end,k),plan_state(2,2:end,k),color_agent{2},'markers',15);
         set(h4,'MarkerFaceColor',color_agent{4});
         set(h4,'MarkerEdgeColor',color_agent{4});

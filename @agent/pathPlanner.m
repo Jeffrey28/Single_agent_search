@@ -5,12 +5,13 @@ function outPara = pathPlanner(agent,inPara)
 % define input arguments
 % x_h = inPara.pre_traj; % predicted human trajectory
 hor = inPara.hor;
-% safe_dis = inPara.safe_dis;
+safe_dis = inPara.safe_dis;
 mpc_dt = inPara.mpc_dt;
 % h_v = inPara.h_v;
 obs_info = inPara.obs_info;
 safe_marg = inPara.safe_marg;
 campus = inPara.campus;
+x_h = inPara.pre_traj;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -35,11 +36,11 @@ while(tmp_hor > 0)
 %         'non_intersect_flag',non_intersect_flag,'obj',1,'constr',constr,...
 %         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
 %         'intgr_step',intgr_step);
-    inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'mpc_dt',mpc_dt,...
+    inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'mpc_dt',mpc_dt,'safe_dis',safe_dis,...
         'safe_marg',safe_marg,'obs_info',obs_info,...
         'non_intersect_flag',non_intersect_flag,'constr',constr,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'campus',campus,'tc_scale',tc_scale);
+        'campus',campus,'tc_scale',tc_scale,'x_h',x_h);
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     [obj,constr] = genMPC(inPara_cg); 
@@ -268,9 +269,9 @@ x = inPara.x;
 u = inPara.u;
 % h_v = inPara.h_v;
 mpc_dt = inPara.mpc_dt;
-% safe_dis = inPara.safe_dis;
+safe_dis = inPara.safe_dis;
 safe_marg = inPara.safe_marg;
-% x_h = inPara.x_h;
+x_h = inPara.x_h;
 obs_info = inPara.obs_info;
 non_intersect_flag = inPara.non_intersect_flag;
 % obj = inPara.obj;
@@ -390,7 +391,7 @@ for ii = 1:hor
         0<=x(3,ii+1)<=agent.maxV,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
     
     % constraint on safe distance
-%     constr = [constr,sum((x(1:2,ii+1)-x_h(:,ii+1)).^2) >= safe_dis^2];
+    constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(1:2,ii+1)).^2) >= safe_dis^2];
 %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
 
     % constraint on obstacle avoidance
@@ -401,7 +402,7 @@ for ii = 1:hor
     %{
     for jj = 1:size(obs_info,2)
         % waypoints not inside the obstacle
-        constr = [constr,sum((x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg)^2];
+        constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg)^2];
         if non_intersect_flag == 1
             % line not intersecting with the obstacle
             n = floor(mpc_dt/dt);

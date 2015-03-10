@@ -30,6 +30,7 @@ classdef agent
         cur_clt; % robot's current goal cluster
         clt_res; % clustering result
         hp_pt; % coordinates of high probability points [x,y]
+        d; % size of the agent (diameter)
 %         FOVcoords; % grid coordinates contained in agent field of view
 %         human
         % No entry zone: 
