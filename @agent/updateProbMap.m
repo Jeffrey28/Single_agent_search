@@ -23,10 +23,10 @@ sigma(:,:,rv_id) = [];
 mix_num = length(w);
 [x_axis,y_axis] = meshgrid(xMin+step/2:step:xMax-step/2,yMin+step/2:step:yMax-step/2);
 prob_map = zeros(xLength,yLength);
-all_prob = zeros(numel(x_axis),mix_num);
+% all_prob = zeros(numel(x_axis),mix_num);
 for ii = 1:mix_num
-    all_prob(:,ii) = mvnpdf([x_axis(:),y_axis(:)],mu(:,ii)',sigma(:,:,ii));
+    tmp = mvnpdf([x_axis(:),y_axis(:)],mu(:,ii)',sigma(:,:,ii));
     % transform into probability mass
-    prob_map(:,:) = w(ii)*(reshape(all_prob(:,ii),size(prob_map))*step^2)'+prob_map(:,:);
+    prob_map(:,:) = w(ii)*(reshape(tmp,size(prob_map))*step^2)'+prob_map(:,:);
 end
 end

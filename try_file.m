@@ -23,3 +23,24 @@ area(x,y);
 xlabel('distance to the sensor');
 ylabel('likelihood of detection');
 fig2Pdf('sensor_model',300,gcf)
+
+%% GMM model
+x = -15:0.1:15;
+mu = [0;-5;5];
+sigma = [5;3;2];
+n = length(mu);
+w = ones(n,1)/n;
+y = zeros(length(x),n);
+z = zeros(length(x),1);
+for ii = 1:n
+    y(:,ii) = normpdf(x,mu(ii),sigma(ii))*w(ii);
+    z = z+y(:,ii);
+end
+figure
+hold on
+plot(x,y);
+plot(x,z,'black');
+xlabel('x');
+ylabel('pdf');
+legend('component1','component2','component3','combination')
+fig2Pdf('gmm_demo',300,gcf)

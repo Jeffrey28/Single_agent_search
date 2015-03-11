@@ -41,10 +41,12 @@ yMin = 0;
 xMax = xMin+xLength;
 yMax = yMin+yLength;
 grid_step = 0.5; % the side length of a probability cell
-tar_pos = [75;55]*scale; % target positions
-w = [0.2;0.2;0.2;0.2;0.2]; % initial weight of normal distribution
+tar_pos = [75;50]*scale; % target positions
+% w = [0.2;0.2;0.2;0.2;0.2]; % initial weight of normal distribution
+w = [0.3;0.3;0.4]; % initial weight of normal distribution
 mix_num = length(w);
-mu = [25,30,50,70,75;25,45,70,70,55]*scale; % mean of normal distribution
+mu = [25,50,75;25,70,55]*scale; % mean of normal distribution
+% mu = [25,30,50,70,75;25,45,70,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 lambda = zeros(size(mu));
 psi = zeros(size(sigma));
@@ -133,7 +135,7 @@ for k = 1:kf
     end
     % remove terms with very small weights
     %
-    max_w = max(w);
+    [max_w,max_id] = max(w);
     rv_id = (abs(w) < max(w)*1e-3);
     w(rv_id) = [];
     w = w/sum(w);
@@ -156,11 +158,18 @@ for k = 1:kf
     % detection. Human agent will be the first agent in the array agents.
     for ii = 1:length(agents)
         agent = agents(ii);
-        if strcmp(agent.type,'robot') && (norm((agent.currentPos(1:2)-campus.targetPos),1) <= agent.currentV*mpc_dt ...
-            && sim_reading(ii) == 1)
-            sprintf('Target has been found! Game ends at t=%d.',t)
-            tar_found = 1;
-            break       
+%         if strcmp(agent.type,'robot') && (norm((agent.currentPos(1:2)-campus.targetPos),1) <= agent.currentV*mpc_dt ...
+%             && sim_reading(ii) == 1)
+%             sprintf('Target has been found! Game ends at t=%d.',t)
+%             tar_found = 1;
+%             break       
+%         end
+        for jj = 1:length(max_id)
+            if norm(sigma(:,:,max_id(jj))) <= 5
+                sprintf('Target has been found! Game ends at t=%d.',t)
+                tar_found = 1;
+                break       
+            end
         end
     end
     
