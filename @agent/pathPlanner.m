@@ -22,7 +22,7 @@ tc_scale = 1e-4; % scale for terminal cost
 % h_v_value = norm(h_v,2);
 
 init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentV;agent.currentPos(3)];
-while(tmp_hor > 0)
+% while(tmp_hor > 0)
     % define MPC
     x = sdpvar(4,tmp_hor+1); %[lambda(2-D),theta,v]
     u = sdpvar(2,tmp_hor); %[w,a]
@@ -53,11 +53,12 @@ while(tmp_hor > 0)
     if sol.problem == 0
         opt_x = value(x); % current and future states
         opt_u = value(u); % future input
-        break
+%         break
     else
         display('Fail to solve MPC')
         sol.info
         yalmiperror(sol.problem)
+        return
     end
     %{
     if sol.problem == 0
@@ -99,7 +100,7 @@ while(tmp_hor > 0)
         tmp_hor = tmp_hor-1;
     end
     %}
-end
+% end
 
 %{
 if tmp_hor == 0 % if the MPC fails, just find the input at the next step to maximize the humna-robot distance
@@ -390,29 +391,32 @@ for ii = 1:hor
     constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
         0<=x(3,ii+1)<=agent.maxV,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
     
-    % constraint on safe distance
-    constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(1:2,ii+1)).^2) >= (safe_dis+agent.d)^2];
-%     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
-
-    % constraint on obstacle avoidance
-    % robot should not be inside the obstacles, i.e. robot waypoints should
-    % not be inside the obstacle and the line connecting the waypoints 
-    % should not intersect with the obstacle
-%     [a,b,c] = getLine(x(1:2,ii+1),x(1:2,ii));
-    %
-    for jj = 1:size(obs_info,2)
-        % waypoints not inside the obstacle
-        constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg+agent.d)^2];
-        if non_intersect_flag == 1
-            % line not intersecting with the obstacle
-            n = floor(mpc_dt/dt);
-            x0 = obs_info(1,jj); y0 = obs_info(2,jj);
-            r = obs_info(3,jj);
-            for kk = 0:n
-                constr = [constr,sum((kk/n*x(1:2,ii+1)+(n-kk)/n*x(1:2,ii)-obs_info(1:2,jj)).^2)>=(r+safe_marg2)^2];
+%     if cst_flag == 1
+    % if need to include constraints
+        % constraint on safe distance
+%         constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(1:2,ii+1)).^2) >= (safe_dis+agent.d)^2];
+        %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
+        
+        % constraint on obstacle avoidance
+        % robot should not be inside the obstacles, i.e. robot waypoints should
+        % not be inside the obstacle and the line connecting the waypoints
+        % should not intersect with the obstacle
+        %     [a,b,c] = getLine(x(1:2,ii+1),x(1:2,ii));
+        %{
+        for jj = 1:size(obs_info,2)
+            % waypoints not inside the obstacle
+            constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg+agent.d)^2];
+            if non_intersect_flag == 1
+                % line not intersecting with the obstacle
+                n = floor(mpc_dt/dt);
+                x0 = obs_info(1,jj); y0 = obs_info(2,jj);
+                r = obs_info(3,jj);
+                for kk = 0:n
+                    constr = [constr,sum((kk/n*x(1:2,ii+1)+(n-kk)/n*x(1:2,ii)-obs_info(1:2,jj)).^2)>=(r+safe_marg2)^2];
+                end
             end
         end
-    end    
+    end
     %}
 end
 end

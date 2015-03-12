@@ -45,7 +45,7 @@ tar_pos = [75;50]*scale; % target positions
 % w = [0.2;0.2;0.2;0.2;0.2]; % initial weight of normal distribution
 w = [0.3;0.3;0.4]; % initial weight of normal distribution
 mix_num = length(w);
-mu = [25,50,75;25,70,55]*scale; % mean of normal distribution
+mu = [25,65,75;25,70,55]*scale; % mean of normal distribution
 % mu = [25,30,50,70,75;25,45,70,70,55]*scale; % mean of normal distribution
 sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
 lambda = zeros(size(mu));
@@ -106,6 +106,7 @@ prob_map_set = []; % record probability map for each stepR
 tar_found = 0; % binary variable. 1 indicates that the target is found
 clt_thresh = 1e-4; %threshold for choosing points to be clustered
 pre_cov = zeros(hor,hor,hor,kf); % covariance of the predicted x and y trajectory.
+F = []; % save frame of plots for movie
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -166,7 +167,7 @@ for k = 1:kf
 %         end
         for jj = 1:length(max_id)
             if norm(sigma(:,:,max_id(jj))) <= 5
-                sprintf('Target has been found! Game ends at t=%d.',t)
+                sprintf('Target has been found! Game ends at k=%d.',k)
                 tar_found = 1;
                 break       
             end
@@ -261,8 +262,9 @@ for k = 1:kf
     line_w_agent = [3,3,3,3];
     orange = [1 204/255 0];
     color_target = {'m','b',orange};
-    figure;
+    fig = figure;
     hold on
+    box
 
     % draw probability map
     plot_prob_map = [prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
@@ -387,6 +389,7 @@ for k = 1:kf
         close all;
     end
     %}
+    F = [F,getframe(fig)];
 end
 
 % pre_traj = pos_pre_imm;

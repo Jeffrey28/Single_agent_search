@@ -44,3 +44,13 @@ xlabel('x');
 ylabel('pdf');
 legend('component1','component2','component3','combination')
 fig2Pdf('gmm_demo',300,gcf)
+
+
+%% save all openwindows for a movie
+n = 37; % number of current open windows
+F = zeros(n,1);
+for ii = 1:n
+    F(ii) = figure(ii+1);% the first figure shows the clustering result
+end
+fig = figure;
+movie(fig,F);
