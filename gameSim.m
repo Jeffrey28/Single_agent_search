@@ -90,6 +90,12 @@ safe_dis = 0.5; %safe distance between human and robot
 safe_marg = 0; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
 
+% precompute combinatorial matrix
+all_comb = {};
+for ii = 1:hor
+    all_comb = [all_comb;num2cell(nchoosek(1:hor,ii),2)];
+end
+
 % initialize variables
 % obv_traj = zeros(3,0); % observed human trajectory; first row denotes the time. [t,x,y]
 obv_traj = [0;h.currentPos(1:2)]; % observed human trajectory; first row denotes the time. [t,x,y]
@@ -240,7 +246,8 @@ for k = 1:kf
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
-            'prob_map',prob_map,'clt_thresh',clt_thresh,'pre_cov',pre_cov);
+            'prob_map',prob_map,'clt_thresh',clt_thresh,'pre_cov',pre_cov,...
+            'all_comb',{all_comb});
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;

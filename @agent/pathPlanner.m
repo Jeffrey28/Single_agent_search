@@ -12,6 +12,7 @@ obs_info = inPara.obs_info;
 safe_marg = inPara.safe_marg;
 campus = inPara.campus;
 x_h = inPara.pre_traj;
+all_comb = inPara.all_comb;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -37,7 +38,7 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentV;agent.currentPo
         'safe_marg',safe_marg,'obs_info',obs_info,...
         'non_intersect_flag',non_intersect_flag,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'campus',campus,'tc_scale',tc_scale,'x_h',x_h);
+        'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb});
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     [new_state,opt_u] = solveMPC(inPara_cg); 
@@ -265,6 +266,7 @@ safe_marg2 = inPara.safe_marg2;
 campus = inPara.campus;
 % tc_scale = inPara.tc_scale;
 init_state = inPara.init_state;
+all_comb = inPara.all_comb;
 
 cur_clt = agent.cur_clt;
 clt_res = agent.clt_res;
@@ -317,28 +319,31 @@ w = w/sum(w);
 lambda(:,rv_id) = [];
 psi(:,:,rv_id) = [];
 
-A2 = A_fct2(agent,x(1:2,2),agent.psi_s);
-A3 = A_fct2(agent,x(1:2,3),agent.psi_s);
-obj1 = 0;
-for jj = 1:length(w)
-    A1 = A_fct2(agent,lambda(:,jj),psi(:,:,jj));
-    alpha = sdpvar(3,1);
-    tmp_para = updPara2([lambda(:,jj),x(1:2,2),x(1:2,3)],...
-        cat(3,psi(:,:,jj),agent.psi_s,agent.psi_s));
-    tmp_psi = tmp_para.psi;
-    tmp_lambda = tmp_para.lambda;
-    alpha(3) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A2-A3;
-    tmp_para = updPara2([lambda(:,jj),x(1:2,3)],cat(3,psi(:,:,jj),agent.psi_s));
-    tmp_psi = tmp_para.psi;
-    tmp_lambda = tmp_para.lambda;
-    alpha(2) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A3;
-    tmp_para = updPara2([lambda(:,jj),x(1:2,2)],cat(3,psi(:,:,jj),agent.psi_s));
-    tmp_psi = tmp_para.psi;
-    tmp_lambda = tmp_para.lambda;
-    alpha(1) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A2;
-    obj1 = obj1+w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
+A = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
+% A2 = A_fct2(agent,x(1:2,2),agent.psi_s);
+% A3 = A_fct2(agent,x(1:2,3),agent.psi_s);
+for ii = 1:hor
+    A(ii) = A_fct2(agent,x(1:2,ii+1),agent.psi_s);
 end
 
+obj1 = 0;
+for jj = 1:length(w)
+    alpha = sdpvar(size(all_comb,1),1);
+    A1 = A_fct2(agent,lambda(:,jj),psi(:,:,jj));
+    tmp_obj = 0;
+    for kk = 1:size(all_comb,1)
+        tmp_idx = all_comb{kk};
+        tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
+        tmp_para = updPara2([lambda(:,jj),tmp_x],...
+        cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
+        tmp_psi = tmp_para.psi;
+        tmp_lambda = tmp_para.lambda;
+        alpha(kk) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-sum(A(tmp_idx));
+        tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*exp(alpha(kk));
+    end
+    obj1 = obj1+w(jj)*(1+tmp_obj);
+end
+    
 % add artificial potential function to the obstacles (static ones and
 % humans)
 obj2 = 0;

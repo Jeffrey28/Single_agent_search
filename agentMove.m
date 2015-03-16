@@ -23,6 +23,7 @@ safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
 
+
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
@@ -112,6 +113,7 @@ plan_type = inPara.plan_type;
 %         pos_pre_imm = inPara.pos_pre_imm;
         %}
         %% robot path planning
+        all_comb = inPara.all_comb;
         % record current trajectory before moving
 %         if k == 1
 %             tmp_agent_traj = agent.currentPos;
@@ -137,7 +139,7 @@ plan_type = inPara.plan_type;
             agent.currentV = r_state(3,k); % update robot speed
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
-                'safe_dis',safe_dis);
+                'safe_dis',safe_dis,'all_comb',{all_comb});
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;

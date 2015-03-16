@@ -48,6 +48,7 @@ fig2Pdf('gmm_demo',300,gcf)
 
 %}
 %% save all openwindows for a movie
+%{
 n = 39; % number of current open windows
 % F2 = struct;
 for ii = 1:10
@@ -63,3 +64,9 @@ for ii = 1:10
 end
 fig = figure;
 movie(fig,F3);
+%}
+%% try the cell
+all_comb = {};
+for ii = 1:5
+    all_comb = [all_comb;num2cell(nchoosek(1:5,ii),2)];
+end
