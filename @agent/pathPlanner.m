@@ -369,13 +369,14 @@ obj = 1/3*obj1+1/3*obj2+1/3*obj3;
 %     'campus',campus);
 % obj = obj + termCost(inPara_tc);
 cst_flag = 0;
-% while (1)
+init_x = init_state; % initial solution for the nonlinear problem
+while (1)
     % constraints
     % linearize system
     [A,B,c] = agent.linearize_model2([agent.currentV;agent.currentPos(3)],mpc_dt);
     % impose constraints
     % initial condition
-    constr = [x(:,1) == init_state];
+%     constr = [x(:,1) == init_state];
     for ii = 1:hor
         % constraints on robot dynamics
         % nonlinear constraint
@@ -417,18 +418,33 @@ cst_flag = 0;
     end
     
     % solve MPC
+    assign(x,init_x); % assign initial solution
     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
     opt.Algorithm = 'interior-point';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0
         % if the orignial problem does not have a solution, warn it fails
-        display('Fail to solve MPC')
+        display('Fail to solve the original MPC')
         sol.info
         yalmiperror(sol.problem)
-        new_state = [];
-        opt_u = [];
-%         break
+        
+        % follow the MATLAB's suggestion: find a feasible point and use as
+        % the initial solution for the original problem
+        tmp_obj = 0;
+        opt = sdpsettings('solver','linprog','usex0',1,'debug',1);
+%         opt.Algorithm = 'interior-point';
+        sol = optimize(constr,tmp_obj,opt);
+        if sol.problem ~= 0
+            % if cannot find the feasible point, break and the program will
+            % error in agentMove.m due to the returned empty new_state
+            % canno
+            new_state = [];
+            opt_u = [];
+            break
+        elseif sol.problem == 0
+            init_x = value(x);
+        end
     elseif sol.problem == 0 && cst_flag == 0
         % test whether the solution without collision avoidance constraints
         % is not colliding
@@ -438,7 +454,7 @@ cst_flag = 0;
         % update robot state
         new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
             opt_u,mpc_dt); % contains current and future states
-        
+        break
         % check if the new state will violate the collision constraints
         %{
         cst_chk = collisionCheck(agent,new_state,x_h,obs_info,safe_dis,safe_marg,safe_marg2);
@@ -455,15 +471,15 @@ cst_flag = 0;
         % constraints, then use the control policy from the unconstrained
         % case
         display('cannot satisfy the collision avoidance constraints, use the input from the unconstraint case')
-%         break
+        break
     elseif sol.problem == 0 && cst_flag == 1
         % get a solution for MPC with collision avoidance constraints
         opt_u = value(u); % future input
         new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
             opt_u,mpc_dt); % contains current and future states 
-%         break
+        break
     end
-% end
+end
 end
 
 function [outPara] = updPara2(lambda,psi)
