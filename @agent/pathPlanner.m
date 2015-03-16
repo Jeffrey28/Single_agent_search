@@ -305,7 +305,7 @@ obj = sum(pond_mat(:));
 w = campus.w;
 lambda = campus.lambda;
 psi = campus.psi;
-prob_map = agent.updateProbMap(campus);
+% prob_map = agent.updateProbMap(campus);
 k_s = agent.k_s;
 
 % remove terms with very small weights to speed up the optimization
@@ -319,7 +319,7 @@ psi(:,:,rv_id) = [];
 
 A2 = A_fct2(agent,x(1:2,2),agent.psi_s);
 A3 = A_fct2(agent,x(1:2,3),agent.psi_s);
-obj = 0;
+obj1 = 0;
 for jj = 1:length(w)
     A1 = A_fct2(agent,lambda(:,jj),psi(:,:,jj));
     alpha = sdpvar(3,1);
@@ -336,11 +336,19 @@ for jj = 1:length(w)
     tmp_psi = tmp_para.psi;
     tmp_lambda = tmp_para.lambda;
     alpha(1) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-A2;
-%     if jj == 1
-%         obj = w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
-%     else
-        obj = obj+w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
-%     end
+    obj1 = obj1+w(jj)*(1-k_s*exp(alpha(1))-k_s*exp(alpha(2))+k_s^2*exp(alpha(3)));
+end
+
+% add artificial potential function to the obstacles (static ones and
+% humans)
+obj2 = 0;
+pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
+for ii = 1:hor
+   obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
+   for jj = 1:size(obs_info,2)
+       pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
+       obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
+   end
 end
 
 % determine whether the robot is already in the cur_clt region.
@@ -350,16 +358,18 @@ tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,2));
 tmp_min = min(tmp_dis);
 tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several points
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
+obj3 =0;
 if tmp_min > agent.currentV * mpc_dt 
     tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)';
-    obj = 0.5*obj+0.5*norm(tmp_vec2)*1e-2;
+    obj3 = norm(tmp_vec2)*1e-2;
 end
 
+obj = 1/3*obj1+1/3*obj2+1/3*obj3;
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
 %     'campus',campus);
 % obj = obj + termCost(inPara_tc);
 cst_flag = 0;
-while (1)
+% while (1)
     % constraints
     % linearize system
     [A,B,c] = agent.linearize_model2([agent.currentV;agent.currentPos(3)],mpc_dt);
@@ -376,11 +386,11 @@ while (1)
         % linear constraint
         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
             0<=x(3,ii+1)<=agent.maxV,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
-        
+        %{
         if cst_flag == 1
             % if need to include constraints
             % constraint on safe distance
-            constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(1:2,ii+1)).^2) >= (safe_dis+agent.d)^2];
+            constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(2:3,ii+1)).^2) >= (safe_dis+agent.d)^2];
             %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
             
             % constraint on obstacle avoidance
@@ -418,7 +428,7 @@ while (1)
         yalmiperror(sol.problem)
         new_state = [];
         opt_u = [];
-        break
+%         break
     elseif sol.problem == 0 && cst_flag == 0
         % test whether the solution without collision avoidance constraints
         % is not colliding
@@ -430,6 +440,7 @@ while (1)
             opt_u,mpc_dt); % contains current and future states
         
         % check if the new state will violate the collision constraints
+        %{
         cst_chk = collisionCheck(agent,new_state,x_h,obs_info,safe_dis,safe_marg,safe_marg2);
         if cst_chk == 0
             % if violating constraints, re-do the MPC, considering
@@ -438,20 +449,21 @@ while (1)
         else
             break
         end
+        %}
     elseif sol.problem ~= 0 && cst_flag == 1
         % if solution cannot be found after considering the collsion
         % constraints, then use the control policy from the unconstrained
         % case
         display('cannot satisfy the collision avoidance constraints, use the input from the unconstraint case')
-        break
+%         break
     elseif sol.problem == 0 && cst_flag == 1
         % get a solution for MPC with collision avoidance constraints
         opt_u = value(u); % future input
         new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
             opt_u,mpc_dt); % contains current and future states 
-        break
+%         break
     end
-end
+% end
 end
 
 function [outPara] = updPara2(lambda,psi)

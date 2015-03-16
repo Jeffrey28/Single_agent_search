@@ -390,6 +390,9 @@ for k = 1:kf
         close all;
     end
     %}
+    
+    % draw animation of the search process. does not work well
+    %{
     x_fig = 450;
     y_fig = 150;
     w_fig = 650;% width
@@ -397,6 +400,7 @@ for k = 1:kf
     hd_fig = gcf;
     set(hd_fig, 'Position', [x_fig y_fig w_fig h_fig])
     F = [F,getframe(hd_fig)];
+    %}
 end
 
 % pre_traj = pos_pre_imm;
