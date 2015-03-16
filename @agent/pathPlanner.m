@@ -369,14 +369,14 @@ obj = 1/3*obj1+1/3*obj2+1/3*obj3;
 %     'campus',campus);
 % obj = obj + termCost(inPara_tc);
 cst_flag = 0;
-init_x = init_state; % initial solution for the nonlinear problem
+init_x = []; % initial solution for the nonlinear problem
 while (1)
     % constraints
     % linearize system
     [A,B,c] = agent.linearize_model2([agent.currentV;agent.currentPos(3)],mpc_dt);
     % impose constraints
     % initial condition
-%     constr = [x(:,1) == init_state];
+    constr = [x(:,1) == init_state];
     for ii = 1:hor
         % constraints on robot dynamics
         % nonlinear constraint
@@ -418,7 +418,9 @@ while (1)
     end
     
     % solve MPC
-    assign(x,init_x); % assign initial solution
+    if ~isempty(init_x)
+        assign(x,init_x); % assign initial solution
+    end
     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
     opt.Algorithm = 'interior-point';
     sol = optimize(constr,obj,opt);
@@ -428,6 +430,7 @@ while (1)
         display('Fail to solve the original MPC')
         sol.info
         yalmiperror(sol.problem)
+        figure % use empty figure to show that this if statement is executed
         
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
