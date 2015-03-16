@@ -1,4 +1,5 @@
 %% test ipopt
+%{
 x = sdpvar(2,1);
 % y = exp(sum(x.^2))-exp(sum(x.^3));
 y = sum(x.^2)+norm(x,1)+1;
@@ -45,12 +46,20 @@ ylabel('pdf');
 legend('component1','component2','component3','combination')
 fig2Pdf('gmm_demo',300,gcf)
 
-
+%}
 %% save all openwindows for a movie
-n = 37; % number of current open windows
-F = zeros(n,1);
-for ii = 1:n
-    F(ii) = figure(ii+1);% the first figure shows the clustering result
+n = 39; % number of current open windows
+% F2 = struct;
+for ii = 1:10
+    h = figure(ii+1);
+%     drawnow
+    ax = gca;
+    ax.Units = 'pixels';
+    pos = ax.Position;
+    ti = ax.TightInset;
+    rect = [-ti(1), -ti(2), pos(3)+ti(1)+ti(3), pos(4)+ti(2)+ti(4)];
+    F3(ii) = getframe(ax,rect);
+%     F3(ii) = getframe(figure(ii+1));% the first figure shows the clustering result
 end
 fig = figure;
-movie(fig,F);
+movie(fig,F3);

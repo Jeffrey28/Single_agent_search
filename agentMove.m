@@ -140,9 +140,10 @@ plan_type = inPara.plan_type;
                 'safe_dis',safe_dis);
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
+            new_state = outPara_pp.new_state;
             opt_u = outPara_pp.opt_u;
-            new_state = updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
-                opt_u,mpc_dt); % contains current and future states
+%             new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
+%                 opt_u,mpc_dt); % contains current and future states
 %             agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
 %             agent.currentV = new_state(3,2); % update robot speed
             r_state(:,k+1) = new_state(:,2); % save the human's next state
@@ -181,21 +182,6 @@ if exist('pre_cov', 'var')
     outPara.pre_cov = pre_cov;
 end
     
-end
-
-function new_x = updState(x,u,mpc_dt)
-% update robot state using its dynamics
-new_x = zeros(size(x,1),size(u,2)+1);
-new_x(:,1) = x; % current state
-for ii = 1:size(new_x,2)-1
-    new_x(1:2,ii+1) = new_x(1:2,ii)+new_x(3,ii)*[cos(new_x(4,ii));sin(new_x(4,ii))]*mpc_dt;
-    new_x(3,ii+1) = new_x(3,ii)+u(1,ii)*mpc_dt;
-    new_x(4,ii+1) = new_x(4,ii)+u(2,ii)*mpc_dt;
-    % normalize the heading to [0,2*pi)
-    tmp = new_x(4,ii+1);
-    tmp = tmp - floor(tmp/(2*pi))*2*pi;
-    new_x(4,ii+1) = tmp;
-end
 end
 
 function next_act = getNextActionWithFixedHeading(a_pos,t_pos,v,deg_dev,mpc_dt)

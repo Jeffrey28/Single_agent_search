@@ -10,7 +10,7 @@ close all
 
 %% Setup
 scale = 1/2; % scale the size of the field
-set(0,'DefaultFigureWindowStyle','docked');
+set(0,'DefaultFigureWindowStyle','docked');% docked
 %%% define agents %%%
 % Human agent 1
 h = agent('human');
@@ -25,8 +25,8 @@ r.currentV = 1;
 r.maxV = 3;
 r.a_lb = -1; 
 r.a_ub = 1;
-r.w_lb = -pi/4;
-r.w_ub = pi/4;
+r.w_lb = -pi/2;
+r.w_ub = pi/2;
 r.sigma_s = 10*eye(2);
 r.psi_s = 1/2*eye(2)/r.sigma_s;
 r.k_s = 2*pi*sqrt(det(r.sigma_s));
@@ -57,8 +57,8 @@ for ii = 1:mix_num
 end
 
 % define vertices of obstacles. Here use round obstacles
-c_set = [50,90,30,70;50,50,50,60]*scale;
-r_set = [2,2,2,2]*scale;
+c_set = [30,50;50,55]*scale;%[26,20]
+r_set = [4,4]*scale;
 theta_set = {{0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi}};
 inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta_set',theta_set,'type','obs');
 obs_pos = getWayPts(inPara_gwp);
@@ -166,10 +166,10 @@ for k = 1:kf
 %             break       
 %         end
         for jj = 1:length(max_id)
-            if norm(sigma(:,:,max_id(jj))) <= 5
+            if norm(sigma(:,:,max_id(jj))) <= 3
                 sprintf('Target has been found! Game ends at k=%d.',k)
                 tar_found = 1;
-                break       
+                return       
             end
         end
     end
@@ -262,7 +262,8 @@ for k = 1:kf
     line_w_agent = [3,3,3,3];
     orange = [1 204/255 0];
     color_target = {'m','b',orange};
-    fig = figure;
+    figure;
+%     drawnow
     hold on
     box
 
@@ -389,7 +390,13 @@ for k = 1:kf
         close all;
     end
     %}
-    F = [F,getframe(fig)];
+    x_fig = 450;
+    y_fig = 150;
+    w_fig = 650;% width
+    h_fig = 600;% height
+    hd_fig = gcf;
+    set(hd_fig, 'Position', [x_fig y_fig w_fig h_fig])
+    F = [F,getframe(hd_fig)];
 end
 
 % pre_traj = pos_pre_imm;
