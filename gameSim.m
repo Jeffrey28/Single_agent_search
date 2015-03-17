@@ -27,7 +27,7 @@ r.a_lb = -1;
 r.a_ub = 1;
 r.w_lb = -pi/2;
 r.w_ub = pi/2;
-r.sigma_s = 10*eye(2);
+r.sigma_s = 5*eye(2);
 r.psi_s = 1/2*eye(2)/r.sigma_s;
 r.k_s = 2*pi*sqrt(det(r.sigma_s));
 r.cur_clt = 0; % current goal cluster
@@ -70,7 +70,7 @@ campus.obs_info = [c_set;r_set]; % gives the center and radius of each obstacle
 %%% set way points
 %
 % manually pick the way pts for simulated human
-inPara_gwp = struct('tar_pos',tar_pos,'scale',scale,'type','h');
+inPara_gwp = struct('tar_pos',tar_pos,'scale',scale,'type','h');% not in use now
 h_way_pts = getWayPts(inPara_gwp);
 % apply different human speed between different way points.
 % h_v = [2,3,1,1,1,1,1,1,1,1,3,1.5,2,3,2,1.5,4];
@@ -80,15 +80,16 @@ h_way_pts = getWayPts(inPara_gwp);
 %%%
 %% Simulation
 % simulation parameters
-kf = 500; % simulation length (/s)
+kf = 100; % simulation length (/s)
 agents = [h,r];
-hor = 4; % MPC horizon 
+hor = 2; % MPC horizon 
 pre_type = 'extpol';%'extpol'; % 'extpol','IMM'. specify the method for predicting human motion
 plan_type = 'mpc'; % 'MPC','greedy1','greedy0'. specify the method for robot controller
 samp_rate = 20; % sampling rate (/Hz)
 safe_dis = 0.5; %safe distance between human and robot
 safe_marg = 0; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
+prob_thresh = 0.6;
 
 % precompute combinatorial matrix
 all_comb = {};
@@ -158,11 +159,13 @@ for k = 1:kf
     campus.mu = mu;
     % Save current probability distribution
     prob_map = agent.updateProbMap(campus);
-    prob_map_set(:,:,k) = matrixToCartesian(prob_map);
+%     prob_map_set(:,:,k) = matrixToCartesian(prob_map);
     
-    % Test to see if game is over
+    %% Test to see if game is over
+    
     % Game over if an agent is on the same grid as the target and recieves a
     % detection. Human agent will be the first agent in the array agents.
+    %{
     for ii = 1:length(agents)
         agent = agents(ii);
 %         if strcmp(agent.type,'robot') && (norm((agent.currentPos(1:2)-campus.targetPos),1) <= agent.currentV*mpc_dt ...
@@ -178,6 +181,15 @@ for k = 1:kf
                 return       
             end
         end
+    end
+    %}
+    
+    inPara_ec = struct('prob_thresh',prob_thresh,'prob_map',prob_map,...
+        'r',agents(2),'campus',campus);
+    game_end = endCheck(inPara_ec);
+    if game_end == 1
+        sprintf('Target has been found! Game ends at k=%d.',k)
+        return
     end
     
     %% search
@@ -196,24 +208,22 @@ for k = 1:kf
         % check if the human needs to choose the next way point
         %
         inPara_ec = struct('h',agents(1),'h_way_pts',h_way_pts,'wp_cnt',wp_cnt,'mpc_dt',mpc_dt);
-        [outPara_ec] = endCheck(inPara_ec);
+        [outPara_ec] = wpCheck(inPara_ec);
         
-        game_end = outPara_ec.game_end;
+        wp_end = outPara_ec.wp_end;
         arr_wp_flag = outPara_ec.arr_wp_flag; % the human has arrived at a way point
         
-        if game_end == 1
-            sprintf('total search time is %d',k-1)
-            break
-        end
-        
-        if (k == 1)
-           h_tar_wp = h_way_pts(:,1);
-           
-        end
-        if arr_wp_flag == 1
-            wp_cnt = wp_cnt+1;
-            h_tar_wp = h_way_pts(:,wp_cnt);
-            %         agents(1).currentV = h_v(wp_cnt);
+        if wp_end == 1
+            sprintf('human has arrived at his destinaiton at k = %d',k-1) 
+        else            
+            if (k == 1)
+                h_tar_wp = h_way_pts(:,1);               
+            end
+            if arr_wp_flag == 1
+                wp_cnt = wp_cnt+1;
+                h_tar_wp = h_way_pts(:,wp_cnt);
+                %         agents(1).currentV = h_v(wp_cnt);
+            end
         end
         %}
         %% both agents move
@@ -345,6 +355,18 @@ for k = 1:kf
 %         end
     end
     %}
+    
+    % draw the sensor range (0.8*sig)
+    r = agents(2);
+    c_set = r.currentPos(1:2);
+    r_set = sqrt(r.sigma_s(1,1));
+    theta = 0:pi/8:2*pi;
+    inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');
+    circle_pos = getWayPts(inPara_gwp);
+    for jj = 1:size(circle_pos)
+        tmp_pos = circle_pos{jj};
+        plot(tmp_pos(1,:),tmp_pos(2,:),'.-b');
+    end
     
     % predicted human positions
     %

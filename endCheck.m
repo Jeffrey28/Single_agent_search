@@ -1,28 +1,35 @@
-% 11/24/14
-function [outPara] = endCheck(inPara)
-% Game over if human has gone to all the way points
-% get input arguments
-    h = inPara.h;    
-    way_pts = inPara.h_way_pts;
-    wp_cnt = inPara.wp_cnt;
-    dt = inPara.mpc_dt;
-    
-    v = h.currentV;
-    h_tar_wp = way_pts(:,wp_cnt);
-    
-    game_end = 0; 
-    arr_wp_flag = 0;
-    
-    if norm (h.currentPos(1:2)-h_tar_wp,2) <= v*dt
-        if wp_cnt == size(way_pts,2) % if the human has arrived at the last way point
-            sprintf('simulation completes!')
-            game_end = 1;
-            arr_wp_flag = 1;
-        else
-            sprintf('human has arrived at %d th waypoint',wp_cnt)
-            arr_wp_flag = 1;
+% 3/17/15
+% check if the game ends
+
+function game_end = endCheck(inPara)
+prob_thresh = inPara.prob_thresh;
+prob_map = inPara.prob_map;
+r = inPara.r;
+campus = inPara.campus;
+xMin = campus.endpoints(1);
+% xMax = campus.xMax;
+yMin = campus.endpoints(3);
+% yMax = campus.yMax;
+step = campus.grid_step;
+
+cur_cor = r.currentPos(1:2);
+sig = sqrt(r.sigma_s(1,1));
+
+tot_prob = 0;
+for x = cur_cor(1)-sig:step:cur_cor(1)+sig
+    for y = cur_cor(2)-sig:step:cur_cor(2)+sig   
+        if norm(cur_cor-[x;y]) <= 0.8*sig
+            % change the actual coordinates into the grid index of the
+            % prob_map
+            tmp_cor = [floor((x-xMin)/step)+1,floor((y-yMin)/step)+1];
+            tot_prob = tot_prob+prob_map(tmp_cor(1),tmp_cor(2));
         end
     end
-      
-    outPara = struct('game_end',game_end,'arr_wp_flag',arr_wp_flag);    
-end         
+end
+
+if tot_prob > prob_thresh
+    game_end = 1;
+else
+    game_end = 0;
+end
+       
