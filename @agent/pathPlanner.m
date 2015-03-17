@@ -312,7 +312,7 @@ k_s = agent.k_s;
 
 % remove terms with very small weights to speed up the optimization
 max_w = max(w);
-rv_id = (abs(w) < max_w/20);
+rv_id = (abs(w) < max_w/10);
 w(rv_id) = [];
 sprintf('number of w is %d',length(w));
 w = w/sum(w);
@@ -440,9 +440,9 @@ while (1)
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
         tmp_obj = 0;
-        opt = sdpsettings('solver','linprog','usex0',1,'debug',1);
-%         opt.Algorithm = 'interior-point';
-        sol = optimize(constr,tmp_obj,opt);
+        tmp_opt = sdpsettings('solver','cdd');
+%         tmp_opt.Algorithm = 'interior-point';
+        sol = optimize(constr,tmp_obj,tmp_opt);
         if sol.problem ~= 0
             % if cannot find the feasible point, break and the program will
             % error in agentMove.m due to the returned empty new_state

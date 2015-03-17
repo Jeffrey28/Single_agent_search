@@ -82,7 +82,7 @@ h_way_pts = getWayPts(inPara_gwp);
 % simulation parameters
 kf = 500; % simulation length (/s)
 agents = [h,r];
-hor = 2; % MPC horizon 
+hor = 4; % MPC horizon 
 pre_type = 'extpol';%'extpol'; % 'extpol','IMM'. specify the method for predicting human motion
 plan_type = 'mpc'; % 'MPC','greedy1','greedy0'. specify the method for robot controller
 samp_rate = 20; % sampling rate (/Hz)
