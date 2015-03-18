@@ -22,11 +22,11 @@ tmp_hor = hor;
 tc_scale = 1e-4; % scale for terminal cost
 % h_v_value = norm(h_v,2);
 
-init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentV;agent.currentPos(3)];
+init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
 % while(tmp_hor > 0)
     % define MPC
-    x = sdpvar(4,tmp_hor+1); %[lambda(2-D),theta,v]
-    u = sdpvar(2,tmp_hor); %[w,a]
+    x = sdpvar(3,tmp_hor+1); %[lambda(2-D),theta]
+    u = sdpvar(2,tmp_hor); %[v,a]
     
     % constraints on future states
 %     inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'h_v',h_v_value,'mpc_dt',mpc_dt,...
@@ -276,34 +276,7 @@ grid_step = campus.grid_step;
 
 % [A,B,c] = linearize_model(init_state,mpc_dt);
 % objective function
-% integral format
-%{
-xMin = campus.endpoints(1);
-xMax = campus.endpoints(2);
-yMin = campus.endpoints(3);
-yMax = campus.endpoints(4);
-x_p = xMin+intgr_step/2:intgr_step:xMax-intgr_step/2; % integral points on x axis
-y_p = yMin+intgr_step/2:intgr_step:yMax-intgr_step/2;
-pond_mat = sdpvar(length(x_p),length(y_p)); % matrix of Pr(ND)
-sigma_s_inv = eye(2)/agent.sigma_s;
-for x1 = 1:length(x_p)
-    for x2 = 1:length(y_p)
-        x_t = [x_p(x1);y_p(x2)];
-        for ii = 1:hor            
-            x_r = x(1:2,ii+1);
-            pond = 1-exp(-1/2*(x_t-x_r)'*sigma_s_inv*(x_t-x_r));
-            if ii == 1
-                pond_mat(x1,x2) = pond;
-            else
-                pond_mat(x1,x2) = pond_mat(x1,x2)*pond;
-            end
-        end
-    end
-end
-obj = sum(pond_mat(:));
-%}
 % compact format
-% this is for horizon of 2
 w = campus.w;
 lambda = campus.lambda;
 psi = campus.psi;
@@ -320,8 +293,6 @@ lambda(:,rv_id) = [];
 psi(:,:,rv_id) = [];
 
 A = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
-% A2 = A_fct2(agent,x(1:2,2),agent.psi_s);
-% A3 = A_fct2(agent,x(1:2,3),agent.psi_s);
 for ii = 1:hor
     A(ii) = A_fct2(agent,x(1:2,ii+1),agent.psi_s);
 end
@@ -378,56 +349,28 @@ init_x = []; % initial solution for the nonlinear problem
 while (1)
     % constraints
     % linearize system
-    [A,B,c] = agent.linearize_model2([agent.currentV;agent.currentPos(3)],mpc_dt);
+%     [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
     % impose constraints
     % initial condition
     constr = [x(:,1) == init_state];
     for ii = 1:hor
         % constraints on robot dynamics
-        % nonlinear constraint
-        %     constr = [constr,x(1:2,ii+1) == x(1:2,ii)+x(3,ii)*[cos(x(4,ii));sin(x(4,ii))]*mpc_dt,...
-        %         x(3,ii+1) == x(3,ii) + u(1,ii)*mpc_dt, x(4,ii+1) == x(4,ii)+u(2,ii)*mpc_dt,...
-        %         x(3,ii+1)>=0,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
+%         nonlinear constraint
+            constr = [constr,x(1:2,ii+1) == x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
+                x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
+                agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
         
         % linear constraint
-        constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c...
-            0<=x(3,ii+1)<=agent.maxV,agent.a_lb<=u(1,ii)<=agent.a_ub,agent.w_lb<=u(2,ii)<=agent.w_ub];
-        %{
-        if cst_flag == 1
-            % if need to include constraints
-            % constraint on safe distance
-            constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-x_h(2:3,ii+1)).^2) >= (safe_dis+agent.d)^2];
-            %     constr = [constr,max(x(1:2,ii+1)-x_h(:,ii+1)) >= safe_dis];
-            
-            % constraint on obstacle avoidance
-            % robot should not be inside the obstacles, i.e. robot waypoints should
-            % not be inside the obstacle and the line connecting the waypoints
-            % should not intersect with the obstacle
-            %     [a,b,c] = getLine(x(1:2,ii+1),x(1:2,ii));
-            %
-            for jj = 1:size(obs_info,2)
-                % waypoints not inside the obstacle
-                constr = [constr,sum((agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj)).^2) >= (obs_info(3,jj)+safe_marg+agent.d)^2];
-                if non_intersect_flag == 1
-                    % line not intersecting with the obstacle
-                    n = floor(mpc_dt/dt);
-                    x0 = obs_info(1,jj); y0 = obs_info(2,jj);
-                    r = obs_info(3,jj);
-                    for kk = 0:n
-                        constr = [constr,sum((kk/n*x(1:2,ii+1)+(n-kk)/n*x(1:2,ii)-obs_info(1:2,jj)).^2)>=(r+safe_marg2)^2];
-                    end
-                end
-            end
-        end
-        %}
+%         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+%            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
     end
     
     % solve MPC
     if ~isempty(init_x)
         assign(x,init_x); % assign initial solution
     end
-    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
-    opt.Algorithm = 'interior-point';
+    opt = sdpsettings('solver','fmincon','debug',0);
+    opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0
@@ -440,7 +383,7 @@ while (1)
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
         tmp_obj = 0;
-        tmp_opt = sdpsettings('solver','cdd');
+        tmp_opt = sdpsettings('solver','linprog');
 %         tmp_opt.Algorithm = 'interior-point';
         sol = optimize(constr,tmp_obj,tmp_opt);
         if sol.problem ~= 0
@@ -460,20 +403,10 @@ while (1)
         opt_u = value(u); % future input
 %         break
         % update robot state
-        new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
+        new_state = agent.updState2(agent.currentPos,...
             opt_u,mpc_dt); % contains current and future states
         break
-        % check if the new state will violate the collision constraints
-        %{
-        cst_chk = collisionCheck(agent,new_state,x_h,obs_info,safe_dis,safe_marg,safe_marg2);
-        if cst_chk == 0
-            % if violating constraints, re-do the MPC, considering
-            % collision aovidance
-            cst_flag = 1;
-        else
-            break
-        end
-        %}
+        
     elseif sol.problem ~= 0 && cst_flag == 1
         % if solution cannot be found after considering the collsion
         % constraints, then use the control policy from the unconstrained
@@ -483,7 +416,7 @@ while (1)
     elseif sol.problem == 0 && cst_flag == 1
         % get a solution for MPC with collision avoidance constraints
         opt_u = value(u); % future input
-        new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
+        new_state = agent.updState2(agent.currentPos,...
             opt_u,mpc_dt); % contains current and future states 
         break
     end

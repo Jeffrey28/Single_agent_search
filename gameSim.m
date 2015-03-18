@@ -20,11 +20,12 @@ h.currentV = 2;
 
 % Robot agent 1
 r = agent('robot');
-r.currentPos = [20;10;0]*scale;%[310;30;0]; %[23.5;0.5;0];
+r.currentPos = [20;10;pi/2]*scale;%[310;30;0]; %[23.5;0.5;0];
 r.currentV = 1;
 r.maxV = 3;
-r.a_lb = -1; 
-r.a_ub = 1;
+r.minV = 0;
+% r.a_lb = -1; 
+% r.a_ub = 1;
 r.w_lb = -pi/2;
 r.w_ub = pi/2;
 r.sigma_s = 5*eye(2);
@@ -82,7 +83,7 @@ h_way_pts = getWayPts(inPara_gwp);
 % simulation parameters
 kf = 100; % simulation length (/s)
 agents = [h,r];
-hor = 2; % MPC horizon 
+hor = 3; % MPC horizon 
 pre_type = 'extpol';%'extpol'; % 'extpol','IMM'. specify the method for predicting human motion
 plan_type = 'mpc'; % 'MPC','greedy1','greedy0'. specify the method for robot controller
 samp_rate = 20; % sampling rate (/Hz)
@@ -102,10 +103,10 @@ end
 obv_traj = [0;h.currentPos(1:2)]; % observed human trajectory; first row denotes the time. [t,x,y]
 est_state = zeros(4,mpc_dt*samp_rate,kf); % estimated human states for every second [x,vx,y,vy];
 pre_traj = zeros(3,hor+1,kf); % current and predicted future human trajectory [t,x,y]
-plan_state = zeros(4,hor+1,kf); % robot's current and planned future state [x,y,v]
-r_state = zeros(4,kf); % robot's actual state [x,y,v,theta]
-r_state(:,1) = [r.currentPos(1:2);r.currentV;r.currentPos(3)];
-r_input = zeros(2,kf); % robot's actual control input [w,a]
+plan_state = zeros(3,hor+1,kf); % robot's current and planned future state [x,y,v]
+r_state = zeros(3,kf); % robot's actual state [x,y,theta]
+r_state(:,1) = r.currentPos;
+r_input = zeros(2,kf); % robot's actual control input [v,a]
 wp_cnt = 1; % the waypoint that the human is heading for
 h_tar_wp = h_way_pts(:,wp_cnt); % the way point that the human is heading for
 sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of each agent
