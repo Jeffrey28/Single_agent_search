@@ -349,28 +349,28 @@ init_x = []; % initial solution for the nonlinear problem
 while (1)
     % constraints
     % linearize system
-%     [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
+    [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
     % impose constraints
     % initial condition
     constr = [x(:,1) == init_state];
     for ii = 1:hor
         % constraints on robot dynamics
 %         nonlinear constraint
-            constr = [constr,x(1:2,ii+1) == x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
-                x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
-                agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
+%             constr = [constr,agent.sigma_s*x(1:2,ii+1) == agent.sigma_s*x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
+%                 x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
+%                 agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
         
         % linear constraint
-%         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
-%            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
+        constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+           agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
     end
     
     % solve MPC
     if ~isempty(init_x)
         assign(x,init_x); % assign initial solution
     end
-    opt = sdpsettings('solver','fmincon','debug',0);
-    opt.Algorithm = 'sqp';
+    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
+    opt.Algorithm = 'interior-point';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0

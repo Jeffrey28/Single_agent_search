@@ -9,6 +9,7 @@ clear % clear global variables
 close all
 
 %% Setup
+addpath('D:\Chang Liu\ipopt');
 scale = 1/2; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 %%% define agents %%%
@@ -20,7 +21,7 @@ h.currentV = 2;
 
 % Robot agent 1
 r = agent('robot');
-r.currentPos = [20;10;pi/2]*scale;%[310;30;0]; %[23.5;0.5;0];
+r.currentPos = [20;10;pi]*scale;%[310;30;0]; %[23.5;0.5;0];
 r.currentV = 1;
 r.maxV = 3;
 r.minV = 0;
