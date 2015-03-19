@@ -13,6 +13,7 @@ safe_marg = inPara.safe_marg;
 campus = inPara.campus;
 x_h = inPara.pre_traj;
 all_comb = inPara.all_comb;
+k = inPara.k;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -25,8 +26,8 @@ tc_scale = 1e-4; % scale for terminal cost
 init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
 % while(tmp_hor > 0)
     % define MPC
-    x = sdpvar(3,tmp_hor+1); %[lambda(2-D),theta]
-    u = sdpvar(2,tmp_hor); %[v,a]
+%     x = sdpvar(3,tmp_hor+1); %[lambda(2-D),theta]
+%     u = sdpvar(2,tmp_hor); %[v,a]
     
     % constraints on future states
 %     inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'h_v',h_v_value,'mpc_dt',mpc_dt,...
@@ -34,11 +35,11 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
 %         'non_intersect_flag',non_intersect_flag,'obj',1,'constr',constr,...
 %         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
 %         'intgr_step',intgr_step);
-    inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'mpc_dt',mpc_dt,'safe_dis',safe_dis,...
+    inPara_cg = struct('hor',tmp_hor,'mpc_dt',mpc_dt,'safe_dis',safe_dis,...
         'safe_marg',safe_marg,'obs_info',obs_info,...
         'non_intersect_flag',non_intersect_flag,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb});
+        'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k); %'x',x,'u',u,
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     [new_state,opt_u] = solveMPC(inPara_cg); 
@@ -191,8 +192,8 @@ end
 
 function [new_state,opt_u] = solveMPC(inPara)
 hor = inPara.hor;
-x = inPara.x;
-u = inPara.u;
+% x = inPara.x;
+% u = inPara.u;
 % h_v = inPara.h_v;
 mpc_dt = inPara.mpc_dt;
 safe_dis = inPara.safe_dis;
@@ -210,6 +211,7 @@ campus = inPara.campus;
 % tc_scale = inPara.tc_scale;
 init_state = inPara.init_state;
 all_comb = inPara.all_comb;
+k = inPara.k;
 
 cur_clt = agent.cur_clt;
 clt_res = agent.clt_res;
@@ -236,22 +238,29 @@ w = w/sum(w);
 lambda(:,rv_id) = [];
 psi(:,:,rv_id) = [];
 
-A = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
-for ii = 1:hor
-    A(ii) = A_fct2s(agent,x(1:2,ii+1),agent.psi_s);
+persistent x u Af
+
+if k == 1    
+    x = sdpvar(3,hor+1); %[lambda(2-D),theta]
+    u = sdpvar(2,hor); %[v,a]
+    
+    Af = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
+    for ii = 1:hor
+        Af(ii) = A_fct2s(agent,x(1:2,ii+1),agent.psi_s);
+    end
 end
 
 obj1 = 0;
 for jj = 1:length(w)
     alpha = sdpvar(size(all_comb,1),1);
-    A1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
+    Af1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
     tmp_obj = 0;
     tmp_psi_prod = psi(:,:,jj);
     for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
         tmp_idx = all_comb{kk};
         tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
         tmp_para = updPara2([lambda(:,jj),tmp_x],...
-        cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
+            cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
         tmp_psi = tmp_para.psi;
         tmp_lambda = tmp_para.lambda;
         for ll = 1:length(tmp_idx)
@@ -259,7 +268,7 @@ for jj = 1:length(w)
         end
         tmp_psi_prod = tmp_psi_prod/tmp_psi;
         tmp_coef = sqrt(det(tmp_psi_prod));
-        alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-A1-sum(A(tmp_idx));
+        alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
         tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
     end
     obj1 = obj1+w(jj)*(1+tmp_obj);
@@ -270,13 +279,13 @@ end
 obj2 = 0;
 pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
 for ii = 1:hor
-   obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
-   for jj = 1:size(obs_info,2)
-       pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
-       obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
-   end
+    obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
+    for jj = 1:size(obs_info,2)
+        pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
+        obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
+    end
 end
-
+    
 % determine whether the robot is already in the cur_clt region.
 tmp_pt = hp_pt(clt_res == cur_clt,:);
 tmp_vec = tmp_pt*grid_step - ones(size(tmp_pt,1),1)*agent.currentPos(1:2)';
@@ -284,8 +293,8 @@ tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,2));
 tmp_min = min(tmp_dis);
 tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several points
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
-obj3 =0;
-if tmp_min > agent.currentV * mpc_dt 
+obj3 = 0; 
+if tmp_min > agent.currentV * mpc_dt
     tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)';
     obj3 = norm(tmp_vec2)*1e-1;
 end
@@ -312,14 +321,14 @@ while (1)
     constr = [x(:,1) == init_state];
     for ii = 1:hor
         % constraints on robot dynamics
-%         nonlinear constraint
-%             constr = [constr,agent.sigma_s*x(1:2,ii+1) == agent.sigma_s*x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
-%                 x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
-%                 agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
+        %         nonlinear constraint
+        %             constr = [constr,agent.sigma_s*x(1:2,ii+1) == agent.sigma_s*x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
+        %                 x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
+        %                 agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
         
         % linear constraint
         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
-           agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
+            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
     end
     
     % solve MPC
@@ -342,7 +351,7 @@ while (1)
         % the initial solution for the original problem
         tmp_obj = 0;
         tmp_opt = sdpsettings('solver','linprog');
-%         tmp_opt.Algorithm = 'interior-point';
+        %         tmp_opt.Algorithm = 'interior-point';
         sol = optimize(constr,tmp_obj,tmp_opt);
         if sol.problem ~= 0
             % if cannot find the feasible point, break and the program will
@@ -358,9 +367,9 @@ while (1)
     elseif sol.problem == 0 && cst_flag == 0
         % test whether the solution without collision avoidance constraints
         % is not colliding
-%         opt_x = value(x); % current and future states
+        %         opt_x = value(x); % current and future states
         opt_u = value(u); % future input
-%         break
+        %         break
         % update robot state
         new_state = agent.updState2(agent.currentPos,...
             opt_u,mpc_dt); % contains current and future states
@@ -376,7 +385,7 @@ while (1)
         % get a solution for MPC with collision avoidance constraints
         opt_u = value(u); % future input
         new_state = agent.updState2(agent.currentPos,...
-            opt_u,mpc_dt); % contains current and future states 
+            opt_u,mpc_dt); % contains current and future states
         break
     end
 end
