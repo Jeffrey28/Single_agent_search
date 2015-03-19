@@ -9,7 +9,9 @@ clear % clear global variables
 close all
 
 %% Setup
-addpath('D:\Chang Liu\ipopt');
+% addpath('D:\Chang Liu\ipopt');
+addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
+addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
 scale = 1/2; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 %%% define agents %%%

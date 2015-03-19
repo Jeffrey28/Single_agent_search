@@ -43,63 +43,6 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
     % using the non-intersection constraints
     [new_state,opt_u] = solveMPC(inPara_cg); 
     
-%     % solve MPC
-%     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
-%     opt.Algorithm = 'interior-point';
-%     sol = optimize(constr,obj,opt);
-%     
-%     if sol.problem == 0
-%         opt_x = value(x); % current and future states
-%         opt_u = value(u); % future input
-% %         break
-%     else
-%         display('Fail to solve MPC')
-%         sol.info
-%         yalmiperror(sol.problem)
-%         return
-%     end
-    %{
-    if sol.problem == 0
-        opt_x = value(x); % current and future states
-        opt_u = value(u); % future input
-        if tmp_hor < hor
-            opt_x = [opt_x,opt_x(:,end)*ones(1,hor-tmp_hor)]; % current and future states
-            opt_u = [opt_u,zeros(size(opt_u,1),hor-tmp_hor)]; % future input
-        end
-        for ii = 1:tmp_hor
-            for jj = 1:size(obs_info,2)
-                % check if the line intersects with some obstacle
-                n = floor(mpc_dt/dt);
-                % x0 = obs_info(1,jj); y0 = obs_info(2,jj);
-                r = obs_info(3,jj);
-                for kk = 0:n
-                    tmp = sum((kk/n*opt_x(1:2,ii+1)+(n-kk)/n*opt_x(1:2,ii)-obs_info(1:2,jj)).^2) - (r+safe_marg2)^2;
-                    if tmp < 0
-                        non_intersect_flag = 1;
-                        break
-                    end
-                end
-                if tmp < 0
-                    break
-                end
-            end
-            if tmp < 0
-                break
-            end
-        end
-        if tmp >= 0
-            break
-        end
-    else
-        display('Fail to solve MPC')
-        sol.info
-        yalmiperror(sol.problem)
-        % safe_dis = safe_dis/2;   
-        tmp_hor = tmp_hor-1;
-    end
-    %}
-% end
-
 %{
 if tmp_hor == 0 % if the MPC fails, just find the input at the next step to maximize the humna-robot distance
     %{
@@ -275,7 +218,8 @@ grid_step = campus.grid_step;
 % init_state = inPara.init_state;
 
 % [A,B,c] = linearize_model(init_state,mpc_dt);
-% objective function
+
+%% objective function
 % compact format
 w = campus.w;
 lambda = campus.lambda;
@@ -345,11 +289,18 @@ obj = 1/3*obj1+1/3*obj2+1/3*obj3;
 %     'campus',campus);
 % obj = obj + termCost(inPara_tc);
 cst_flag = 0;
-init_x = []; % initial solution for the nonlinear problem
+
+%% constraints
+% get initial guess for NLP
+guess_u = [agent.currentV;0]*ones(1,hor);
+guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
+guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
+% guess_x = []; % initial solution for the nonlinear problem
+% guess_u = [];
+
+% linearize system
+[A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
 while (1)
-    % constraints
-    % linearize system
-    [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
     % impose constraints
     % initial condition
     constr = [x(:,1) == init_state];
@@ -366,11 +317,12 @@ while (1)
     end
     
     % solve MPC
-    if ~isempty(init_x)
-        assign(x,init_x); % assign initial solution
+    if ~isempty(guess_x)
+        assign(x,guess_x); % assign initial solution
+        assign(u,guess_u); % assign initial input
     end
-    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
-    opt.Algorithm = 'interior-point';
+    opt = sdpsettings('solver','snopt','usex0',1,'debug',1);
+%     opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0
@@ -394,7 +346,8 @@ while (1)
             opt_u = [];
             break
         elseif sol.problem == 0
-            init_x = value(x);
+            guess_x = value(x);
+            guess_u = value(u);
         end
     elseif sol.problem == 0 && cst_flag == 0
         % test whether the solution without collision avoidance constraints
