@@ -238,23 +238,29 @@ psi(:,:,rv_id) = [];
 
 A = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
 for ii = 1:hor
-    A(ii) = A_fct2(agent,x(1:2,ii+1),agent.psi_s);
+    A(ii) = A_fct2s(agent,x(1:2,ii+1),agent.psi_s);
 end
 
 obj1 = 0;
 for jj = 1:length(w)
     alpha = sdpvar(size(all_comb,1),1);
-    A1 = A_fct2(agent,lambda(:,jj),psi(:,:,jj));
+    A1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
     tmp_obj = 0;
-    for kk = 1:size(all_comb,1)
+    tmp_psi_prod = psi(:,:,jj);
+    for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
         tmp_idx = all_comb{kk};
         tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
         tmp_para = updPara2([lambda(:,jj),tmp_x],...
         cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
         tmp_psi = tmp_para.psi;
         tmp_lambda = tmp_para.lambda;
-        alpha(kk) = A_fct2(agent,tmp_lambda,tmp_psi)-A1-sum(A(tmp_idx));
-        tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*exp(alpha(kk));
+        for ll = 1:length(tmp_idx)
+            tmp_psi_prod = tmp_psi_prod*agent.psi_s;
+        end
+        tmp_psi_prod = tmp_psi_prod/tmp_psi;
+        tmp_coef = sqrt(det(tmp_psi_prod));
+        alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-A1-sum(A(tmp_idx));
+        tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
     end
     obj1 = obj1+w(jj)*(1+tmp_obj);
 end
@@ -281,7 +287,7 @@ tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several poin
 obj3 =0;
 if tmp_min > agent.currentV * mpc_dt 
     tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)';
-    obj3 = norm(tmp_vec2)*1e-2;
+    obj3 = norm(tmp_vec2)*1e-1;
 end
 
 obj = 1/3*obj1+1/3*obj2+1/3*obj3;
@@ -321,8 +327,8 @@ while (1)
         assign(x,guess_x); % assign initial solution
         assign(u,guess_u); % assign initial input
     end
-    opt = sdpsettings('solver','snopt','usex0',1,'debug',1);
-%     opt.Algorithm = 'sqp';
+    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1);
+    opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0

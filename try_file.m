@@ -66,7 +66,19 @@ fig = figure;
 movie(fig,F3);
 %}
 %% try the cell
+%{
 all_comb = {};
 for ii = 1:5
     all_comb = [all_comb;num2cell(nchoosek(1:5,ii),2)];
 end
+%}
+%% test how fast the NLP solver can solve for a one-point feasible set case
+addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
+addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
+sdpvar x;
+obj = exp(sum(x.^2)-sum(x)^2)-log(abs(sum(x)));
+constr = [x<= ones(10000,1)];
+constr = [constr,x == [ones(5000,1);-ones(5000,1)]];
+opt = sdpsettings('solver','ipopt');
+sol = optimize(constr,obj,opt);
+opt_x = value(x);
