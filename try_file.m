@@ -73,6 +73,7 @@ for ii = 1:5
 end
 %}
 %% test how fast the NLP solver can solve for a one-point feasible set case
+%{
 addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
 addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
 sdpvar x;
@@ -82,3 +83,12 @@ constr = [constr,x == [ones(5000,1);-ones(5000,1)]];
 opt = sdpsettings('solver','ipopt');
 sol = optimize(constr,obj,opt);
 opt_x = value(x);
+%}
+
+%% test the optimizer
+sdpvar a
+sdpvar x(2,1)
+Constraints = [a+1 <= x];
+Objective = sum(x.^2);
+P = optimizer(Constraints,Objective,[],a,x);
+P{[1;1]}

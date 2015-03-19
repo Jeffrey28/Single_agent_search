@@ -141,7 +141,7 @@ plan_type = inPara.plan_type;
             end
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
-                'safe_dis',safe_dis,'all_comb',{all_comb});
+                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k);
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;
