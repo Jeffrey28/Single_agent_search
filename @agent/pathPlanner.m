@@ -14,6 +14,7 @@ campus = inPara.campus;
 x_h = inPara.pre_traj;
 all_comb = inPara.all_comb;
 k = inPara.k;
+max_pts = inPara.max_pts;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -39,7 +40,8 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
         'safe_marg',safe_marg,'obs_info',obs_info,...
         'non_intersect_flag',non_intersect_flag,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k); %'x',x,'u',u,
+        'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
+        'max_pts',max_pts); %'x',x,'u',u,
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     [new_state,opt_u] = solveMPC(inPara_cg); 
@@ -212,6 +214,7 @@ campus = inPara.campus;
 init_state = inPara.init_state;
 all_comb = inPara.all_comb;
 k = inPara.k;
+max_pts = inPara.max_pts;
 
 cur_clt = agent.cur_clt;
 clt_res = agent.clt_res;
@@ -295,11 +298,24 @@ tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several poin
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
 obj3 = 0; 
 if tmp_min > agent.currentV * mpc_dt
-    tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)';
+    tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)'*grid_step;
     obj3 = norm(tmp_vec2)*1e-1;
 end
 
-obj = 1/3*obj1+1/3*obj2+1/3*obj3;
+% add a terminal cost that guides the robot to the nearest highest probability
+% point in current cluster or the goal cluster
+% tmp_vec3 = max_pts*grid_step - ones(size(max_pts,1),1)*agent.currentPos(1:2)';
+% tmp_dis2 = sqrt(sum(tmp_vec3.*tmp_vec3,2));
+% tmp_min2 = min(tmp_dis2);
+% tmp_min_pt2 = max_pts(tmp_dis2 == tmp_min2,:);
+tmp_min_pt2 = max_pts(randi(size(max_pts,1)),:);
+tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2(1,:)'*grid_step;
+obj4 = norm(tmp_vec4)*1e-1;
+% obj4 = 0;
+
+obj_w = [1;1;1;2];
+obj_w = obj_w/sum(obj_w);
+obj = obj_w'*[obj1;obj2;obj3;obj4];
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
 %     'campus',campus);
 % obj = obj + termCost(inPara_tc);
@@ -328,7 +344,8 @@ while (1)
         
         % linear constraint
         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
-            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
+            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
+            x(1:2,ii+1) >= 0];
     end
     
     % solve MPC

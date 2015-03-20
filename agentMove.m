@@ -131,6 +131,11 @@ plan_type = inPara.plan_type;
         % one
         agent.cur_clt = selectCluster(agent,campus.grid_step,prob_map);
         
+        % find the maximum probability point in current cluster
+        cur_clt_pt = agent.hp_pt(agent.clt_res==agent.cur_clt,:);
+        cur_clt_pt_idx = sub2ind(size(prob_map),cur_clt_pt(:,1),cur_clt_pt(:,2));
+        cur_clt_prob = prob_map(cur_clt_pt_idx);
+        [max_x,max_y] = ind2sub(size(prob_map),cur_clt_pt_idx(cur_clt_prob == max(cur_clt_prob)));
         if strcmp(plan_type,'mpc')
 %             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
@@ -141,7 +146,7 @@ plan_type = inPara.plan_type;
             end
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
-                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k);
+                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,'max_pts',[max_x,max_y]);
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;
