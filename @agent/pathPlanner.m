@@ -298,7 +298,7 @@ tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several poin
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
 obj3 = 0; 
 if tmp_min > agent.currentV * mpc_dt
-    tmp_vec2 = agent.sigma_s*x(1:2,end) - tmp_min_pt(1,:)'*grid_step;
+    tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(1,:)'-1)*grid_step;
     obj3 = norm(tmp_vec2)*1e-1;
 end
 
@@ -309,11 +309,11 @@ end
 % tmp_min2 = min(tmp_dis2);
 % tmp_min_pt2 = max_pts(tmp_dis2 == tmp_min2,:);
 tmp_min_pt2 = max_pts(randi(size(max_pts,1)),:);
-tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2(1,:)'*grid_step;
+tmp_vec4 = agent.sigma_s*x(1:2,end) - (tmp_min_pt2(1,:)'-1)*grid_step;
 obj4 = norm(tmp_vec4)*1e-1;
 % obj4 = 0;
 
-obj_w = [1;1;1;2];
+obj_w = [0;0;0;1];
 obj_w = obj_w/sum(obj_w);
 obj = obj_w'*[obj1;obj2;obj3;obj4];
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...

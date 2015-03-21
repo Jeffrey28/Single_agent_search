@@ -12,7 +12,7 @@ close all
 % addpath('D:\Chang Liu\ipopt');
 addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
 addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
-scale = 0.3; % scale the size of the field
+scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 %%% define agents %%%
 % Human agent 1

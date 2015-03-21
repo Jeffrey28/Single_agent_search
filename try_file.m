@@ -86,9 +86,39 @@ opt_x = value(x);
 %}
 
 %% test the optimizer
+%{
 sdpvar a
 sdpvar x(2,1)
 Constraints = [a+1 <= x];
 Objective = sum(x.^2);
 P = optimizer(Constraints,Objective,[],a,x);
 P{[1;1]}
+%}
+
+%% test the gaussian fitting method in Matlab
+
+mu1 = [1 1];
+Sigma1 = [0.5 0; 0 0.5];
+mu2 = [3 3];
+Sigma2 = [0.2 0; 0 0.2];
+rng(1);
+X = [mvnrnd(mu1,Sigma1,5000);mvnrnd(mu2,Sigma2,5000)];
+
+plot(X(:,1),X(:,2),'ko')
+title('Scatter Plot')
+xlim([min(X(:)) max(X(:))]) % Make axes have the same scale
+ylim([min(X(:)) max(X(:))])
+options = statset('Display','final');
+
+AIC = zeros(1,10);
+GMModels = cell(1,10);
+options = statset('MaxIter',500);
+for k = 1:10
+    GMModels{k} = fitgmdist(X,k,'Options',options,'CovType','diagonal');
+    AIC(k)= GMModels{k}.AIC;
+end
+
+[minAIC,numComponents] = min(AIC);
+numComponents
+
+BestModel = GMModels{numComponents}
