@@ -448,12 +448,14 @@ for k = 1:kf
     % draw the difference map between the fitted and original maps
     figure
     dif_prob_map = prob_map-tmp_prob_map;
-    plot_dif_prob_map = [dif_prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
-    p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_dif_prob_map);
-    set(p_handle,'EdgeColor','none');
-    colormap(b2r(min(plot_dif_prob_map(:)),max(plot_dif_prob_map(:))));
-    colorbar
-    
+    if sum(dif_prob_map(:)) ~= 0
+        
+        plot_dif_prob_map = [dif_prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
+        p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_dif_prob_map);
+        set(p_handle,'EdgeColor','none');
+        colormap(b2r(min(plot_dif_prob_map(:)),max(plot_dif_prob_map(:))));
+        colorbar
+    end
     % draw animation of the search process. does not work well
     %{
     x_fig = 450;
