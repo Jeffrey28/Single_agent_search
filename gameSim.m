@@ -142,11 +142,23 @@ for k = 1:kf
             cur_lambda = agent.sigma_s\cur_pos;
             cur_psi = 1/2*eye(2)/agent.sigma_s;
 %             [w,mu,sigma] = agent.updateProbPara(w,lambda,psi,sim_reading,cur_pos,agent.sigma_s);
-            [w,mu,sigma,lambda,psi] = agent.updateProbPara2(w,lambda,psi,sim_reading,cur_lambda,cur_psi);
+            inPara_upp = struct('w',w,'lambda',lambda,'psi',psi,'obs',sim_reading,...
+                'lambda_s',cur_lambda,'psi_s',cur_psi,'field',campus);
+            outPara_upp = agent.updateProbPara2(inPara_upp);
+            w = outPara_upp.w;
+            mu = outPara_upp.mu;
+            sigma = outPara_upp.sigma;
+            lambda = outPara_upp.lambda;
+            psi = outPara_upp.psi; 
+            old_w = outPara_upp.old_w;
+            old_mu = outPara_upp.old_mu;
+            old_sigma = outPara_upp.old_sigma;
+            old_lambda = outPara_upp.old_lambda;
+            old_psi = outPara_upp.old_psi; 
         end
     end
     % remove terms with very small weights
-    %
+    %{
     [max_w,max_id] = max(w);
     rv_id = (abs(w) < max(w)*1e-3);
     w(rv_id) = [];
@@ -161,8 +173,17 @@ for k = 1:kf
     campus.psi = psi;
     campus.sigma = sigma;
     campus.mu = mu;
-    % Save current probability distribution
-    prob_map = agent.updateProbMap(campus);
+    tmp_campus = campus;
+    tmp_campus.w = old_w;
+    tmp_campus.lambda = old_lambda;
+    tmp_campus.psi = old_psi;
+    tmp_campus.sigma = old_sigma;
+    tmp_campus.mu = old_mu;
+    
+    % get the two probability distribution: the fitted one and the one
+    % before fitting
+    [tmp_prob_map,~] = agent.updateProbMap(tmp_campus,0);
+    [prob_map,~] = agent.updateProbMap(campus,0);
 %     prob_map_set(:,:,k) = matrixToCartesian(prob_map);
     
     %% Test to see if game is over
@@ -419,10 +440,19 @@ for k = 1:kf
     end
     % close plots when there are too many plots
     h5 = gcf;
-    if h5 > 50 
+    if h5 > 30
         close all;
     end
     %}
+    
+    % draw the difference map between the fitted and original maps
+    figure
+    dif_prob_map = prob_map-tmp_prob_map;
+    plot_dif_prob_map = [dif_prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
+    p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_dif_prob_map);
+    set(p_handle,'EdgeColor','none');
+    colormap(b2r(min(plot_dif_prob_map(:)),max(plot_dif_prob_map(:))));
+    colorbar
     
     % draw animation of the search process. does not work well
     %{

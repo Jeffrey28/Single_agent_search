@@ -1,6 +1,16 @@
-function [w,mu,sigma,lambda,psi] = updateProbPara2(agent,w,lambda,psi,obs,lambda_s,psi_s)
+function [outPara] = updateProbPara2(agent,inPara)
 % update probability map parameters based on observation results
 % called before the updateProbMap.m
+
+%% update parameters
+w = inPara.w;
+lambda = inPara.lambda;
+psi = inPara.psi;
+obs = inPara.obs;
+lambda_s = inPara.lambda_s;
+psi_s = inPara.psi_s;
+field = inPara.field;
+
 num = length(w);
 if obs == 1 % positive observation
     mu = zeros(size(lambda));
@@ -40,4 +50,45 @@ elseif obs == 0 % negative observation
         mu(:,ii) = sigma(:,:,ii)*lambda(:,ii);
     end
 end
+
+%% GMM fitting
+old_w = w;
+old_mu = mu;
+old_sigma = sigma;
+old_lambda = lambda;
+old_psi = psi;
+
+tmp_field = field;
+tmp_field.w = w;
+tmp_field.mu = mu;
+tmp_field.sigma = sigma;
+
+% generate data and fit with a new gmm
+[~,gmm_data] = agent.updateProbMap(tmp_field,1);
+tic;
+n_gmm = 10; % max cluster number
+gmm_model = cell(n_gmm,1);
+opt = statset('MaxIter',1000);
+AIC = zeros(n_gmm,1);
+for kk = 1:n_gmm
+    gmm_model{kk} = fitgmdist(gmm_data,kk,'Options',opt,'Regularize',0.001);
+    AIC(kk)= gmm_model{kk}.AIC;
 end
+display ('gmm fitting takes time as:');
+toc;
+
+[minAIC,numComponents] = min(AIC);
+
+best_model = gmm_model{numComponents};
+mu = best_model.mu';
+sigma = best_model.Sigma;
+w = best_model.PComponents';
+for jj = 1:size(mu,2)
+    psi(:,:,jj) = 1/2*eye(2)/sigma(:,:,jj);
+    lambda(:,jj) = sigma(:,:,jj)\mu(:,jj);
+end
+
+outPara = struct('w',w,'mu',mu,'sigma',sigma,'lambda',lambda...
+    ,'psi',psi,'old_w',old_w,'old_mu',old_mu,'old_sigma',old_sigma,...
+    'old_lambda',old_lambda,'old_psi',old_psi);
+

@@ -299,7 +299,7 @@ tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several poin
 obj3 = 0; 
 if tmp_min > agent.currentV * mpc_dt
     tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(1,:)'-1)*grid_step;
-    obj3 = norm(tmp_vec2)*1e-1;
+    obj3 = norm(tmp_vec2);
 end
 
 % add a terminal cost that guides the robot to the nearest highest probability
@@ -313,7 +313,7 @@ tmp_vec4 = agent.sigma_s*x(1:2,end) - (tmp_min_pt2(1,:)'-1)*grid_step;
 obj4 = norm(tmp_vec4)*1e-1;
 % obj4 = 0;
 
-obj_w = [0;0;0;1];
+obj_w = [1;0;1;0];
 obj_w = obj_w/sum(obj_w);
 obj = obj_w'*[obj1;obj2;obj3;obj4];
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
@@ -323,11 +323,11 @@ cst_flag = 0;
 
 %% constraints
 % get initial guess for NLP
-guess_u = [agent.currentV;0]*ones(1,hor);
-guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
-guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
-% guess_x = []; % initial solution for the nonlinear problem
-% guess_u = [];
+% guess_u = [agent.currentV;0]*ones(1,hor);
+% guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
+% guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
+guess_x = []; % initial solution for the nonlinear problem
+guess_u = [];
 
 % linearize system
 [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
