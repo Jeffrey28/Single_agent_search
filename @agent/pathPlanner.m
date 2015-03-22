@@ -44,7 +44,10 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
         'max_pts',max_pts); %'x',x,'u',u,
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
+    tic;
     [new_state,opt_u] = solveMPC(inPara_cg); 
+    display('MPC takes time:')
+    toc
     
 %{
 if tmp_hor == 0 % if the MPC fails, just find the input at the next step to maximize the humna-robot distance
@@ -313,7 +316,7 @@ tmp_vec4 = agent.sigma_s*x(1:2,end) - (tmp_min_pt2(1,:)'-1)*grid_step;
 obj4 = norm(tmp_vec4)*1e-1;
 % obj4 = 0;
 
-obj_w = [1;0;1;0];
+obj_w = [1;0.5;1;0];
 obj_w = obj_w/sum(obj_w);
 obj = obj_w'*[obj1;obj2;obj3;obj4];
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
