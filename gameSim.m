@@ -94,6 +94,8 @@ safe_dis = 0.5; %safe distance between human and robot
 safe_marg = 0; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
 prob_thresh = 0.6;
+n_data = 3000;% number of randomly generated particles
+clt_num = 2; % clustering number
 
 % precompute combinatorial matrix
 all_comb = {};
@@ -118,6 +120,7 @@ tar_found = 0; % binary variable. 1 indicates that the target is found
 clt_thresh = 1e-4; %threshold for choosing points to be clustered
 pre_cov = zeros(hor,hor,hor,kf); % covariance of the predicted x and y trajectory.
 F = []; % save frame of plots for movie
+particles = zeros(2,n_data); % save the generated particles;
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -127,11 +130,16 @@ F = []; % save frame of plots for movie
 % end
 for k = 1:kf
     display(k)
+    %% generate particles
+    if k == 1
+       particles = agents(2).genParticles(campus.w,campus.mu,campus.sigma,n_data); 
+    end
     %% update probability map
     % Set prior probabilities based on agent positions and target readings
     w = campus.w;
     mu = campus.mu;
-    sigma = campus.sigma;        
+    sigma = campus.sigma;
+    
     % Generate sensor readings
     for agentIndex = 1:length(agents)
         agent = agents(agentIndex);
@@ -139,9 +147,11 @@ for k = 1:kf
             cur_pos = agent.currentPos(1:2);
             [~,~,sim_reading] = sensorSim(agent,tar_pos,cur_pos);
             sensor_reading(agentIndex,k) = sim_reading;
+            % update parameters for probability map using update law
+            %{
             cur_lambda = agent.sigma_s\cur_pos;
             cur_psi = 1/2*eye(2)/agent.sigma_s;
-%             [w,mu,sigma] = agent.updateProbPara(w,lambda,psi,sim_reading,cur_pos,agent.sigma_s);
+            [w,mu,sigma] = agent.updateProbPara(w,lambda,psi,sim_reading,cur_pos,agent.sigma_s);
             inPara_upp = struct('w',w,'lambda',lambda,'psi',psi,'obs',sim_reading,...
                 'lambda_s',cur_lambda,'psi_s',cur_psi,'field',campus);
             outPara_upp = agent.updateProbPara2(inPara_upp);
@@ -155,6 +165,17 @@ for k = 1:kf
             old_sigma = outPara_upp.old_sigma;
             old_lambda = outPara_upp.old_lambda;
             old_psi = outPara_upp.old_psi; 
+            %}
+            % update probability map using particle filter
+            inPara_pf = struct('particles',particles,'obs',sim_reading);
+            outPara_pf = agent.particle_filter(inPara_pf);
+            particles = outPara_pf.particles;
+            % following quantities are from the fitted gmm
+            campus.w = outPara_pf.w;
+            campus.lambda = outPara_pf.lambda;
+            campus.psi = outPara_pf.psi;
+            campus.sigma = outPara_pf.sigma;
+            campus.mu = outPara_pf.mu;
         end
     end
     % remove terms with very small weights
@@ -168,6 +189,9 @@ for k = 1:kf
     mu(:,rv_id) = [];
     sigma(:,:,rv_id) = [];
     %}
+    % this part is used with the updateProbPara2 to save the original map
+    % parameters based on update law and the new ones based on gmm fitting
+    %{
     campus.w = w;
     campus.lambda = lambda;
     campus.psi = psi;
@@ -179,12 +203,13 @@ for k = 1:kf
     tmp_campus.psi = old_psi;
     tmp_campus.sigma = old_sigma;
     tmp_campus.mu = old_mu;
+    %}
     
     % get the two probability distribution: the fitted one and the one
     % before fitting
-    [tmp_prob_map,~] = agent.updateProbMap(tmp_campus,0);
-    [prob_map,~] = agent.updateProbMap(campus,0);
-%     prob_map_set(:,:,k) = matrixToCartesian(prob_map);
+%     [tmp_prob_map,~] = agent.updateProbMap(tmp_campus,0);
+    [prob_map_pf,prob_map_gmm] = agent.updateProbMap_pf(campus,particles);
+  %     prob_map_set(:,:,k) = matrixToCartesian(prob_map);
     
     %% Test to see if game is over
     
@@ -209,7 +234,7 @@ for k = 1:kf
     end
     %}
     
-    inPara_ec = struct('prob_thresh',prob_thresh,'prob_map',prob_map,...
+    inPara_ec = struct('prob_thresh',prob_thresh,'prob_map_pf',prob_map_pf,...
         'r',agents(2),'campus',campus);
     game_end = endCheck(inPara_ec);
     if game_end == 1
@@ -281,8 +306,8 @@ for k = 1:kf
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
-            'prob_map',prob_map,'clt_thresh',clt_thresh,'pre_cov',pre_cov,...
-            'all_comb',{all_comb});
+            'prob_map_pf',prob_map_pf,'clt_thresh',clt_thresh,'pre_cov',pre_cov,...
+            'all_comb',{all_comb},'clt_num',clt_num);
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;
@@ -310,10 +335,19 @@ for k = 1:kf
     box
 
     % draw probability map
+    %{
     plot_prob_map = [prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
     p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map);
     set(p_handle,'EdgeColor','none');
     colormap(b2r(min(plot_prob_map(:)),max(plot_prob_map(:))));
+    colorbar
+    %}
+    
+    % draw gmm probability map
+    plot_prob_map_gmm = [prob_map_gmm zeros(size(prob_map_gmm,1),1); zeros(1,size(prob_map_gmm,2)) 0]';
+    p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map_gmm);
+    set(p_handle,'EdgeColor','none');
+    colormap(b2r(min(plot_prob_map_gmm(:)),max(plot_prob_map_gmm(:))));
     colorbar
     
     % draw targets
@@ -446,6 +480,7 @@ for k = 1:kf
     %}
     
     % draw the difference map between the fitted and original maps
+    %{
     figure
     dif_prob_map = prob_map-tmp_prob_map;
     if sum(dif_prob_map(:)) ~= 0
@@ -456,6 +491,12 @@ for k = 1:kf
         colormap(b2r(min(plot_dif_prob_map(:)),max(plot_dif_prob_map(:))));
         colorbar
     end
+    %}
+    
+    % draw the pf-based probability map
+    figure
+    plot(particles(1,:),particles(2,:),'o')
+    
     % draw animation of the search process. does not work well
     %{
     x_fig = 450;
@@ -466,6 +507,7 @@ for k = 1:kf
     set(hd_fig, 'Position', [x_fig y_fig w_fig h_fig])
     F = [F,getframe(hd_fig)];
     %}
+   
 end
 
 % pre_traj = pos_pre_imm;

@@ -114,6 +114,7 @@ plan_type = inPara.plan_type;
         %}
         %% robot path planning
         all_comb = inPara.all_comb;
+        clt_num = inPara.clt_num;
         % record current trajectory before moving
 %         if k == 1
 %             tmp_agent_traj = agent.currentPos;
@@ -121,21 +122,38 @@ plan_type = inPara.plan_type;
             tmp_agent_traj = agent.traj;
 %         end
         % clustering data
+        %{
         prob_map = inPara.prob_map;
         clt_thresh = inPara.clt_thresh;
         if k == 1
             [agent.clt_res,agent.hp_pt] = agent.mapCluster(prob_map,clt_thresh);
         end
+        %}
+        prob_map_pf = inPara.prob_map_pf;
+        if k == 1
+            % [agent.clt_res,agent.hp_pt] = agent.mapCluster(prob_map_pf);
+            [agent.clt_res,prob_map_pf] = agent.mapCluster(prob_map_pf,clt_num);
+        end
         
         % decide which cluster to go. current strategy: go to the nearest
         % one
+        %{
         agent.cur_clt = selectCluster(agent,campus.grid_step,prob_map);
+        %}
+        agent.cur_clt = selectCluster(agent,prob_map_pf);
         
         % find the maximum probability point in current cluster
+        %{
         cur_clt_pt = agent.hp_pt(agent.clt_res==agent.cur_clt,:);
         cur_clt_pt_idx = sub2ind(size(prob_map),cur_clt_pt(:,1),cur_clt_pt(:,2));
         cur_clt_prob = prob_map(cur_clt_pt_idx);
         [max_x,max_y] = ind2sub(size(prob_map),cur_clt_pt_idx(cur_clt_prob == max(cur_clt_prob)));
+        %}
+        clt_res = prob_map_pf(4,:);
+        [~,cur_max_idx] = max(prob_map_pf(3,clt_res == agent.cur_clt)); 
+%         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
+        max_pts = prob_map_pf(1:2,cur_max_idx(1));
+        
         if strcmp(plan_type,'mpc')
 %             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
@@ -146,7 +164,8 @@ plan_type = inPara.plan_type;
             end
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
-                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,'max_pts',[max_x,max_y]);
+                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,'max_pts',max_pts,...
+                'prob_map_pf',prob_map_pf);%,[max_x,max_y]
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;

@@ -15,6 +15,7 @@ x_h = inPara.pre_traj;
 all_comb = inPara.all_comb;
 k = inPara.k;
 max_pts = inPara.max_pts;
+prob_map_pf = inPara.prob_map_pf;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -41,7 +42,7 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
         'non_intersect_flag',non_intersect_flag,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
         'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
-        'max_pts',max_pts); %'x',x,'u',u,
+        'max_pts',max_pts,'prob_map_pf',prob_map_pf); %'x',x,'u',u,
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     tic;
@@ -218,10 +219,10 @@ init_state = inPara.init_state;
 all_comb = inPara.all_comb;
 k = inPara.k;
 max_pts = inPara.max_pts;
+prob_map_pf = inPara.prob_map_pf;
 
 cur_clt = agent.cur_clt;
-clt_res = agent.clt_res;
-hp_pt = agent.hp_pt;
+% hp_pt = agent.hp_pt;
 grid_step = campus.grid_step;
 % init_state = inPara.init_state;
 
@@ -236,6 +237,7 @@ psi = campus.psi;
 k_s = agent.k_s;
 
 % remove terms with very small weights to speed up the optimization
+%{
 max_w = max(w);
 rv_id = (abs(w) < max_w/10);
 w(rv_id) = [];
@@ -243,7 +245,7 @@ sprintf('number of w is %d',length(w));
 w = w/sum(w);
 lambda(:,rv_id) = [];
 psi(:,:,rv_id) = [];
-
+%}
 persistent x u Af
 
 if k == 1    
@@ -293,15 +295,16 @@ for ii = 1:hor
 end
     
 % determine whether the robot is already in the cur_clt region.
-tmp_pt = hp_pt(clt_res == cur_clt,:);
-tmp_vec = tmp_pt*grid_step - ones(size(tmp_pt,1),1)*agent.currentPos(1:2)';
+clt_res = prob_map_pf(4,:);
+tmp_pt = prob_map_pf(1:2,clt_res == cur_clt);
+tmp_vec = tmp_pt - agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
 tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,2));
 tmp_min = min(tmp_dis);
 tmp_min_pt = tmp_pt(tmp_dis == tmp_min,:); % tmp_min_pt may contain several points
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
 obj3 = 0; 
 if tmp_min > agent.currentV * mpc_dt
-    tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(1,:)'-1)*grid_step;
+    tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));%-1; *grid_step
     obj3 = norm(tmp_vec2);
 end
 
@@ -312,7 +315,7 @@ end
 % tmp_min2 = min(tmp_dis2);
 % tmp_min_pt2 = max_pts(tmp_dis2 == tmp_min2,:);
 tmp_min_pt2 = max_pts(randi(size(max_pts,1)),:);
-tmp_vec4 = agent.sigma_s*x(1:2,end) - (tmp_min_pt2(1,:)'-1)*grid_step;
+tmp_vec4 = agent.sigma_s*x(1:2,end) - (tmp_min_pt2(:,1));%-1)*grid_step
 obj4 = norm(tmp_vec4)*1e-1;
 % obj4 = 0;
 
