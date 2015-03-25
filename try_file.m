@@ -96,7 +96,7 @@ P{[1;1]}
 %}
 
 %% test the gaussian fitting method in Matlab
-
+%{
 mu1 = [1 1];
 Sigma1 = [0.5 0; 0 0.5];
 mu2 = [3 3];
@@ -122,3 +122,18 @@ end
 numComponents
 
 BestModel = GMModels{numComponents}
+%}
+
+%% test if the obj1 is correctly calculated
+A = @(lambda,psi) 1/4*lambda'/psi*lambda-1/2*log(det(psi))+log(pi);
+tmp_obj = 0;
+k = agent.k_s;
+for ii= 1:length(campus.w)
+    lambda_f = campus.lambda(:,ii);
+    psi_f = campus.psi(:,:,ii);
+    psi_s = agent.psi_s;
+    lambda_s = psi_s\agent.currentPos(1:2);
+    tmp = A(lambda_f+lambda_s,psi_f+psi_s)-A(lambda_f,psi_f)-A(lambda_s,psi_s);
+    tmp1 = k*exp(tmp);
+    tmp_obj = tmp_obj+campus.w(ii)*(1-tmp1);
+end

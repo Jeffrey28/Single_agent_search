@@ -6,7 +6,7 @@ cur_pos = agent.currentPos(1:2);
 sigma_s = agent.sigma_s;
 k_s = agent.k_s;
 reading = inPara.obs;
-
+n_gmm = inPara.n_gmm;
 %% particle filtering
 n_p = size(particles,2); % number of particles
 
@@ -17,7 +17,7 @@ w = ones(n_p,1)/n_p;
 
 % weight update
 for ii = 1:n_p
-    w(ii) = sensorModel(sigma_s,k_s,particles(ii),cur_pos,reading);
+    w(ii) = sensorModel(sigma_s,k_s,particles(:,ii),cur_pos,reading);
 end
 w = w/sum(w);
 
@@ -27,12 +27,13 @@ new_particles = particles(:,idx);
 
 %% gmm fitting
 tic;
-n_gmm = 10; % max cluster number
+% n_gmm = 10; % max cluster number
 gmm_model = cell(n_gmm,1);
 opt = statset('MaxIter',1000);
 AIC = zeros(n_gmm,1);
 for kk = 1:n_gmm
-    gmm_model{kk} = fitgmdist(new_particles',kk,'Options',opt,'Regularize',0.001);
+    gmm_model{kk} = fitgmdist(new_particles',kk,'Options',opt,...
+        'Regularize',0.001,'CovType','diagonal');
     AIC(kk)= gmm_model{kk}.AIC;
 end
 display ('gmm fitting takes time as:');
@@ -42,7 +43,10 @@ toc;
 
 best_model = gmm_model{numComponents};
 gmm_mu = best_model.mu';
-gmm_sigma = best_model.Sigma;
+gmm_sigma = zeros(2,2,numComponents);
+for ii = 1:numComponents
+    gmm_sigma(:,:,ii) = diag(best_model.Sigma(:,:,ii)); % best_model.Sigma is a vector, showing the diagonal elements of the matrix
+end
 gmm_w = best_model.PComponents';
 gmm_lambda = zeros(size(gmm_mu));
 gmm_psi = zeros(size(gmm_sigma));

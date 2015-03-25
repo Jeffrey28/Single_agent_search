@@ -20,11 +20,13 @@ uni_par = (unique(particles','rows'))'; % 2-by-x matrix
 n_uniq = size(uni_par,2); % # of unique points
 prob_map_pf = [uni_par;zeros(2,n_uniq)]; % 4-by-n matrix, [x;y;count;clt_idx];
 for ii = 1:n_uniq
-    tmp = abs(sum(uni_par(:,ii)*ones(1,size(particles,2))-particles,1))<1e-6;
+    tmp = findEqualVec(uni_par(:,ii),particles);
+%     tmp = abs(sum(uni_par(:,ii)*ones(1,size(particles,2))-particles,1))<1e-6;
     prob_map_pf(3,ii) = sum(tmp);
     if ~isempty(agent.clt_res)
         idx = (prob_map_pf(1,ii) == agent.clt_res(1,:))&(prob_map_pf(2,ii) == agent.clt_res(2,:));
-        prob_map_pf(4,ii) = agent.clt_res(3,idx);
+        tmp_clt_res = agent.clt_res(3,idx); % agent.clt_res may return several '1's. 
+        prob_map_pf(4,ii) = tmp_clt_res(1);
     end
 end
 

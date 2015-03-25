@@ -23,7 +23,6 @@ safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
 
-
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
@@ -92,6 +91,7 @@ plan_type = inPara.plan_type;
         % prediction by GP
         samp_num = inPara.samp_num; % not used in current code. just put here so the outPara will not cause an error.
         pre_cov = inPara.pre_cov;
+        r_obj = inPara.r_obj;
         if strcmp(pre_type,'GP')
             inPara_phj = struct('obv_traj',obv_traj,'hor',hor,'pre_type',pre_type,...
                 'mpc_dt',mpc_dt,'samp_rate',samp_rate,'pre_cov',pre_cov);
@@ -149,10 +149,14 @@ plan_type = inPara.plan_type;
         cur_clt_prob = prob_map(cur_clt_pt_idx);
         [max_x,max_y] = ind2sub(size(prob_map),cur_clt_pt_idx(cur_clt_prob == max(cur_clt_prob)));
         %}
-        clt_res = prob_map_pf(4,:);
-        [~,cur_max_idx] = max(prob_map_pf(3,clt_res == agent.cur_clt)); 
-%         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
-        max_pts = prob_map_pf(1:2,cur_max_idx(1));
+        % this snippet may not work well since the particle number cannot
+        % represent the real probability, may need density estimation
+%         clt_res = prob_map_pf(4,:);
+%         cur_prob_map_pf = prob_map_pf(:,clt_res == agent.cur_clt);
+%         [cur_max_cnt,cur_max_idx] = max(cur_prob_map_pf(3,:));
+%         sprintf('max count of particles is %d at k = %d',cur_max_cnt(1),k)
+%         %         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
+%         max_pts = cur_prob_map_pf(1:2,cur_max_idx);
         
         if strcmp(plan_type,'mpc')
 %             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
@@ -164,12 +168,14 @@ plan_type = inPara.plan_type;
             end
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
-                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,'max_pts',max_pts,...
-                'prob_map_pf',prob_map_pf);%,[max_x,max_y]
+                'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,...
+                'prob_map_pf',prob_map_pf);%,[max_x,max_y],'max_pts',max_pts
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;
             opt_u = outPara_pp.opt_u;
+            opt_obj = outPara_pp.opt_obj;
+            
 %             new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
 %                 opt_u,mpc_dt); % contains current and future states
 %             agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
@@ -177,7 +183,12 @@ plan_type = inPara.plan_type;
             r_state(:,k+1) = new_state(:,2); % save the robot's next state
             r_input(:,k) = opt_u(:,1);
             plan_state(:,:,k) = new_state;
+            r_obj(:,k) = opt_obj;
             
+            idx1 = (prob_map_pf(4,:) == 1);
+            idx2 = (prob_map_pf(4,:) == 2);
+            sprintf('# of particles in cluster 1 is %d',sum(prob_map_pf(3,idx1)))
+            sprintf('# of particles in cluster 2 is %d',sum(prob_map_pf(3,idx2)))
         elseif strcmp(plan_type,'greedy1') || strcmp(plan_type,'greedy0')
             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',...
@@ -209,7 +220,9 @@ outPara = struct('agents',agents,'obv_traj',obv_traj,'est_state',est_state,...
 if exist('pre_cov', 'var')
     outPara.pre_cov = pre_cov;
 end
-    
+if exist('r_obj', 'var')
+    outPara.r_obj = r_obj;
+end    
 end
 
 function next_act = getNextActionWithFixedHeading(a_pos,t_pos,v,deg_dev,mpc_dt)

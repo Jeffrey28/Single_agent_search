@@ -17,3 +17,4 @@ end
 % clt_idx contains the unique points and the corresponding cluster index
 clt_res = [prob_map(1:2,:);clt_idx];
 prob_map(4,:) = clt_idx;
+scatter3(prob_map(1,:),prob_map(2,:),clt_idx);

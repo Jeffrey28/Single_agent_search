@@ -20,13 +20,14 @@ if cur_clt ~= 0
     end
     %}
     tmp_cnt = prob_map_pf(3,clt_res == cur_clt);
-    if tmp_cnt > max_cnt/5
+    tmp_max_cnt = max(tmp_cnt);
+    if tmp_max_cnt > max_cnt/5
         return
     end
 end
 
 % choose the nearest cluster
-tmp_min_dis = [];
+tmp_min_dis = []; % saves the minimum distance from the robot to each cluster
 for ii = 1:clt_num
 %     tmp_pt = hp_pt(clt_res == ii,:);
 %     idx = sub2ind(size(prob_map),tmp_pt(:,1),tmp_pt(:,2));
@@ -44,7 +45,7 @@ for ii = 1:clt_num
         clt_idx_set = [clt_idx_set,ii];
         tmp_pt = prob_map_pf(1:2,clt_res == ii);
         tmp_vec = tmp_pt-agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
-        tmp_min_dis = [tmp_min_dis,min(sum(tmp_vec.*tmp_vec,2))];
+        tmp_min_dis = [tmp_min_dis,min(sum(tmp_vec.*tmp_vec,1))];
     end
 end
 tmp_min_idx = find(tmp_min_dis == min(tmp_min_dis));

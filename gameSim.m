@@ -96,6 +96,7 @@ mpc_dt = 0.5; % sampling time for model discretization used in MPC
 prob_thresh = 0.6;
 n_data = 3000;% number of randomly generated particles
 clt_num = 2; % clustering number
+n_gmm = 7; % max cluster number
 
 % precompute combinatorial matrix
 all_comb = {};
@@ -112,6 +113,7 @@ plan_state = zeros(3,hor+1,kf); % robot's current and planned future state [x,y,
 r_state = zeros(3,kf); % robot's actual state [x,y,theta]
 r_state(:,1) = r.currentPos;
 r_input = zeros(2,kf); % robot's actual control input [v,a]
+r_obj = zeros(5,kf); % save the objective funciton values [obj;obj1;obj2;obj3;obj4]
 wp_cnt = 1; % the waypoint that the human is heading for
 h_tar_wp = h_way_pts(:,wp_cnt); % the way point that the human is heading for
 sensor_reading = -1*ones(length(agents),kf); % record the sensor readings of each agent
@@ -167,7 +169,7 @@ for k = 1:kf
             old_psi = outPara_upp.old_psi; 
             %}
             % update probability map using particle filter
-            inPara_pf = struct('particles',particles,'obs',sim_reading);
+            inPara_pf = struct('particles',particles,'obs',sim_reading,'n_gmm',n_gmm);
             outPara_pf = agent.particle_filter(inPara_pf);
             particles = outPara_pf.particles;
             % following quantities are from the fitted gmm
@@ -178,6 +180,11 @@ for k = 1:kf
             campus.mu = outPara_pf.mu;
         end
     end
+    
+    % draw the pf-based probability map
+    figure
+    plot(particles(1,:),particles(2,:),'o')
+    
     % remove terms with very small weights
     %{
     [max_w,max_id] = max(w);
@@ -307,7 +314,7 @@ for k = 1:kf
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
             'prob_map_pf',prob_map_pf,'clt_thresh',clt_thresh,'pre_cov',pre_cov,...
-            'all_comb',{all_comb},'clt_num',clt_num);
+            'all_comb',{all_comb},'clt_num',clt_num,'r_obj',r_obj);
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;
@@ -317,6 +324,10 @@ for k = 1:kf
         plan_state = outPara_ams.plan_state;
         r_state = outPara_ams.r_state;
         r_input = outPara_ams.r_input;
+        r_obj = outPara_ams.r_obj;
+        plan_state(:,:,k)
+        r_obj(:,k)
+        
         %}
     end
     %% plot trajectories
@@ -493,9 +504,7 @@ for k = 1:kf
     end
     %}
     
-    % draw the pf-based probability map
-    figure
-    plot(particles(1,:),particles(2,:),'o')
+    
     
     % draw animation of the search process. does not work well
     %{
