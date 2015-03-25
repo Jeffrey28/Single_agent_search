@@ -96,7 +96,7 @@ mpc_dt = 0.5; % sampling time for model discretization used in MPC
 prob_thresh = 0.6;
 n_data = 3000;% number of randomly generated particles
 clt_num = 2; % clustering number
-n_gmm = 7; % max cluster number
+n_gmm = 10; % max cluster number
 
 % precompute combinatorial matrix
 all_comb = {};

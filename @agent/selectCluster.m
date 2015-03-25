@@ -7,6 +7,7 @@ cur_clt = agent.cur_clt;
 clt_num = max(agent.clt_res(3,:));
 clt_idx_set = [];
 % max_prob = max(prob_map(:));
+n_data = sum(prob_map_pf(4,:));
 max_cnt = max(prob_map_pf(3,:));
 
 % if the current cluster still has high information, do not change cluster
@@ -21,7 +22,9 @@ if cur_clt ~= 0
     %}
     tmp_cnt = prob_map_pf(3,clt_res == cur_clt);
     tmp_max_cnt = max(tmp_cnt);
-    if tmp_max_cnt > max_cnt/5
+    % if the particle number in current cluster is not small or the maximum
+    % particle number is not small, then continue searching this cluster
+    if (tmp_max_cnt > n_data/30) || (sum(tmp_cnt)>n_data>10)
         return
     end
 end

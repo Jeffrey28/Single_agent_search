@@ -323,7 +323,7 @@ sprintf('the nearest point in current cluster is [%d,%d]',tmp_min_pt(1,1),tmp_mi
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
 obj3 = 0; 
 if tmp_min > agent.currentV * mpc_dt
-    tmp_vec2 = agent.sigma_s*x(1:2,2) - (tmp_min_pt(:,1));%-1; *grid_step
+    tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));%-1; *grid_step
     obj3 = norm(tmp_vec2);
 end
 
@@ -345,7 +345,7 @@ sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf
 %         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
 max_pts = cur_prob_map_pf(1:2,cur_max_idx);
 tmp_min_pt2 = max_pts(:,randi(size(max_pts,2)));
-tmp_vec4 = agent.sigma_s*x(1:2,2) - tmp_min_pt2(:,1);%-1)*grid_step
+tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2(:,1);%-1)*grid_step
 obj4 = norm(tmp_vec4)*1e-2;
 % obj4 = 0;
 
@@ -390,7 +390,7 @@ while (1)
         assign(u,guess_u); % assign initial input
     end
     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
-    opt.Algorithm = 'sqp';
+%     opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0
@@ -409,12 +409,32 @@ while (1)
         %         tmp_opt.Algorithm = 'interior-point';
         sol = optimize(constr,tmp_obj,tmp_opt);
         if sol.problem ~= 0
-            % if cannot find the feasible point, break and the program will
-            % error in agentMove.m due to the returned empty new_state
-            % canno
-            new_state = [];
-            opt_u = [];
-            break
+            % if cannot find the feasible point using the nonlinear model, 
+            % use the linear model.
+            display('Fail to solve the original MPC using NLP, will use LP')
+        
+            % linearize system
+            [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
+
+            constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
+            x(1:2,ii+1) >= 0];
+            tmp_obj = 0;
+            assign(x,guess_x); % assign initial solution
+            assign(u,guess_u); % assign initial input
+            tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
+            sol = optimize(constr,tmp_obj,tmp_opt);
+            
+            if sol.problem ~= 0
+                % break and the program will
+                % error in agentMove.m due to the returned empty new_state
+                new_state = [];
+                opt_u = [];
+                break
+            elseif sol.problem == 0
+                guess_x = value(x);
+                guess_u = value(u);
+            end                       
         elseif sol.problem == 0
             guess_x = value(x);
             guess_u = value(u);
