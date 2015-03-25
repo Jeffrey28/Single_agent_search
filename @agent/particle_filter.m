@@ -33,7 +33,7 @@ opt = statset('MaxIter',1000);
 AIC = zeros(n_gmm,1);
 for kk = 1:n_gmm
     gmm_model{kk} = fitgmdist(new_particles',kk,'Options',opt,...
-        'Regularize',0.001,'CovType','diagonal');
+        'Regularize',0.001,'CovType','full');
     AIC(kk)= gmm_model{kk}.AIC;
 end
 display ('gmm fitting takes time as:');
@@ -43,10 +43,11 @@ toc;
 
 best_model = gmm_model{numComponents};
 gmm_mu = best_model.mu';
-gmm_sigma = zeros(2,2,numComponents);
-for ii = 1:numComponents
-    gmm_sigma(:,:,ii) = diag(best_model.Sigma(:,:,ii)); % best_model.Sigma is a vector, showing the diagonal elements of the matrix
-end
+% gmm_sigma = zeros(2,2,numComponents);
+% for ii = 1:numComponents
+%     gmm_sigma(:,:,ii) = diag(best_model.Sigma(:,:,ii)); % best_model.Sigma is a vector, showing the diagonal elements of the matrix
+% end
+gmm_sigma = best_model.Sigma;
 gmm_w = best_model.PComponents';
 gmm_lambda = zeros(size(gmm_mu));
 gmm_psi = zeros(size(gmm_sigma));

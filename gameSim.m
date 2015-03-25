@@ -123,6 +123,8 @@ clt_thresh = 1e-4; %threshold for choosing points to be clustered
 pre_cov = zeros(hor,hor,hor,kf); % covariance of the predicted x and y trajectory.
 F = []; % save frame of plots for movie
 particles = zeros(2,n_data); % save the generated particles;
+guess_x = []; % guess of the initial solution of the MPC
+guess_u = []; % guess of the initial solution of the MPC
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -314,7 +316,8 @@ for k = 1:kf
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
             'prob_map_pf',prob_map_pf,'clt_thresh',clt_thresh,'pre_cov',pre_cov,...
-            'all_comb',{all_comb},'clt_num',clt_num,'r_obj',r_obj);
+            'all_comb',{all_comb},'clt_num',clt_num,'r_obj',r_obj,...
+            'guess_u',guess_u,'guess_x',guess_x);
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;
@@ -325,6 +328,8 @@ for k = 1:kf
         r_state = outPara_ams.r_state;
         r_input = outPara_ams.r_input;
         r_obj = outPara_ams.r_obj;
+        guess_x = outPara_ams.guess_x;
+        guess_u = outPara_ams.guess_u;
         plan_state(:,:,k)
         r_obj(:,k)
         

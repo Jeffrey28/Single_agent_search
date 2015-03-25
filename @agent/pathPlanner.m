@@ -16,6 +16,8 @@ all_comb = inPara.all_comb;
 k = inPara.k;
 % max_pts = inPara.max_pts;
 prob_map_pf = inPara.prob_map_pf;
+guess_u = inPara.guess_u;
+guess_x = inPara.guess_x;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -42,7 +44,7 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
         'non_intersect_flag',non_intersect_flag,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
         'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
-        'prob_map_pf',prob_map_pf); %'x',x,'u',u,'max_pts',max_pts,
+        'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x); %'x',x,'u',u,'max_pts',max_pts,
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     tic;
@@ -220,6 +222,8 @@ all_comb = inPara.all_comb;
 k = inPara.k;
 % max_pts = inPara.max_pts;
 prob_map_pf = inPara.prob_map_pf;
+guess_u = inPara.guess_u;
+guess_x = inPara.guess_x;
 
 cur_clt = agent.cur_clt;
 % hp_pt = agent.hp_pt;
@@ -345,7 +349,7 @@ tmp_vec4 = agent.sigma_s*x(1:2,2) - tmp_min_pt2(:,1);%-1)*grid_step
 obj4 = norm(tmp_vec4)*1e-2;
 % obj4 = 0;
 
-obj_w = [1;1;0;1];
+obj_w = [1;5;1;1];
 obj_w = obj_w/sum(obj_w);
 obj = obj_w'*[obj1;obj2;obj3;obj4];
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
@@ -355,14 +359,14 @@ cst_flag = 0;
 
 %% constraints
 % get initial guess for NLP
-guess_u = [agent.currentV;0]*ones(1,hor);
-guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
-guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
+% guess_u = [agent.currentV;0]*ones(1,hor);
+% guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
+% guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
 % guess_x = []; % initial solution for the nonlinear problem
 % guess_u = [];
 
 % linearize system
-[A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
+% [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
 while (1)
     % impose constraints
     % initial condition

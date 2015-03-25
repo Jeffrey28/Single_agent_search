@@ -23,6 +23,7 @@ safe_marg = inPara.safe_marg;
 agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
 
+
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
@@ -115,6 +116,8 @@ plan_type = inPara.plan_type;
         %% robot path planning
         all_comb = inPara.all_comb;
         clt_num = inPara.clt_num;
+        guess_u = inPara.guess_u;
+        guess_x = inPara.guess_x;
         % record current trajectory before moving
 %         if k == 1
 %             tmp_agent_traj = agent.currentPos;
@@ -166,10 +169,11 @@ plan_type = inPara.plan_type;
             if k > 1
                 agent.currentV = r_input(1,k-1); % update robot speed
             end
+            
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
                 'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,...
-                'prob_map_pf',prob_map_pf);%,[max_x,max_y],'max_pts',max_pts
+                'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x);%,[max_x,max_y],'max_pts',max_pts
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;
@@ -185,6 +189,8 @@ plan_type = inPara.plan_type;
             plan_state(:,:,k) = new_state;
             r_obj(:,k) = opt_obj;
             
+            guess_u = [opt_u(:,2:end),zeros(size(opt_u,1),1)];
+            guess_x = [new_state(:,2:end),new_state(:,end)];
             idx1 = (prob_map_pf(4,:) == 1);
             idx2 = (prob_map_pf(4,:) == 2);
             sprintf('# of particles in cluster 1 is %d',sum(prob_map_pf(3,idx1)))
@@ -202,6 +208,7 @@ plan_type = inPara.plan_type;
             r_state(:,k+1) = opt_x(:,2);
             r_input(:,k) = opt_u(:,1);
             plan_state(:,:,k) = opt_x;
+            
         end
         %}
         
@@ -223,6 +230,12 @@ end
 if exist('r_obj', 'var')
     outPara.r_obj = r_obj;
 end    
+if exist('guess_u', 'var')
+    outPara.guess_u = guess_u;
+end  
+if exist('guess_x', 'var')
+    outPara.guess_x = guess_x;
+end  
 end
 
 function next_act = getNextActionWithFixedHeading(a_pos,t_pos,v,deg_dev,mpc_dt)
