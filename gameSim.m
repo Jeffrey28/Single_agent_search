@@ -125,6 +125,7 @@ F = []; % save frame of plots for movie
 particles = zeros(2,n_data); % save the generated particles;
 guess_x = []; % guess of the initial solution of the MPC
 guess_u = []; % guess of the initial solution of the MPC
+obj_w = zeros(4,kf); % save the weights for the objective functions
 % addpath('.\sim_res')
 % load('x_pos_pre_imm','x_pos_pre_imm')
 % load('y_pos_pre_imm','y_pos_pre_imm')
@@ -317,7 +318,7 @@ for k = 1:kf
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
             'prob_map_pf',prob_map_pf,'clt_thresh',clt_thresh,'pre_cov',pre_cov,...
             'all_comb',{all_comb},'clt_num',clt_num,'r_obj',r_obj,...
-            'guess_u',guess_u,'guess_x',guess_x);
+            'guess_u',guess_u,'guess_x',guess_x,'n_gmm',n_gmm,'obj_w',obj_w);
         
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;
@@ -330,8 +331,10 @@ for k = 1:kf
         r_obj = outPara_ams.r_obj;
         guess_x = outPara_ams.guess_x;
         guess_u = outPara_ams.guess_u;
+        obj_w = outPara_ams.obj_w;
         plan_state(:,:,k)
         r_obj(:,k)
+        obj_w(:,k)
         
         %}
     end

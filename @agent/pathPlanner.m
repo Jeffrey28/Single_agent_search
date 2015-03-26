@@ -18,6 +18,9 @@ k = inPara.k;
 prob_map_pf = inPara.prob_map_pf;
 guess_u = inPara.guess_u;
 guess_x = inPara.guess_x;
+n_gmm = inPara.n_gmm;
+last_r_obj = inPara.last_r_obj;
+last_obj_w = inPara.last_obj_w;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -44,11 +47,12 @@ init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
         'non_intersect_flag',non_intersect_flag,...
         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
         'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
-        'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x); %'x',x,'u',u,'max_pts',max_pts,
+        'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x,...
+        'n_gmm',n_gmm,'last_r_obj',last_r_obj,'last_obj_w',last_obj_w); %'x',x,'u',u,'max_pts',max_pts,
     % generate obj and constraints. contain a parameter that decides whether
     % using the non-intersection constraints
     tic;
-    [new_state,opt_u,opt_obj] = solveMPC(inPara_cg); 
+    [new_state,opt_u,opt_obj,obj_w] = solveMPC(inPara_cg); 
     display('MPC takes time:')
     toc
     
@@ -195,10 +199,10 @@ if tmp_hor == 0 % if the MPC fails, just find the input at the next step to maxi
 end
 %}
 
-outPara = struct('new_state',new_state,'opt_u',opt_u,'opt_obj',opt_obj);
+outPara = struct('new_state',new_state,'opt_u',opt_u,'opt_obj',opt_obj,'obj_w',obj_w);
 end
 
-function [new_state,opt_u,opt_obj] = solveMPC(inPara)
+function [new_state,opt_u,opt_obj,obj_w] = solveMPC(inPara)
 hor = inPara.hor;
 % x = inPara.x;
 % u = inPara.u;
@@ -224,6 +228,9 @@ k = inPara.k;
 prob_map_pf = inPara.prob_map_pf;
 guess_u = inPara.guess_u;
 guess_x = inPara.guess_x;
+n_gmm = inPara.n_gmm;
+last_r_obj = inPara.last_r_obj;
+last_obj_w = inPara.last_obj_w;
 
 cur_clt = agent.cur_clt;
 % hp_pt = agent.hp_pt;
@@ -265,6 +272,7 @@ end
 
 % note: obj1 is the probability of NOT detecting targets, we want to
 % minimize this term
+w1 = 0;
 obj1 = 0;
 for jj = 1:length(w)
     alpha = sdpvar(size(all_comb,1),1);
@@ -300,6 +308,7 @@ end
     
 % add artificial potential function to the obstacles (static ones and
 % humans)
+w2 = 0;
 obj2 = 0;
 pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
 for ii = 1:hor
@@ -319,13 +328,27 @@ tmp_vec = tmp_pt - agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
 tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,1));
 tmp_min = min(tmp_dis);
 tmp_min_pt = tmp_pt(:,tmp_dis == tmp_min); % tmp_min_pt may contain several points
+% tmp_min_pt = [45;35];
 sprintf('the nearest point in current cluster is [%d,%d]',tmp_min_pt(1,1),tmp_min_pt(2,1))
 % if the agent is not in the cur_clt region, add a terminal cost in the obj.
-obj3 = 0; 
-if tmp_min > agent.currentV * mpc_dt
+w3 = last_obj_w(3);
+if tmp_min < agent.currentV * mpc_dt
+    w3 = 0;
+    obj3 = 0; 
+else
     tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));%-1; *grid_step
     obj3 = norm(tmp_vec2);
+    if  w3 == 0
+        w3 = 1;
+    else
+        w3 = w3*1.5;
+    end    
 end
+
+% for debug use
+% w3 = 1;
+% tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));
+% obj3 = norm(tmp_vec2);
 
 % add a terminal cost that guides the robot to the nearest highest probability
 % point in current cluster or the goal cluster
@@ -345,13 +368,32 @@ sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf
 %         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
 max_pts = cur_prob_map_pf(1:2,cur_max_idx);
 tmp_min_pt2 = max_pts(:,randi(size(max_pts,2)));
-tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2(:,1);%-1)*grid_step
-obj4 = norm(tmp_vec4)*1e-2;
-% obj4 = 0;
+% tmp_min_pt2 = [30;30];
+tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2;%-1)*grid_step
 
-obj_w = [1;5;1;1];
-obj_w = obj_w/sum(obj_w);
-obj = obj_w'*[obj1;obj2;obj3;obj4];
+% add this terminal cost only when the POND is greater than a threshold
+% adjust the weight: if in previous step the POND is greater than 0.98, then increase the w4
+w4 = last_obj_w(4);
+
+% for debug use
+% w4 = 1;
+% obj4 = norm(tmp_vec4);
+
+if (last_r_obj(2) < 0.98)
+    w4 = 0;
+    obj4 =0;
+else
+    if w4 == 0
+        w4 = 1;
+    else
+        w4 = w4*1.5;
+    end
+    obj4 = norm(tmp_vec4);%*1e-1
+end
+
+obj_w = [w1;w2;w3;w4];
+n_obj_w = obj_w/sum(obj_w); % normalized obj_w
+obj = n_obj_w'*[obj1;obj2;obj3;obj4];
 % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
 %     'campus',campus);
 % obj = obj + termCost(inPara_tc);
@@ -373,7 +415,7 @@ while (1)
     constr = [x(:,1) == init_state];
     for ii = 1:hor
         % constraints on robot dynamics
-%         nonlinear constraint
+        % nonlinear constraint
         constr = [constr,agent.sigma_s*x(1:2,ii+1) == agent.sigma_s*x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
             x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
             agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
@@ -390,7 +432,7 @@ while (1)
         assign(u,guess_u); % assign initial input
     end
     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
-%     opt.Algorithm = 'sqp';
+    opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0 && cst_flag == 0

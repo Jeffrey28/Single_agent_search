@@ -24,6 +24,7 @@ agentIndex = inPara.agentIndex;
 plan_type = inPara.plan_type;
 
 
+
 %% agents move 
 % for agentIndex = 1:length(agents)
     agent = agents(agentIndex);
@@ -118,6 +119,8 @@ plan_type = inPara.plan_type;
         clt_num = inPara.clt_num;
         guess_u = inPara.guess_u;
         guess_x = inPara.guess_x;
+        n_gmm = inPara.n_gmm;
+        obj_w = inPara.obj_w;
         % record current trajectory before moving
 %         if k == 1
 %             tmp_agent_traj = agent.currentPos;
@@ -166,20 +169,29 @@ plan_type = inPara.plan_type;
 %                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',[x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],...
 %                 'obs_info',campus.obs_info,'safe_marg',safe_marg);
             agent.currentPos = r_state(:,k); % update robot position and orientation
+            
             if k > 1
                 agent.currentV = r_input(1,k-1); % update robot speed
+            end
+            if k > 1
+                last_r_obj = r_obj(:,k-1);
+                last_obj_w = obj_w(:,k-1);
+            else
+                last_r_obj = zeros(size(r_obj,1),1);
+                last_obj_w = zeros(size(obj_w,1),1);
             end
             
             inPara_pp = struct('hor',hor,'mpc_dt',mpc_dt,'campus',campus,...
                 'obs_info',campus.obs_info,'safe_marg',safe_marg,'pre_traj',pre_traj(:,:,k),...
                 'safe_dis',safe_dis,'all_comb',{all_comb},'k',k,...
-                'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x);%,[max_x,max_y],'max_pts',max_pts
+                'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x,...
+                'n_gmm',n_gmm,'last_r_obj',last_r_obj,'last_obj_w',last_obj_w);%,[max_x,max_y],'max_pts',max_pts
             outPara_pp = pathPlanner(agent,inPara_pp);
 %             opt_x = outPara_pp.opt_x;
             new_state = outPara_pp.new_state;
             opt_u = outPara_pp.opt_u;
             opt_obj = outPara_pp.opt_obj;
-            
+            obj_w(:,k) = outPara_pp.obj_w;
 %             new_state = agent.updState([agent.currentPos(1:2);agent.currentV;agent.currentPos(3)],...
 %                 opt_u,mpc_dt); % contains current and future states
 %             agent.currentPos = [new_state(1:2,2);new_state(4,2)]; % update robot position and orientation
@@ -188,6 +200,7 @@ plan_type = inPara.plan_type;
             r_input(:,k) = opt_u(:,1);
             plan_state(:,:,k) = new_state;
             r_obj(:,k) = opt_obj;
+            
             
             guess_u = [opt_u(:,2:end),zeros(size(opt_u,1),1)];
             guess_x = [new_state(:,2:end),new_state(:,end)];
@@ -235,6 +248,9 @@ if exist('guess_u', 'var')
 end  
 if exist('guess_x', 'var')
     outPara.guess_x = guess_x;
+end  
+if exist('obj_w', 'var')
+    outPara.obj_w = obj_w;
 end  
 end
 
