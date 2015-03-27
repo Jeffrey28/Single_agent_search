@@ -210,7 +210,7 @@ hor = inPara.hor;
 mpc_dt = inPara.mpc_dt;
 safe_dis = inPara.safe_dis;
 safe_marg = inPara.safe_marg;
-x_h = inPara.x_h;
+p_x_h = inPara.x_h;
 obs_info = inPara.obs_info;
 non_intersect_flag = inPara.non_intersect_flag;
 % obj = inPara.obj;
@@ -221,13 +221,13 @@ safe_marg2 = inPara.safe_marg2;
 % intgr_step = inPara.intgr_step;
 campus = inPara.campus;
 % tc_scale = inPara.tc_scale;
-init_state = inPara.init_state;
+p_init_state = inPara.init_state;
 all_comb = inPara.all_comb;
 k = inPara.k;
 % max_pts = inPara.max_pts;
 prob_map_pf = inPara.prob_map_pf;
-guess_u = inPara.guess_u;
-guess_x = inPara.guess_x;
+p_guess_u = inPara.guess_u;
+p_guess_x = inPara.guess_x;
 n_gmm = inPara.n_gmm;
 last_r_obj = inPara.last_r_obj;
 last_obj_w = inPara.last_obj_w;
@@ -242,11 +242,48 @@ grid_step = campus.grid_step;
 %% objective function
 opt_obj = -100; % initialize the optimal obj value
 % compact format
-w = campus.w;
-lambda = campus.lambda;
-psi = campus.psi;
+
+% prepare the coefficients for optimizer
+p_w = [campus.w;zeros(n_gmm-length(campus.w),1)];
+p_lambda = [campus.lambda,zeros(2,n_gmm-size(campus.lambda,2))];
+p_psi = cat(3,campus.psi,repmat(zeros(2,2),1,1,n_gmm-size(campus.psi,3)));
 % prob_map = agent.updateProbMap(campus);
+
+% obj weights
 k_s = agent.k_s;
+if (last_r_obj(2) < 0.98)
+    w1 = 1;
+else
+    w1 = 0;
+end
+w2 = 1;
+w3 = 0;
+w4 = last_obj_w(4);
+if (last_r_obj(2) < 0.98)
+    w4 = 0; 
+else
+    if w4 == 0
+        w4 = 1;
+    else
+        w4 = w4*1.1;
+    end
+end
+obj_w = [w1;w2;w3;w4];
+p_n_obj_w = obj_w/sum(obj_w); % normalized obj_w
+
+% maximum probability point for obj4
+clt_res = prob_map_pf(4,:);
+cur_prob_map_pf = prob_map_pf(:,clt_res == agent.cur_clt);
+cur_max_cnt = max(cur_prob_map_pf(3,:));
+cur_max_idx = cur_prob_map_pf(3,:) == cur_max_cnt;
+sprintf('max count of particles is %d at k = %d',cur_max_cnt,k)
+sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf(2,cur_max_idx))
+%         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
+max_pts = cur_prob_map_pf(1:2,cur_max_idx);
+p_tmp_min_pt2 = max_pts(:,randi(size(max_pts,2)));
+
+% linearize system
+[p_A,p_B,p_c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
 
 % remove terms with very small weights to speed up the optimization
 %{
@@ -258,81 +295,88 @@ w = w/sum(w);
 lambda(:,rv_id) = [];
 psi(:,:,rv_id) = [];
 %}
-persistent x u Af
+persistent x u w n_obj_w lambda psi x_h tmp_min_pt2 guess_u guess_x A B c init_state
 
 if k == 1    
     x = sdpvar(3,hor+1); %[lambda(2-D),theta]
     u = sdpvar(2,hor); %[v,a]
+    w = sdpvar(n_gmm,1);
+    n_obj_w = sdpvar(4,1);
+    psi = sdpvar(2,2,n_gmm);
+    lambda = sdpvar(2,n_gmm);
+    x_h = sdpvar(2,hor+1);
+    tmp_min_pt2 = sdpvar(2,1);
+    guess_u = sdpvar(2,hor);
+    guess_x = sdpvar(3,hor+1);
+    A = sdpvar(3,3);
+    B = sdpvar(3,2);
+    c = sdpvar(3,1);
+    init_state = sdpvar(3,1);
     
     Af = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
     for ii = 1:hor
         Af(ii) = A_fct2s(agent,x(1:2,ii+1),agent.psi_s);
     end
-end
-
-% note: obj1 is the probability of NOT detecting targets, we want to
-% minimize this term
-% w1 = 1;
-% obj1 = 0;
-
-% when the robot is in low probability area, don't use pond as obj. use
-% obj2,3,4 to move to high probability area.
-if (last_r_obj(2) < 0.98)
-    w1 = 1;
-else
-    w1 = 0;
-end
-obj1 =0;
-for jj = 1:length(w)
-    alpha = sdpvar(size(all_comb,1),1);
-    Af1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
-    tmp_obj = 0;
-    tmp_psi_prod = psi(:,:,jj);
-    for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
-        tmp_idx = all_comb{kk};
-        tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
-        tmp_para = updPara2([lambda(:,jj),tmp_x],...
-            cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
-        tmp_psi = tmp_para.psi;
-        tmp_lambda = tmp_para.lambda;
-        for ll = 1:length(tmp_idx)
-            tmp_psi_prod = tmp_psi_prod*agent.psi_s;
-        end
-        tmp_psi_prod = tmp_psi_prod/tmp_psi;
-        % it seems that if the robot is stuck in a small region for a few
-        % steps, the tmp_psi_prod tends to be singular. Haven't looked into
-        % why this happens        
-        if abs(det(tmp_psi_prod)) < 1e-6
-            tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
-        end
-        tmp_coef = sqrt(det(tmp_psi_prod));
-        alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
-        tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
-    end
-    if is(tmp_obj,'complex')
-       display('complex obj') 
-    end
-    obj1 = obj1+w(jj)*(1+tmp_obj);
-end
     
-% add artificial potential function to the obstacles (static ones and
-% humans)
-w2 = 0;
-obj2 = 0;
-pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
-for ii = 1:hor
-    obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
-    for jj = 1:size(obs_info,2)
-        pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
-        obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
-    end
-end
+    % note: obj1 is the probability of NOT detecting targets, we want to
+    % minimize this term
+    % w1 = 1;
+    % obj1 = 0;
     
-% determine whether the robot is already in the cur_clt region.
-% clt_res = prob_map_pf(4,:);
-% tmp_pt = prob_map_pf(1:2,clt_res == cur_clt);
-
-%{
+    % when the robot is in low probability area, don't use pond as obj. use
+    % obj2,3,4 to move to high probability area.
+    
+    obj1 =0;
+    for jj = 1:n_gmm
+        alpha = sdpvar(size(all_comb,1),1);
+        Af1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
+        tmp_obj = 0;
+        tmp_psi_prod = psi(:,:,jj);
+        for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
+            tmp_idx = all_comb{kk};
+            tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
+            tmp_para = updPara2([lambda(:,jj),tmp_x],...
+                cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
+            tmp_psi = tmp_para.psi;
+            tmp_lambda = tmp_para.lambda;
+            for ll = 1:length(tmp_idx)
+                tmp_psi_prod = tmp_psi_prod*agent.psi_s;
+            end
+            tmp_psi_prod = tmp_psi_prod/tmp_psi;
+            % it seems that if the robot is stuck in a small region for a few
+            % steps, the tmp_psi_prod tends to be singular. Haven't looked into
+            % why this happens
+            if abs(det(tmp_psi_prod)) < 1e-6
+                tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
+            end
+            tmp_coef = sqrt(det(tmp_psi_prod));
+            alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
+            tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
+        end
+        if is(tmp_obj,'complex')
+            display('complex obj')
+        end
+        obj1 = obj1+w(jj)*(1+tmp_obj);
+    end
+    
+    % add artificial potential function to the obstacles (static ones and
+    % humans)
+    % w2 = 0;
+    obj2 = 0;
+    pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
+    for ii = 1:hor
+        obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
+        for jj = 1:size(obs_info,2)
+            pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
+            obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
+        end
+    end
+    
+    % determine whether the robot is already in the cur_clt region.
+    % clt_res = prob_map_pf(4,:);
+    % tmp_pt = prob_map_pf(1:2,clt_res == cur_clt);
+    
+    %{
 clt_res = agent.clt_res(3,:);
 tmp_pt = agent.clt_res(1:2,clt_res == cur_clt);
 tmp_vec = tmp_pt - agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
@@ -345,7 +389,7 @@ sprintf('the nearest point in current cluster is [%d,%d]',tmp_min_pt(1,1),tmp_mi
 w3 = last_obj_w(3);
 if tmp_min < agent.currentV * mpc_dt
     w3 = 0;
-    obj3 = 0; 
+    obj3 = 0;
 else
     tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));%-1; *grid_step
     obj3 = norm(tmp_vec2);
@@ -353,108 +397,107 @@ else
         w3 = 1;
     else
         w3 = w3*1.2;
-    end    
+    end
 end
-%}
-% for debug use
-% w3 = 1;
-% tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));
-% obj3 = norm(tmp_vec2);
-obj3 = 0;
-w3 = 0;
-
-% add a terminal cost that guides the robot to the nearest highest probability
-% point in current cluster or the goal cluster
-% tmp_vec3 = max_pts*grid_step - ones(size(max_pts,1),1)*agent.currentPos(1:2)';
-% tmp_dis2 = sqrt(sum(tmp_vec3.*tmp_vec3,2));
-% tmp_min2 = min(tmp_dis2);
-% tmp_min_pt2 = max_pts(tmp_dis2 == tmp_min2,:);
-
-% this snippet may not work well since the particle number cannot
-% represent the real probability, may need density estimation
-clt_res = prob_map_pf(4,:);
-cur_prob_map_pf = prob_map_pf(:,clt_res == agent.cur_clt);
-cur_max_cnt = max(cur_prob_map_pf(3,:));
-cur_max_idx = cur_prob_map_pf(3,:) == cur_max_cnt;
-sprintf('max count of particles is %d at k = %d',cur_max_cnt,k)
-sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf(2,cur_max_idx))
-%         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
-max_pts = cur_prob_map_pf(1:2,cur_max_idx);
-tmp_min_pt2 = max_pts(:,randi(size(max_pts,2)));
-% tmp_min_pt2 = [30;30];
-tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2;%-1)*grid_step
-
-% add this terminal cost only when the POND is greater than a threshold
-% adjust the weight: if in previous step the POND is greater than 0.98, then increase the w4
-w4 = last_obj_w(4);
-
-% for debug use
-% w4 = 1;
-% obj4 = norm(tmp_vec4);
-
-if (last_r_obj(2) < 0.98)
-    w4 = 0;
-    obj4 =0;
-else
-    if w4 == 0
-        w4 = 1;
-    else
-        w4 = w4*1.1;
-    end
-    obj4 = norm(tmp_vec4);%*1e-1
-end
-
-obj_w = [w1;w2;w3;w4];
-n_obj_w = obj_w/sum(obj_w); % normalized obj_w
-obj = n_obj_w'*[obj1;obj2;obj3;obj4];
-% inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
-%     'campus',campus);
-% obj = obj + termCost(inPara_tc);
-cst_flag = 0;
-
-%% constraints
-% get initial guess for NLP
-% guess_u = [agent.currentV;0]*ones(1,hor);
-% guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
-% guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
-% guess_x = []; % initial solution for the nonlinear problem
-% guess_u = [];
-
-% linearize system
-% [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
-while (1)
-    % impose constraints
-    % initial condition
-    constr = [x(:,1) == init_state];
-    for ii = 1:hor
-        % constraints on robot dynamics
-        % nonlinear constraint
-        constr = [constr,agent.sigma_s*x(1:2,ii+1) == agent.sigma_s*x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
-            x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
-            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
-        
-        % linear constraint
-%         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
-%             agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
-%             x(1:2,ii+1) >= 0];
-    end
+    %}
+    % for debug use
+    % w3 = 1;
+    % tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));
+    % obj3 = norm(tmp_vec2);
+    obj3 = 0;
+    % w3 = 0;
     
-    % solve MPC
-    if ~isempty(guess_x)
-        assign(x,guess_x); % assign initial solution
-        assign(u,guess_u); % assign initial input
-    end
-    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
-    opt.Algorithm = 'sqp';
-    sol = optimize(constr,obj,opt);
+    % add a terminal cost that guides the robot to the nearest highest probability
+    % point in current cluster or the goal cluster
+    % tmp_vec3 = max_pts*grid_step - ones(size(max_pts,1),1)*agent.currentPos(1:2)';
+    % tmp_dis2 = sqrt(sum(tmp_vec3.*tmp_vec3,2));
+    % tmp_min2 = min(tmp_dis2);
+    % tmp_min_pt2 = max_pts(tmp_dis2 == tmp_min2,:);
     
-    if sol.problem ~= 0 && cst_flag == 0
-        % if the orignial problem does not have a solution, warn it fails
-        display('Fail to solve the original MPC')
-        sol.info
-        yalmiperror(sol.problem)
-        figure % use empty figure to show that this if statement is executed
+    % this snippet may not work well since the particle number cannot
+    % represent the real probability, may need density estimation
+%     clt_res = prob_map_pf(4,:);
+%     cur_prob_map_pf = prob_map_pf(:,clt_res == agent.cur_clt);
+%     cur_max_cnt = max(cur_prob_map_pf(3,:));
+%     cur_max_idx = cur_prob_map_pf(3,:) == cur_max_cnt;
+%     sprintf('max count of particles is %d at k = %d',cur_max_cnt,k)
+%     sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf(2,cur_max_idx))
+%     %         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
+%     max_pts = cur_prob_map_pf(1:2,cur_max_idx);
+%     tmp_min_pt2 = max_pts(:,randi(size(max_pts,2)));
+    % tmp_min_pt2 = [30;30];
+    tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2;%-1)*grid_step
+    
+    % add this terminal cost only when the POND is greater than a threshold
+    % adjust the weight: if in previous step the POND is greater than 0.98, then increase the w4
+    % w4 = last_obj_w(4);
+    
+    % for debug use
+    % w4 = 1;
+    % obj4 = norm(tmp_vec4);
+    
+    % if (last_r_obj(2) < 0.98)
+    %     w4 = 0;
+    %     obj4 =0;
+    % else
+    %     if w4 == 0
+    %         w4 = 1;
+    %     else
+    %         w4 = w4*1.1;
+    %     end
+    %     obj4 = norm(tmp_vec4);%*1e-1
+    % end
+    obj4 = norm(tmp_vec4);
+    
+    
+    % obj_w = [w1;w2;w3;w4];
+    % n_obj_w = obj_w/sum(obj_w); % normalized obj_w
+    obj = n_obj_w'*[obj1;obj2;obj3;obj4];
+    % inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
+    %     'campus',campus);
+    % obj = obj + termCost(inPara_tc);
+
+%     cst_flag = 0;
+    
+    %% constraints
+    % get initial guess for NLP
+    % guess_u = [agent.currentV;0]*ones(1,hor);
+    % guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
+    % guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
+    % guess_x = []; % initial solution for the nonlinear problem
+    % guess_u = [];
+    
+    % linearize system
+    % [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
+%     while (1)
+        % impose constraints
+        % initial condition
+        constr = [x(:,1) == init_state];
+        for ii = 1:hor
+            % constraints on robot dynamics
+            % nonlinear constraint
+            constr = [constr,agent.sigma_s*x(1:2,ii+1) == agent.sigma_s*x(1:2,ii)+u(1,ii)*[cos(x(3,ii));sin(x(3,ii))]*mpc_dt,...
+                x(3,ii+1) == x(3,ii) + u(2,ii)*mpc_dt,...
+                agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub];
+            
+            % linear constraint
+            %         constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+            %             agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
+            %             x(1:2,ii+1) >= 0];
+        end
         
+        % solve MPC
+        if ~isempty(guess_x)
+            assign(x,guess_x); % assign initial solution
+            assign(u,guess_u); % assign initial input
+        end
+        opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
+        opt.Algorithm = 'sqp';
+        controller1 = optimize(constr,obj,opt,{w,n_obj_w,lambda,psi,x_h,...
+            tmp_min_pt2,guess_u,guess_x,init_state},{x,u});
+%         sol1 = controller1({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2});
+        
+        % rescue 1: find feasible solution through NLP
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
         tmp_obj = n_obj_w(2)*obj2;
@@ -462,65 +505,111 @@ while (1)
         assign(u,guess_u); % assign initial input
         tmp_opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
         %         tmp_opt.Algorithm = 'interior-point';
-        sol = optimize(constr,tmp_obj,tmp_opt);
-        if sol.problem ~= 0
-            % if cannot find the feasible point using the nonlinear model, 
-            % use the linear model.
-            display('Fail to solve the original MPC using NLP, will use LP')
+        controller2 = optimize(constr,tmp_obj,tmp_opt,{w,n_obj_w,lambda,psi,...
+            x_h,tmp_min_pt2,guess_u,guess_x,init_state},{x,u});
         
-            % linearize system
-            [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
-
-            constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+        % rescue 2: find feasible solution through LP
+        % linearize system
+%         [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);      
+        constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
             agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
             x(1:2,ii+1) >= 0];
-            tmp_obj = 0;
-            assign(x,guess_x); % assign initial solution
-            assign(u,guess_u); % assign initial input
-            tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
-            sol = optimize(constr,tmp_obj,tmp_opt);
+        tmp_obj = 0;
+        assign(x,guess_x); % assign initial solution
+        assign(u,guess_u); % assign initial input
+        tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
+        controller3 = optimize(constr,tmp_obj,tmp_opt,{w,n_obj_w,lambda,psi,...
+            x_h,tmp_min_pt2,guess_u,guess_x,init_state,A,B,c},{x,u});
+end
+
+while(1)
+    sol1 = controller1({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,p_guess_u,p_guess_x,p_init_state});
+    if sol1.problem ~= 0 % && cst_flag == 0
+        % rescue 1
+        % if the orignial problem does not have a solution, warn it fails
+        display('Fail to solve the original MPC')
+        sol1.info
+        yalmiperror(sol1.problem)
+        figure % use empty figure to show that this if statement is executed
+        
+        %             % follow the MATLAB's suggestion: find a feasible point and use as
+        %             % the initial solution for the original problem
+        %             tmp_obj = n_obj_w(2)*obj2;
+        %             assign(x,guess_x); % assign initial solution
+        %             assign(u,guess_u); % assign initial input
+        %             tmp_opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
+        %             %         tmp_opt.Algorithm = 'interior-point';
+        %             sol = optimize(constr,tmp_obj,tmp_opt);
+        sol2 = controller2({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,...
+            p_guess_u,p_guess_x,p_init_state});
+        if sol2.problem ~= 0
+            % rescue 2
+            % if cannot find the feasible point using the nonlinear model,
+            % use the linear model.
+            display('Fail to find a feasible solution using NLP, will use LP')
             
-            if sol.problem ~= 0
+            % linearize system
+            %                 [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
+            
+            %                 constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+            %                     agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
+            %                     x(1:2,ii+1) >= 0];
+            %                 tmp_obj = 0;
+            %                 assign(x,guess_x); % assign initial solution
+            %                 assign(u,guess_u); % assign initial input
+            %                 tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
+            %                 sol = optimize(constr,tmp_obj,tmp_opt);
+            sol3 = controller3({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,...
+                p_guess_u,p_guess_x,p_init_state,p_A,p_B,p_c});
+            if sol3.problem ~= 0
                 % break and the program will
                 % error in agentMove.m due to the returned empty new_state
+                display('Fail to find a feasible solution using LP, will issue an error')
                 new_state = [];
                 opt_u = [];
                 break
-            elseif sol.problem == 0
-                guess_x = value(x);
-                guess_u = value(u);
-            end                       
-        elseif sol.problem == 0
-            guess_x = value(x);
-            guess_u = value(u);
+            elseif sol3.problem == 0
+                display('find a feasible solution using LP')
+                p_guess_x = value(sol3{1});
+                p_guess_u = value(sol3{2});
+            end
+        elseif sol2.problem == 0
+            display('find a feasible solution using NLP')
+            p_guess_x = value(sol2{1});
+            p_guess_u = value(sol2{2});
         end
-    elseif sol.problem == 0 && cst_flag == 0
+    elseif sol1.problem == 0 %&& cst_flag == 0
         % test whether the solution without collision avoidance constraints
         % is not colliding
         %         opt_x = value(x); % current and future states
-        opt_u = value(u); % future input
-        opt_u
-        opt_obj = [value(obj);value(obj1);value(obj2);value(obj3);value(obj4)];
+        display('solved the original NLP')
+        opt_u = value(sol1{2}); % future input
+        disp('opt_u is:')
+        disp(opt_u)
+%         opt_obj = [value(obj);value(obj1);value(obj2);value(obj3);value(obj4)];
         %         break
         % update robot state
         new_state = agent.updState2(agent.currentPos,...
             opt_u,mpc_dt); % contains current and future states
         break
-        
-    elseif sol.problem ~= 0 && cst_flag == 1
+    %{
+    elseif sol1.problem ~= 0 && cst_flag == 1
         % if solution cannot be found after considering the collsion
         % constraints, then use the control policy from the unconstrained
         % case
         display('cannot satisfy the collision avoidance constraints, use the input from the unconstraint case')
         break
-    elseif sol.problem == 0 && cst_flag == 1
+    elseif sol1.problem == 0 && cst_flag == 1
         % get a solution for MPC with collision avoidance constraints
         opt_u = value(u); % future input
         new_state = agent.updState2(agent.currentPos,...
             opt_u,mpc_dt); % contains current and future states
         break
+    %}
     end
+        
 end
+    
 end
 
 function [outPara] = updPara2(lambda,psi)

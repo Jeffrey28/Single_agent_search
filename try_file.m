@@ -86,13 +86,16 @@ opt_x = value(x);
 %}
 
 %% test the optimizer
-%{
-sdpvar a
+%
+sdpvar a(2,1)
 sdpvar x(2,1)
+sdpvar y(2,2)
 Constraints = [a+1 <= x];
-Objective = sum(x.^2);
-P = optimizer(Constraints,Objective,[],a,x);
-P{[1;1]}
+Objective = sum((x'*inv(y)).^2);
+P = optimizer(Constraints,Objective,[],a,{x,y});
+sol = P{[1;1]};
+sol{1}
+sol{2}
 %}
 
 %% test the gaussian fitting method in Matlab
@@ -125,6 +128,7 @@ BestModel = GMModels{numComponents}
 %}
 
 %% test if the obj1 is correctly calculated
+%{
 A = @(lambda,psi) 1/4*lambda'/psi*lambda-1/2*log(det(psi))+log(pi);
 tmp_obj = 0;
 k = agent.k_s;
@@ -137,3 +141,4 @@ for ii= 1:length(campus.w)
     tmp1 = k*exp(tmp);
     tmp_obj = tmp_obj+campus.w(ii)*(1-tmp1);
 end
+%}
