@@ -23,9 +23,17 @@ if cur_clt ~= 0
     %}
     tmp_cnt = prob_map_pf(3,clt_res == cur_clt);
     tmp_max_cnt = max(tmp_cnt);
+    
+    % condition 1
     % if the particle number in current cluster is not small or the maximum
     % particle number is not small, then continue searching this cluster
-    if (tmp_max_cnt > n_data/60) || (sum(tmp_cnt)>n_data/10)
+%     if (tmp_max_cnt > n_data/60) || (sum(tmp_cnt)>n_data/10)
+%         return
+%     end
+
+    % condition 2
+    % leave one area until all the particles are removed
+    if (sum(tmp_cnt)>0)
         return
     end
 end
@@ -47,7 +55,19 @@ for ii = 1:clt_num
         tmp_min_dis = [tmp_min_dis,min(sum(tmp_vec.*tmp_vec,2))];
     end
     %}
+    
+    % condition 1
+    %{
     if (tmp_max_cnt > n_data/60) || (sum(tmp_cnt)>n_data/10)
+        clt_idx_set = [clt_idx_set,ii];
+        tmp_pt = prob_map_pf(1:2,clt_res == ii);
+        tmp_vec = tmp_pt-agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
+        tmp_min_dis = [tmp_min_dis,min(sum(tmp_vec.*tmp_vec,1))];
+        tmp_idx = [tmp_idx,ii];
+    end
+    %}
+   % condition 2
+    if (sum(tmp_cnt)>0)
         clt_idx_set = [clt_idx_set,ii];
         tmp_pt = prob_map_pf(1:2,clt_res == ii);
         tmp_vec = tmp_pt-agent.currentPos(1:2)*ones(1,size(tmp_pt,2));

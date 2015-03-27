@@ -272,8 +272,17 @@ end
 
 % note: obj1 is the probability of NOT detecting targets, we want to
 % minimize this term
-w1 = 0;
-obj1 = 0;
+% w1 = 1;
+% obj1 = 0;
+
+% when the robot is in low probability area, don't use pond as obj. use
+% obj2,3,4 to move to high probability area.
+if (last_r_obj(2) < 0.98)
+    w1 = 1;
+else
+    w1 = 0;
+end
+obj1 =0;
 for jj = 1:length(w)
     alpha = sdpvar(size(all_comb,1),1);
     Af1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
@@ -322,6 +331,8 @@ end
 % determine whether the robot is already in the cur_clt region.
 % clt_res = prob_map_pf(4,:);
 % tmp_pt = prob_map_pf(1:2,clt_res == cur_clt);
+
+%{
 clt_res = agent.clt_res(3,:);
 tmp_pt = agent.clt_res(1:2,clt_res == cur_clt);
 tmp_vec = tmp_pt - agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
@@ -341,14 +352,16 @@ else
     if  w3 == 0
         w3 = 1;
     else
-        w3 = w3*1.5;
+        w3 = w3*1.2;
     end    
 end
-
+%}
 % for debug use
 % w3 = 1;
 % tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));
 % obj3 = norm(tmp_vec2);
+obj3 = 0;
+w3 = 0;
 
 % add a terminal cost that guides the robot to the nearest highest probability
 % point in current cluster or the goal cluster
@@ -386,7 +399,7 @@ else
     if w4 == 0
         w4 = 1;
     else
-        w4 = w4*1.5;
+        w4 = w4*1.1;
     end
     obj4 = norm(tmp_vec4);%*1e-1
 end
@@ -444,7 +457,7 @@ while (1)
         
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
-        tmp_obj = 0;
+        tmp_obj = n_obj_w(2)*obj2;
         assign(x,guess_x); % assign initial solution
         assign(u,guess_u); % assign initial input
         tmp_opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);

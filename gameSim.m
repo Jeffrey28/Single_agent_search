@@ -332,10 +332,12 @@ for k = 1:kf
         guess_x = outPara_ams.guess_x;
         guess_u = outPara_ams.guess_u;
         obj_w = outPara_ams.obj_w;
-        plan_state(:,:,k)
-        r_obj(:,k)
-        obj_w(:,k)
-        
+        disp('plan_state is:')
+        disp(plan_state(:,:,k))
+        disp('r_obj is:')
+        disp(r_obj(:,k))
+        disp('obj_w is:')
+        disp(obj_w(:,k))
         %}
     end
     %% plot trajectories
