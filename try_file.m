@@ -89,11 +89,12 @@ opt_x = value(x);
 %
 sdpvar a(2,1)
 sdpvar x(2,1)
-sdpvar y(2,2)
-Constraints = [a+1 <= x];
-Objective = sum((x'*inv(y)).^2);
-P = optimizer(Constraints,Objective,[],a,{x,y});
-sol = P{[1;1]};
+sdpvar y(2,1)
+sdpvar b(2,1)
+Constraints = [a+1 <= x, b+1<=y];
+Objective = sum((x+y).^2);
+P = optimizer(Constraints,Objective,[],{a,b},{x,y});
+sol = P{{[1;1],[2;2]}};
 sol{1}
 sol{2}
 %}

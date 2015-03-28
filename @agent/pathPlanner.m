@@ -246,7 +246,7 @@ opt_obj = -100; % initialize the optimal obj value
 % prepare the coefficients for optimizer
 p_w = [campus.w;zeros(n_gmm-length(campus.w),1)];
 p_lambda = [campus.lambda,zeros(2,n_gmm-size(campus.lambda,2))];
-p_psi = cat(3,campus.psi,repmat(zeros(2,2),1,1,n_gmm-size(campus.psi,3)));
+p_psi = cat(3,campus.psi,repmat(ones(2,2),1,1,n_gmm-size(campus.psi,3)));
 % prob_map = agent.updateProbMap(campus);
 
 % obj weights
@@ -304,7 +304,7 @@ if k == 1
     n_obj_w = sdpvar(4,1);
     psi = sdpvar(2,2,n_gmm);
     lambda = sdpvar(2,n_gmm);
-    x_h = sdpvar(2,hor+1);
+    x_h = sdpvar(3,hor+1);
     tmp_min_pt2 = sdpvar(2,1);
     guess_u = sdpvar(2,hor);
     guess_x = sdpvar(3,hor+1);
@@ -329,7 +329,7 @@ if k == 1
     obj1 =0;
     for jj = 1:n_gmm
         alpha = sdpvar(size(all_comb,1),1);
-        Af1 = A_fct2s(agent,lambda(:,jj),psi(:,:,jj));
+        Af1 = A_fct2s_sdpvar(agent,lambda(:,jj),psi(:,:,jj));
         tmp_obj = 0;
         tmp_psi_prod = psi(:,:,jj);
         for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
@@ -342,15 +342,16 @@ if k == 1
             for ll = 1:length(tmp_idx)
                 tmp_psi_prod = tmp_psi_prod*agent.psi_s;
             end
-            tmp_psi_prod = tmp_psi_prod/tmp_psi;
+            inv_tmp_psi = [tmp_psi(2,2),-tmp_psi(1,2);-tmp_psi(2,1),tmp_psi(1,1)]/(tmp_psi(1,1)*tmp_psi(2,2)-tmp_psi(2,1)*tmp_psi(1,2));
+            tmp_psi_prod = tmp_psi_prod*inv_tmp_psi;
             % it seems that if the robot is stuck in a small region for a few
             % steps, the tmp_psi_prod tends to be singular. Haven't looked into
             % why this happens
-            if abs(det(tmp_psi_prod)) < 1e-6
-                tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
-            end
+%             if abs(det(tmp_psi_prod)) < 1e-10
+                tmp_psi_prod = tmp_psi_prod+eye(2)*1e-10;
+%             end
             tmp_coef = sqrt(det(tmp_psi_prod));
-            alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
+            alpha(kk) = A_fct2s_sdpvar(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
             tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
         end
         if is(tmp_obj,'complex')
@@ -365,10 +366,10 @@ if k == 1
     obj2 = 0;
     pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
     for ii = 1:hor
-        obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
+        obj2 = obj2 + mvnpdf_sdpvar((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
         for jj = 1:size(obs_info,2)
             pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
-            obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
+            obj2 = obj2+mvnpdf_sdpvar((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
         end
     end
     
@@ -487,25 +488,27 @@ end
         end
         
         % solve MPC
-        if ~isempty(guess_x)
-            assign(x,guess_x); % assign initial solution
-            assign(u,guess_u); % assign initial input
-        end
+%         if ~isempty(guess_x)
+%             assign(x,value(guess_x)); % assign initial solution
+%             assign(u,value(guess_u)); % assign initial input
+%         end
         opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
         opt.Algorithm = 'sqp';
-        controller1 = optimize(constr,obj,opt,{w,n_obj_w,lambda,psi,x_h,...
-            tmp_min_pt2,guess_u,guess_x,init_state},{x,u});
+%         controller1 = optimizer(constr,obj,opt,{w,n_obj_w,lambda,psi,x_h,...
+%             tmp_min_pt2,guess_u,guess_x,init_state},{x,u});
+        controller1 = optimizer(constr,obj,opt,w,{x,u});
 %         sol1 = controller1({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2});
         
         % rescue 1: find feasible solution through NLP
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
         tmp_obj = n_obj_w(2)*obj2;
-        assign(x,guess_x); % assign initial solution
-        assign(u,guess_u); % assign initial input
+%         assign(x,value(guess_x)); % assign initial solution
+%         assign(u,value(guess_u)); % assign initial input
+        
         tmp_opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
         %         tmp_opt.Algorithm = 'interior-point';
-        controller2 = optimize(constr,tmp_obj,tmp_opt,{w,n_obj_w,lambda,psi,...
+        controller2 = optimizer(constr,tmp_obj,tmp_opt,{w,n_obj_w,lambda,psi,...
             x_h,tmp_min_pt2,guess_u,guess_x,init_state},{x,u});
         
         % rescue 2: find feasible solution through LP
@@ -515,15 +518,15 @@ end
             agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
             x(1:2,ii+1) >= 0];
         tmp_obj = 0;
-        assign(x,guess_x); % assign initial solution
-        assign(u,guess_u); % assign initial input
-        tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
-        controller3 = optimize(constr,tmp_obj,tmp_opt,{w,n_obj_w,lambda,psi,...
+%         assign(x,value(guess_x)); % assign initial solution
+%         assign(u,value(guess_u)); % assign initial input
+        tmp_opt = sdpsettings('solver','+linprog','debug',1,'verbose',0);%,'usex0',1
+        controller3 = optimizer(constr,tmp_obj,tmp_opt,{w,n_obj_w,lambda,psi,...
             x_h,tmp_min_pt2,guess_u,guess_x,init_state,A,B,c},{x,u});
 end
 
 while(1)
-    sol1 = controller1({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,p_guess_u,p_guess_x,p_init_state});
+    sol1 = controller1{{p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,p_guess_u,p_guess_x,p_init_state}};
     if sol1.problem ~= 0 % && cst_flag == 0
         % rescue 1
         % if the orignial problem does not have a solution, warn it fails
@@ -540,8 +543,8 @@ while(1)
         %             tmp_opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
         %             %         tmp_opt.Algorithm = 'interior-point';
         %             sol = optimize(constr,tmp_obj,tmp_opt);
-        sol2 = controller2({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,...
-            p_guess_u,p_guess_x,p_init_state});
+        sol2 = controller2{{p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,...
+            p_guess_u,p_guess_x,p_init_state}};
         if sol2.problem ~= 0
             % rescue 2
             % if cannot find the feasible point using the nonlinear model,
@@ -559,8 +562,8 @@ while(1)
             %                 assign(u,guess_u); % assign initial input
             %                 tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
             %                 sol = optimize(constr,tmp_obj,tmp_opt);
-            sol3 = controller3({p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,...
-                p_guess_u,p_guess_x,p_init_state,p_A,p_B,p_c});
+            sol3 = controller3{{p_w,p_n_obj_w,p_lambda,p_psi,p_x_h,p_tmp_min_pt2,...
+                p_guess_u,p_guess_x,p_init_state,p_A,p_B,p_c}};
             if sol3.problem ~= 0
                 % break and the program will
                 % error in agentMove.m due to the returned empty new_state
@@ -620,6 +623,12 @@ outPara.psi = sum(psi,3);
 outPara.lambda = sum(lambda,2);
 end
 
+function val = mvnpdf_sdpvar(x,x0,cov)
+% calculate 2-d Gaussian pdf for sdpvar
+% cov is a constant, not a sdpvar
+vec = (x-x0)';
+val = 1/(2*pi)*(det(cov))^(-1/2)*exp(-0.5*(vec'/cov*vec));
+end
 function cst_chk = collisionCheck(agent,x,x_h,obs_info,safe_dis,safe_marg,safe_marg2)
 len = size(x,2);
 cst_chk = 1;

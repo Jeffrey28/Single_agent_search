@@ -310,6 +310,10 @@ for k = 1:kf
         %     load('obv_traj3_w_time.mat')% Load Tracjectory of Human
         %     obv_traj1=obv_traj';
         %     parameter;  % parameter for IMM
+        % initialize guess_u and guess_x
+        guess_u = [agent.currentV;0]*ones(1,hor);
+        guess_state = agent.updState2(agent.currentPos,guess_u,mpc_dt);
+        guess_x = [agent.sigma_s\guess_state(1:2,:);guess_state(3,:)];
         inPara_ams = struct('campus',campus,'agents',agents,'h_tar_wp',h_tar_wp,...
             'obv_traj',obv_traj,'est_state',est_state,...
             'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
