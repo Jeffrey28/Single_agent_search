@@ -1,15 +1,15 @@
 % function cur_clt = selectCluster (agent,grid_step,prob_map)
-function cur_clt = selectCluster (agent,campus,prob_map_pf)
+function [cur_clt,chg_clt_flag] = selectCluster (agent,campus,prob_map_pf)
 % hp_pt = agent.hp_pt;
 clt_res = prob_map_pf(4,:);
 cur_clt = agent.cur_clt;
 
 clt_num = max(agent.clt_res(3,:));
 clt_idx_set = [];
-
 % max_prob = max(prob_map(:));
 n_data = sum(prob_map_pf(3,:));
 % max_cnt = max(prob_map_pf(3,:));
+chg_clt_flag = 0; % 1 if the goal cluster has changed
 
 % if the current cluster still has high information, do not change cluster
 %{
@@ -101,3 +101,4 @@ for ii = 1:clt_num
 end
 tmp_min_idx = tmp_idx(find(tmp_min_dis == min(tmp_min_dis)));
 cur_clt = tmp_min_idx(1);
+chg_clt_flag = 1;

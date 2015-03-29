@@ -146,7 +146,7 @@ plan_type = inPara.plan_type;
         %{
         agent.cur_clt = selectCluster(agent,campus.grid_step,prob_map);
         %}
-        agent.cur_clt = selectCluster(agent,campus,prob_map_pf);
+        [agent.cur_clt,chg_clt_flag] = selectCluster(agent,campus,prob_map_pf);
         
         % find the maximum probability point in current cluster
         %{
@@ -212,7 +212,7 @@ plan_type = inPara.plan_type;
             inPara_pp = struct('pre_traj',pos_pre_imm(:,:,k),'hor',hor,...
                 'safe_dis',safe_dis,'mpc_dt',mpc_dt,'h_v',...
                 [x_est((k-1)*samp_num+1,2);y_est((k-1)*samp_num+1,2)],'obs_info',campus.obs_info,...
-                'safe_marg',safe_marg,'plan_type',plan_type);
+                'safe_marg',safe_marg,'plan_type',plan_type,'chg_clt_flag',chg_clt_flag);
             outPara_pp = pathPlannerGreedy(agent,inPara_pp);
             opt_x = outPara_pp.opt_x;
             opt_u = outPara_pp.opt_u;
