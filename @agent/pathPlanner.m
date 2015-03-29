@@ -31,173 +31,19 @@ tc_scale = 1e-4; % scale for terminal cost
 % h_v_value = norm(h_v,2);
 
 init_state = [agent.sigma_s\agent.currentPos(1:2);agent.currentPos(3)];
-% while(tmp_hor > 0)
-    % define MPC
-%     x = sdpvar(3,tmp_hor+1); %[lambda(2-D),theta]
-%     u = sdpvar(2,tmp_hor); %[v,a]
-    
-    % constraints on future states
-%     inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'h_v',h_v_value,'mpc_dt',mpc_dt,...
-%         'safe_dis',safe_dis,'safe_marg',safe_marg,'x_h',x_h,'obs_info',obs_info,...
-%         'non_intersect_flag',non_intersect_flag,'obj',1,'constr',constr,...
-%         'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-%         'intgr_step',intgr_step);
-    inPara_cg = struct('hor',tmp_hor,'mpc_dt',mpc_dt,'safe_dis',safe_dis,...
-        'safe_marg',safe_marg,'obs_info',obs_info,...
-        'non_intersect_flag',non_intersect_flag,...
-        'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
-        'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
-        'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x,...
-        'n_gmm',n_gmm,'last_r_obj',last_r_obj,'last_obj_w',last_obj_w); %'x',x,'u',u,'max_pts',max_pts,
-    % generate obj and constraints. contain a parameter that decides whether
-    % using the non-intersection constraints
-    tic;
-    [new_state,opt_u,opt_obj,obj_w] = solveMPC(inPara_cg); 
-    display('MPC takes time:')
-    toc
-    
-%{
-if tmp_hor == 0 % if the MPC fails, just find the input at the next step to maximize the humna-robot distance
-    %{
-    % define MPC
-    x = sdpvar(4,hor+1); %[x,y,theta,v]
-    u = sdpvar(2,hor); %[w,a]
-    tmp_hor = 1;
-    % impose constraints
-    % initial condition
-    constr = [x(:,1) == init_state];
-    % constraints on future states
-    %     for tmp_hor = 2:hor+1
-    inPara_cg = struct('hor',tmp_hor,'x',x,'u',u,'h_v',h_v_value,'mpc_dt',mpc_dt,...
-        'safe_dis',safe_dis,'safe_marg',safe_marg,'x_h',x_h,'obs_info',obs_info,...
-        'non_intersect_flag',non_intersect_flag,'obj',0,'constr',constr,...
-        'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state);
-    [obj,constr] = genMPCinfea(inPara_cg); % generate constraints. contain a parameter that decides whether using the non-intersection constraints
-    % solve MPC
-    opt = sdpsettings('solver','ipopt','usex0',1,'debug',1);
-    sol = optimize(constr,obj,opt);
-    
-    if sol.problem == 0
-        opt_x = value(x); % current and future states
-        opt_u = value(u); % future input
-        opt_x(:,tmp_hor+2:end) = zeros(size(opt_x,1),size(opt_x,2)-tmp_hor-1);
-        opt_u(:,tmp_hor+2:end) = zeros(size(opt_u,1),size(opt_u,2)-tmp_hor-1);
-        %{
-        for ii = 1:hor
-            for jj = 1:size(obs_info,2)
-                % check if the line intersects with some obstacle
-                n = floor(mpc_dt/dt);
-                %                 x0 = obs_info(1,jj); y0 = obs_info(2,jj);
-                r = obs_info(3,jj);
-                for kk = 0:n
-                    tmp = sum((kk/n*opt_x(1:2,ii+1)+(n-kk)/n*opt_x(1:2,ii)-obs_info(1:2,jj)).^2) - (r+safe_marg2)^2;
-                    if tmp < 0
-                        non_intersect_flag = 1;
-                        break
-                    end
-                end
-                if tmp < 0
-                    break
-                end
-            end
-            if tmp < 0
-                break
-            end
-        end
-        if tmp >= 0
-            break
-        end
-        %}
-    else
-        display('Fail to solve MPC')
-        sol.info
-        yalmiperror(sol.problem)
-        %         safe_dis = safe_dis/2;
-        %         tmp_hor = tmp_hor-1;
-    end
-    %     end
-    %}
-    x_r = agent.currentPos(1:2);
-    r_hd = agent.currentPos(3);
-    r_v = agent.currentV;
-    a_lb = agent.a_lb;
-    a_ub = agent.a_ub;
-    w_lb = agent.w_lb;
-    w_ub = agent.w_ub;
-    x_r_next = x_r+r_v*[cos(r_hd);sin(r_hd)]*mpc_dt;
-    rh_dis_next = sqrt(sum((x_r_next - x_h(:,2)).^2));
-    rh_dir = calAngle(x_h(:,2)-x_r_next); % direction from robot to human
-    if (rh_dis_next >= safe_dis)
-        % if robot will be outside of the collision region, then turn its
-        % heading toward the human's next position
-        min_hd = r_hd + w_lb*mpc_dt;
-        max_hd = r_hd + w_ub*mpc_dt;
-        if rh_dir<=max_hd && rh_dir>=min_hd
-            r_hd_next = rh_dir;
-        else
-            hd_dif_min = min(abs(min_hd-rh_dir),abs(2*pi-abs(min_hd-rh_dir)));
-            hd_dif_max = min(abs(max_hd-rh_dir),abs(2*pi-abs(max_hd-rh_dir)));
-            if hd_dif_min < hd_dif_max
-                r_hd_next = min_hd;
-            else
-                r_hd_next = max_hd;
-            end
-        end
-        
-        %     r_v_next = r_v + a_ub*mpc_dt;
-    else
-        % if robot will be inside collision region, then turn its
-        % heading against the human's next position
-        min_hd = r_hd + w_lb*mpc_dt;
-        max_hd = r_hd + w_ub*mpc_dt;
-        op_rh_dir = -rh_dir;
-        op_rh_dir = op_rh_dir - floor(op_rh_dir/(2*pi))*2*pi; % opposite direction
-        if op_rh_dir<=max_hd && op_rh_dir>=min_hd
-            r_hd_next = op_rh_dir;
-        else
-            hd_dif_min = min(abs(min_hd-rh_dir),abs(2*pi-abs(min_hd-rh_dir)));
-            hd_dif_max = min(abs(max_hd-rh_dir),abs(2*pi-abs(max_hd-rh_dir)));
-            if hd_dif_min < hd_dif_max
-                r_hd_next = max_hd;
-            else
-                r_hd_next = min_hd;
-            end
-            %     elseif op_rh_dir<min_hd
-            %         r_hd_next = max_hd;
-            %     elseif op_rh_dir>max_hd
-            %         r_hd_next = min_hd;
-        end
-        
-        %     r_v_next = r_v + a_lb*mpc_dt;
-    end
-    tmp = r_hd_next;
-    tmp = tmp - 2*pi*floor(tmp/(2*pi));
-    r_hd_next = tmp;
-
-
-    % chang robot speed to match human's current estimated speed
-    min_v = r_v + a_lb*mpc_dt;
-    max_v = r_v + a_ub*mpc_dt;
-    
-    if (rh_dis_next >= 2*safe_dis)
-        r_v_next = max_v;
-    elseif (rh_dis_next >= safe_dis) && (rh_dis_next < 2*safe_dis)
-        if norm(h_v,2) >= max_v
-            r_v_next = max_v;
-        elseif norm(h_v,2) <= min_v
-            r_v_next = min_v;
-        else
-            r_v_next = norm(h_v,2);
-        end
-    else
-        r_v_next = min_v;
-    end
-    r_v_next = max(r_v_next,0);
-    
-    opt_x = [[x_r;r_hd;r_v],[x_r_next*ones(1,hor);r_hd_next*ones(1,hor);r_v_next,zeros(1,hor-1)]];
-    opt_u = [[(r_hd_next-r_hd)/mpc_dt;(r_v_next-r_v)/mpc_dt],zeros(2,hor-1)];
-end
-%}
+inPara_cg = struct('hor',tmp_hor,'mpc_dt',mpc_dt,'safe_dis',safe_dis,...
+    'safe_marg',safe_marg,'obs_info',obs_info,...
+    'non_intersect_flag',non_intersect_flag,...
+    'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
+    'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
+    'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x,...
+    'n_gmm',n_gmm,'last_r_obj',last_r_obj,'last_obj_w',last_obj_w); %'x',x,'u',u,'max_pts',max_pts,
+% generate obj and constraints. contain a parameter that decides whether
+% using the non-intersection constraints
+tic;
+[new_state,opt_u,opt_obj,obj_w] = solveMPC(inPara_cg);
+display('MPC takes time:')
+toc
 
 outPara = struct('new_state',new_state,'opt_u',opt_u,'opt_obj',opt_obj,'obj_w',obj_w);
 end
@@ -295,9 +141,9 @@ for jj = 1:length(w)
             cat(3,psi(:,:,jj),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
         tmp_psi = tmp_para.psi;
         tmp_lambda = tmp_para.lambda;
-        for ll = 1:length(tmp_idx)
-            tmp_psi_prod = tmp_psi_prod*agent.psi_s;
-        end
+%         for ll = 1:length(tmp_idx)
+            tmp_psi_prod = tmp_psi_prod*(agent.psi_s)^length(tmp_idx);
+%         end
         tmp_psi_prod = tmp_psi_prod/tmp_psi;
         % it seems that if the robot is stuck in a small region for a few
         % steps, the tmp_psi_prod tends to be singular. Haven't looked into
@@ -319,12 +165,13 @@ end
 % humans)
 w2 = 0;
 obj2 = 0;
+pen = 100; % rescale the gaussian distribution to impose penalty
 pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
 for ii = 1:hor
-    obj2 = obj2 + mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
+    obj2 = obj2 + pen*mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
     for jj = 1:size(obs_info,2)
         pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
-        obj2 = obj2+mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
+        obj2 = obj2+pen*mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
     end
 end
     
@@ -407,10 +254,6 @@ end
 obj_w = [w1;w2;w3;w4];
 n_obj_w = obj_w/sum(obj_w); % normalized obj_w
 obj = n_obj_w'*[obj1;obj2;obj3;obj4];
-% inPara_tc = struct('prob_map',prob_map,'x_r',x(1:2,end),'tc_scale',tc_scale,...
-%     'campus',campus);
-% obj = obj + termCost(inPara_tc);
-cst_flag = 0;
 
 %% constraints
 % get initial guess for NLP
@@ -420,8 +263,6 @@ cst_flag = 0;
 % guess_x = []; % initial solution for the nonlinear problem
 % guess_u = [];
 
-% linearize system
-% [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
 while (1)
     % impose constraints
     % initial condition
@@ -448,7 +289,7 @@ while (1)
     opt.Algorithm = 'sqp';
     sol = optimize(constr,obj,opt);
     
-    if sol.problem ~= 0 && cst_flag == 0
+    if sol.problem ~= 0
         % if the orignial problem does not have a solution, warn it fails
         display('Fail to solve the original MPC')
         sol.info
@@ -457,12 +298,12 @@ while (1)
         
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
-        tmp_obj = n_obj_w(2)*obj2;
+        tmp_obj1 = n_obj_w(2)*obj2;
         assign(x,guess_x); % assign initial solution
         assign(u,guess_u); % assign initial input
-        tmp_opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
+        tmp_opt1 = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
         %         tmp_opt.Algorithm = 'interior-point';
-        sol = optimize(constr,tmp_obj,tmp_opt);
+        sol = optimize(constr,tmp_obj1,tmp_opt1);
         if sol.problem ~= 0
             % if cannot find the feasible point using the nonlinear model, 
             % use the linear model.
@@ -470,15 +311,15 @@ while (1)
         
             % linearize system
             [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
-
-            constr = [constr,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+            tmp_constr2 = [x(:,1) == init_state];
+            tmp_constr2 = [tmp_constr2,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
             agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
             x(1:2,ii+1) >= 0];
-            tmp_obj = 0;
+            tmp_obj2 = 0;
             assign(x,guess_x); % assign initial solution
             assign(u,guess_u); % assign initial input
-            tmp_opt = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
-            sol = optimize(constr,tmp_obj,tmp_opt);
+            tmp_opt2 = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
+            sol = optimize(tmp_constr2,tmp_obj2,tmp_opt2);
             
             if sol.problem ~= 0
                 % break and the program will
@@ -494,7 +335,7 @@ while (1)
             guess_x = value(x);
             guess_u = value(u);
         end
-    elseif sol.problem == 0 && cst_flag == 0
+    elseif sol.problem == 0
         % test whether the solution without collision avoidance constraints
         % is not colliding
         %         opt_x = value(x); % current and future states
@@ -503,19 +344,6 @@ while (1)
         opt_obj = [value(obj);value(obj1);value(obj2);value(obj3);value(obj4)];
         %         break
         % update robot state
-        new_state = agent.updState2(agent.currentPos,...
-            opt_u,mpc_dt); % contains current and future states
-        break
-        
-    elseif sol.problem ~= 0 && cst_flag == 1
-        % if solution cannot be found after considering the collsion
-        % constraints, then use the control policy from the unconstrained
-        % case
-        display('cannot satisfy the collision avoidance constraints, use the input from the unconstraint case')
-        break
-    elseif sol.problem == 0 && cst_flag == 1
-        % get a solution for MPC with collision avoidance constraints
-        opt_u = value(u); % future input
         new_state = agent.updState2(agent.currentPos,...
             opt_u,mpc_dt); % contains current and future states
         break

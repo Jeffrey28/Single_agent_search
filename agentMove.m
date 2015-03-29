@@ -146,7 +146,7 @@ plan_type = inPara.plan_type;
         %{
         agent.cur_clt = selectCluster(agent,campus.grid_step,prob_map);
         %}
-        agent.cur_clt = selectCluster(agent,prob_map_pf);
+        agent.cur_clt = selectCluster(agent,campus,prob_map_pf);
         
         % find the maximum probability point in current cluster
         %{

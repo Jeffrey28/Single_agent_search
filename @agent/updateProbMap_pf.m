@@ -18,7 +18,7 @@ sigma = field.sigma;
 % generate the histogram-ish prob_map_pf
 uni_par = (unique(particles','rows'))'; % 2-by-x matrix
 n_uniq = size(uni_par,2); % # of unique points
-prob_map_pf = [uni_par;zeros(2,n_uniq)]; % 4-by-n matrix, [x;y;count;clt_idx];
+prob_map_pf = [uni_par;zeros(3,n_uniq)]; % 4-by-n matrix, [x;y;count;clt_idx;pdf];
 for ii = 1:n_uniq
     tmp = findEqualVec(uni_par(:,ii),particles);
 %     tmp = abs(sum(uni_par(:,ii)*ones(1,size(particles,2))-particles,1))<1e-6;
@@ -32,6 +32,8 @@ end
 
 % generate prob_map_gmm
 gmm_obj = gmdistribution(mu',sigma,w');
+
+prob_map_pf(5,:) = (pdf(gmm_obj,[prob_map_pf(1,:)',prob_map_pf(2,:)']))';
 
 % mix_num = length(w);
 [x_axis,y_axis] = meshgrid(xMin+step/2:step:xMax-step/2,yMin+step/2:step:yMax-step/2);

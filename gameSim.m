@@ -245,7 +245,7 @@ for k = 1:kf
     %}
     
     inPara_ec = struct('prob_thresh',prob_thresh,'prob_map_pf',prob_map_pf,...
-        'r',agents(2),'campus',campus);
+        'r',agents(2),'campus',campus,'sensor_reading',sensor_reading(2,1:k));
     game_end = endCheck(inPara_ec);
     if game_end == 1
         sprintf('Target has been found! Game ends at k=%d.',k)

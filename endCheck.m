@@ -5,6 +5,7 @@ function game_end = endCheck(inPara)
 prob_thresh = inPara.prob_thresh;
 prob_map_pf = inPara.prob_map_pf;
 r = inPara.r;
+sensor_reading = inPara.sensor_reading;
 % particles = inPara.particles;
 % campus = inPara.campus;
 % xMin = campus.endpoints(1);
@@ -33,6 +34,8 @@ for x = cur_cor(1)-sig:step:cur_cor(1)+sig
 end
 %}
 
+% this part counts then number of particles inside the range of view
+%{
 tot_cnt = 0;
 for ii = 1:size(prob_map_pf,2)
     if norm(cur_cor-prob_map_pf(1:2,ii)) <= 0.8*sig
@@ -45,5 +48,33 @@ if tot_prob > prob_thresh
     game_end = 1;
 else
     game_end = 0;
+end     
+%}
+
+% use two conditions, when either is satisfied, the game ends
+
+% condition 1: when the sum of densities inside the range of view is
+% greater than a threshold
+
+tmp_pt = prob_map_pf(1:2,:);
+tmp_vec = tmp_pt-cur_cor*ones(1,size(prob_map_pf,2));
+% find the indices of particles whose distance to the robot is less than
+% 0.8*sig
+tmp_idx = [sum(tmp_vec.^tmp_vec,1) <= (0.8*sig)^2*ones(1,size(tmp_pt,2))];
+all_pdf_sum = sum(prob_map_pf(5,:));
+fov_pdf_sum = sum(prob_map_pf(5,tmp_idx));
+if fov_pdf_sum > prob_thresh*all_pdf_sum
+    game_end = 1;
+else
+    game_end = 0;
+end  
+
+% condition 2: 5 consecutive positive observations
+k = length(sensor_reading);% sensor_reading length is equal to current time
+if k >= 2
+    if (sum(sensor_reading(k-1:k)) == 5)
+        game_end = 1;
+    end
+else
+    game_end = 0;
 end
-       
