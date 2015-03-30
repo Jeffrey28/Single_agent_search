@@ -248,7 +248,7 @@ tmp_dif = max_pts-agent.currentPos(1:2)*ones(1,size(max_pts,2));
 % find the closest point
 tmp_idx = sum(tmp_dif.^tmp_dif,1) == min(sum(tmp_dif.^tmp_dif,1));
 tmp_min_pt2 = max_pts(:,tmp_idx);
-% tmp_min_pt2 = [30;30];
+% tmp_min_pt2 = [40;35];
 tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2(:,1);%-1)*grid_step
 
 % add this terminal cost only when the POND is greater than a threshold
@@ -272,6 +272,7 @@ else
 end
 
 obj_w = [w1;w2;w3;w4];
+% obj_w = [0;0;0;w4];
 n_obj_w = obj_w/sum(obj_w); % normalized obj_w
 obj = n_obj_w'*[obj1;obj2;obj3;obj4];
 
@@ -305,8 +306,8 @@ while (1)
         assign(x,guess_x); % assign initial solution
         assign(u,guess_u); % assign initial input
     end
-    opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
-    opt.Algorithm = 'interior-point';
+    opt = sdpsettings('solver','snopt','usex0',1,'debug',1,'verbose',1);
+%     opt.Algorithm = 'sdp';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0
@@ -318,11 +319,11 @@ while (1)
         
         % follow the MATLAB's suggestion: find a feasible point and use as
         % the initial solution for the original problem
-        tmp_obj1 = n_obj_w(2)*obj2;
+        tmp_obj1 = obj2;
         assign(x,guess_x); % assign initial solution
         assign(u,guess_u); % assign initial input
-        tmp_opt1 = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
-        %         tmp_opt.Algorithm = 'interior-point';
+        tmp_opt1 = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',1);
+        tmp_opt1.Algorithm = 'sqp';
         sol = optimize(constr,tmp_obj1,tmp_opt1);
         if sol.problem ~= 0
             % if cannot find the feasible point using the nonlinear model, 

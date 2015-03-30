@@ -6,6 +6,7 @@ prob_thresh = inPara.prob_thresh;
 prob_map_pf = inPara.prob_map_pf;
 r = inPara.r;
 sensor_reading = inPara.sensor_reading;
+particles = inPara.particles;
 % particles = inPara.particles;
 % campus = inPara.campus;
 % xMin = campus.endpoints(1);
@@ -60,16 +61,21 @@ tmp_pt = prob_map_pf(1:2,:);
 tmp_vec = tmp_pt-cur_cor*ones(1,size(prob_map_pf,2));
 % find the indices of particles whose distance to the robot is less than
 % 0.8*sig
-tmp_idx = [sum(tmp_vec.^tmp_vec,1) <= (0.8*sig)^2*ones(1,size(tmp_pt,2))];
+%
+tmp_idx = [sum(tmp_vec.*tmp_vec,1) <= sig^2*ones(1,size(tmp_pt,2))];
 all_pdf_sum = sum(prob_map_pf(5,:));
 fov_pdf_sum = sum(prob_map_pf(5,tmp_idx));
 if fov_pdf_sum > prob_thresh*all_pdf_sum
     game_end = 1;
+    return
 else
     game_end = 0;
+    return
 end  
+%}
 
 % condition 2: 5 consecutive positive observations
+%{
 k = length(sensor_reading);% sensor_reading length is equal to current time
 if k >= 2
     if (sum(sensor_reading(k-1:k)) == 5)
@@ -77,4 +83,30 @@ if k >= 2
     end
 else
     game_end = 0;
+end
+%}
+% condition 3: the covariance is below a threshold
+
+uni_par = (unique(particles','rows'))'; % 2-by-x matrix
+mean_p = mean(uni_par,2);
+n_uniq = size(uni_par,2); % # of unique points
+%{
+mean_p = mean(particles,2);
+n = size(particles,2);
+dif = particles - mean_p*ones(1,n);
+cov_p = dif*dif'/n;
+if norm(cov_p,2) < 1
+    game_end = 1;
+else
+    game_end = 0;
+end
+%}
+dif = uni_par - mean_p*ones(1,n_uniq);
+cov_p = dif*dif'/n_uniq;
+if norm(cov_p,2) < 5
+    game_end = 1;
+    return
+else
+    game_end = 0;
+    return
 end

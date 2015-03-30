@@ -18,21 +18,21 @@ set(0,'DefaultFigureWindowStyle','docked');% docked
 %%% define agents %%%
 % Human agent 1
 h = agent('human');
-h.currentPos = [10;10;0];%*scale% [x y heading]
+h.currentPos = [22;20;0];%*scale% [x y heading]
 % h.maxV = 1.5;
 h.currentV = 2;
 
 % Robot agent 1
 r = agent('robot');
-r.currentPos = [20;10;pi/2];%*scale; %[23.5;0.5;0];
+r.currentPos = [25;15;pi/2];%*scale; %[23.5;0.5;0];
 r.currentV = 1;
 r.maxV = 3;
 r.minV = 0;
 % r.a_lb = -1; 
 % r.a_ub = 1;
-r.w_lb = -pi/2;
-r.w_ub = pi/2;
-r.sigma_s = 5*eye(2);
+r.w_lb = -pi;
+r.w_ub = pi;
+r.sigma_s = 9*eye(2);
 r.psi_s = 1/2*eye(2)/r.sigma_s;
 r.k_s = 2*pi*sqrt(det(r.sigma_s));
 r.cur_clt = 0; % current goal cluster
@@ -149,6 +149,7 @@ for k = 1:kf
             cur_pos = agent.currentPos(1:2);
             [~,~,sim_reading] = sensorSim(agent,tar_pos,cur_pos);
             sensor_reading(agentIndex,k) = sim_reading;
+            sprintf('sensor reading is %d',sim_reading)
             % update parameters for probability map using update law
             %{
             cur_lambda = agent.sigma_s\cur_pos;
@@ -242,7 +243,8 @@ for k = 1:kf
     %}
     
     inPara_ec = struct('prob_thresh',prob_thresh,'prob_map_pf',prob_map_pf,...
-        'r',agents(2),'campus',campus,'sensor_reading',sensor_reading(2,1:k));
+        'r',agents(2),'campus',campus,'sensor_reading',sensor_reading(2,1:k),...
+        'particles',particles);
     game_end = endCheck(inPara_ec);
     if game_end == 1
         sprintf('Target has been found! Game ends at k=%d.',k)
