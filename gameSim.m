@@ -14,16 +14,17 @@ addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-ma
 addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
+
 %%% define agents %%%
 % Human agent 1
 h = agent('human');
-h.currentPos = [25;10;0]*scale;%[290;30;0]; % [x y heading]
+h.currentPos = [10;10;0];%*scale% [x y heading]
 % h.maxV = 1.5;
 h.currentV = 2;
 
 % Robot agent 1
 r = agent('robot');
-r.currentPos = [20;10;pi]*scale;%[310;30;0]; %[23.5;0.5;0];
+r.currentPos = [20;10;pi/2];%*scale; %[23.5;0.5;0];
 r.currentV = 1;
 r.maxV = 3;
 r.minV = 0;
@@ -38,43 +39,33 @@ r.cur_clt = 0; % current goal cluster
 r.d = 0.5; %robot diameter 
 
 %%% Set field %%%
-xLength = 100*scale; 
-yLength = 100*scale; 
+xLength = 50;%*scale; 
+yLength = 50;%*scale; 
 xMin = 0;
 yMin = 0;
 xMax = xMin+xLength;
 yMax = yMin+yLength;
 grid_step = 0.5; % the side length of a probability cell
-tar_pos = [75;50]*scale; % target positions
-% w = [0.2;0.2;0.2;0.2;0.2]; % initial weight of normal distribution
-w = [0.3;0.3;0.4]; % initial weight of normal distribution
-mix_num = length(w);
-mu = [25,65,75;25,70,55]*scale; % mean of normal distribution
-% mu = [25,30,50,70,75;25,45,70,70,55]*scale; % mean of normal distribution
-sigma = zeros(2,2,mix_num); % assume diagonal covariance matrix
-lambda = zeros(size(mu));
-psi = zeros(size(sigma));
-for ii = 1:mix_num
-    sigma(:,:,ii) = 10*eye(2);
-    lambda(:,ii) = sigma(:,:,ii)\mu(:,ii);
-    psi(:,:,ii) = 1/2*eye(2)/sigma(:,:,ii);
-end
 
-% define vertices of obstacles. Here use round obstacles
-c_set = [30,50;50,55]*scale;%[26,20]
-r_set = [4,4]*scale;
+n_data = 3000;% number of randomly generated particles
+campus_type = 'one_clt'; % one cluster campus
+tar_pos = [35;40];
+inPara_gc = struct('campus_type',campus_type,'scale',scale,'n_data',n_data,...
+    'xMin',xMin,'xMax',xMax,'yMin',yMin,'yMax',yMax,'grid_step',grid_step,...
+    'tar_pos',tar_pos,'xLength',xLength,'yLength',yLength);
+[campus,particles] = genCampus(inPara_gc);
+
+% generate obstacle points for drawing plots
+c_set = campus.obs_info(1:2,:);
+r_set = campus.obs_info(3,:);
 theta_set = {{0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi}};
 inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta_set',theta_set,'type','obs');
 obs_pos = getWayPts(inPara_gwp);
 
-campus = field([xMin xMax yMin yMax],grid_step,tar_pos,w,mu,sigma,lambda,psi);
-campus.agentNum = 1;
-campus.obs_info = [c_set;r_set]; % gives the center and radius of each obstacle
-
 %%% set way points
 %
 % manually pick the way pts for simulated human
-inPara_gwp = struct('tar_pos',tar_pos,'scale',scale,'type','h');% not in use now
+inPara_gwp = struct('scale',scale,'type','h');% not in use now
 h_way_pts = getWayPts(inPara_gwp);
 % apply different human speed between different way points.
 % h_v = [2,3,1,1,1,1,1,1,1,1,3,1.5,2,3,2,1.5,4];
@@ -94,9 +85,15 @@ safe_dis = 0.5; %safe distance between human and robot
 safe_marg = 0; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
 prob_thresh = 0.6;
-n_data = 3000;% number of randomly generated particles
-clt_num = 2; % clustering number
-n_gmm = 10; % max cluster number
+n_gmm = 7; % max cluster number
+
+% define cluster number
+switch campus_type
+    case 'one_clt'
+        clt_num = 1; % clustering number
+    case 'two_clt'
+        clt_num = 2;
+end
 
 % precompute combinatorial matrix
 all_comb = {};
@@ -122,7 +119,7 @@ tar_found = 0; % binary variable. 1 indicates that the target is found
 clt_thresh = 1e-4; %threshold for choosing points to be clustered
 pre_cov = zeros(hor,hor,hor,kf); % covariance of the predicted x and y trajectory.
 F = []; % save frame of plots for movie
-particles = zeros(2,n_data); % save the generated particles;
+% particles = zeros(2,n_data); % save the generated particles;
 guess_x = []; % guess of the initial solution of the MPC
 guess_u = []; % guess of the initial solution of the MPC
 obj_w = zeros(4,kf); % save the weights for the objective functions
@@ -136,9 +133,9 @@ obj_w = zeros(4,kf); % save the weights for the objective functions
 for k = 1:kf
     display(k)
     %% generate particles
-    if k == 1
-       particles = agents(2).genParticles(campus.w,campus.mu,campus.sigma,n_data); 
-    end
+%     if k == 1
+%        particles = agents(2).genParticles(campus.w,campus.mu,campus.sigma,n_data); 
+%     end
     %% update probability map
     % Set prior probabilities based on agent positions and target readings
     w = campus.w;

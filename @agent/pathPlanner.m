@@ -21,6 +21,7 @@ guess_x = inPara.guess_x;
 n_gmm = inPara.n_gmm;
 last_r_obj = inPara.last_r_obj;
 last_obj_w = inPara.last_obj_w;
+chg_clt_flag = inPara.chg_clt_flag;
 
 % define parameters
 non_intersect_flag = 0; % flag for showing whether imposing the non-intersection constraint
@@ -37,7 +38,8 @@ inPara_cg = struct('hor',tmp_hor,'mpc_dt',mpc_dt,'safe_dis',safe_dis,...
     'agent',agent,'dt',dt,'safe_marg2',safe_marg2,'init_state',init_state,...
     'campus',campus,'tc_scale',tc_scale,'x_h',x_h,'all_comb',{all_comb},'k',k,...
     'prob_map_pf',prob_map_pf,'guess_u',guess_u,'guess_x',guess_x,...
-    'n_gmm',n_gmm,'last_r_obj',last_r_obj,'last_obj_w',last_obj_w); %'x',x,'u',u,'max_pts',max_pts,
+    'n_gmm',n_gmm,'last_r_obj',last_r_obj,'last_obj_w',last_obj_w,...
+    'chg_clt_flag',chg_clt_flag); %'x',x,'u',u,'max_pts',max_pts,
 % generate obj and constraints. contain a parameter that decides whether
 % using the non-intersection constraints
 tic;
@@ -77,6 +79,7 @@ guess_x = inPara.guess_x;
 n_gmm = inPara.n_gmm;
 last_r_obj = inPara.last_r_obj;
 last_obj_w = inPara.last_obj_w;
+chg_clt_flag = inPara.chg_clt_flag;
 
 cur_clt = agent.cur_clt;
 % hp_pt = agent.hp_pt;
@@ -163,18 +166,32 @@ end
     
 % add artificial potential function to the obstacles (static ones and
 % humans)
-w2 = 0;
+w2 = 1;
 obj2 = 0;
+% potential function
+%{
 pen = 100; % rescale the gaussian distribution to impose penalty
-pf_sigma_h = ((safe_dis+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the human
+pf_sigma_h = ((safe_dis+agent.d))^2*eye(2); % covariance matrix for the potential field for the human
 for ii = 1:hor
     obj2 = obj2 + pen*mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
     for jj = 1:size(obs_info,2)
-        pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d)/3)^2*eye(2); % covariance matrix for the potential field for the obstacles
+        pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d))^2*eye(2); % covariance matrix for the potential field for the obstacles
         obj2 = obj2+pen*mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
     end
 end
-    
+%} 
+
+% barrier function
+for ii = 1:hor
+    tmp_vec1 = agent.sigma_s*x(1:2,ii+1)-x_h(2:3,ii+1);
+    obj2 = obj2 -log (sum(tmp_vec1.*tmp_vec1)-(safe_dis+agent.d)^2);
+    for jj = 1:size(obs_info,2)
+        tmp_vec2 = agent.sigma_s*x(1:2,ii+1)-obs_info(1:2,jj);
+        obj2 = obj2 -log (sum(tmp_vec2.*tmp_vec2)-(obs_info(3,jj)+safe_marg+agent.d)^2);
+    end
+end
+obj2 = 0.01*obj2; % rescale this term so that that negative term does not affect much when the robot is far from other objects
+
 % determine whether the robot is already in the cur_clt region.
 % clt_res = prob_map_pf(4,:);
 % tmp_pt = prob_map_pf(1:2,clt_res == cur_clt);
@@ -227,9 +244,12 @@ sprintf('max count of particles is %d at k = %d',cur_max_cnt,k)
 sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf(2,cur_max_idx))
 %         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
 max_pts = cur_prob_map_pf(1:2,cur_max_idx);
-tmp_min_pt2 = max_pts(:,randi(size(max_pts,2)));
+tmp_dif = max_pts-agent.currentPos(1:2)*ones(1,size(max_pts,2));
+% find the closest point
+tmp_idx = sum(tmp_dif.^tmp_dif,1) == min(sum(tmp_dif.^tmp_dif,1));
+tmp_min_pt2 = max_pts(:,tmp_idx);
 % tmp_min_pt2 = [30;30];
-tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2;%-1)*grid_step
+tmp_vec4 = agent.sigma_s*x(1:2,end) - tmp_min_pt2(:,1);%-1)*grid_step
 
 % add this terminal cost only when the POND is greater than a threshold
 % adjust the weight: if in previous step the POND is greater than 0.98, then increase the w4
@@ -239,7 +259,7 @@ w4 = last_obj_w(4);
 % w4 = 1;
 % obj4 = norm(tmp_vec4);
 
-if (last_r_obj(2) < 0.98)
+if (last_r_obj(2) < 0.98) && (chg_clt_flag == 0)
     w4 = 0;
     obj4 =0;
 else
@@ -286,7 +306,7 @@ while (1)
         assign(u,guess_u); % assign initial input
     end
     opt = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
-    opt.Algorithm = 'sqp';
+    opt.Algorithm = 'interior-point';
     sol = optimize(constr,obj,opt);
     
     if sol.problem ~= 0
@@ -307,30 +327,42 @@ while (1)
         if sol.problem ~= 0
             % if cannot find the feasible point using the nonlinear model, 
             % use the linear model.
-            display('Fail to solve the original MPC using NLP, will use LP')
-        
-            % linearize system
-            [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
-            tmp_constr2 = [x(:,1) == init_state];
-            tmp_constr2 = [tmp_constr2,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
-            agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
-            x(1:2,ii+1) >= 0];
+            display('Fail to solve the original MPC using NLP, will use NLP with 0 obj')
+            
             tmp_obj2 = 0;
             assign(x,guess_x); % assign initial solution
             assign(u,guess_u); % assign initial input
-            tmp_opt2 = sdpsettings('solver','linprog','usex0',1,'debug',1,'verbose',0);
-            sol = optimize(tmp_constr2,tmp_obj2,tmp_opt2);
+            tmp_opt2 = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',0);
+            sol = optimize(constr,tmp_obj2,tmp_opt2);
             
             if sol.problem ~= 0
-                % break and the program will
-                % error in agentMove.m due to the returned empty new_state
-                new_state = [];
-                opt_u = [];
-                break
+                display('Fail to solve the original MPC using NLP, will use LP with 0 obj')
+                % linearize system
+                [A,B,c] = agent.linearize_model3([agent.currentV;agent.currentPos(3)],mpc_dt);
+                tmp_constr3 = [x(:,1) == init_state];
+                tmp_constr3 = [tmp_constr3,x(:,ii+1) == A*x(:,ii)+B*u(:,ii)+c,...
+                    agent.minV<=u(1,ii)<=agent.maxV,agent.w_lb<=u(2,ii)<=agent.w_ub,...
+                    x(1:2,ii+1) >= 0];
+                tmp_obj3 = 0;
+                assign(x,guess_x); % assign initial solution
+                assign(u,guess_u); % assign initial input
+                tmp_opt3 = sdpsettings('solver','linprog','debug',1,'verbose',0);
+                sol = optimize(tmp_constr3,tmp_obj3,tmp_opt3);
+                
+                if sol.problem ~= 0
+                    % break and the program will
+                    % error in agentMove.m due to the returned empty new_state
+                    new_state = [];
+                    opt_u = [];
+                    break
+                elseif sol.problem == 0
+                    guess_x = value(x);
+                    guess_u = value(u);
+                end
             elseif sol.problem == 0
                 guess_x = value(x);
                 guess_u = value(u);
-            end                       
+            end
         elseif sol.problem == 0
             guess_x = value(x);
             guess_u = value(u);

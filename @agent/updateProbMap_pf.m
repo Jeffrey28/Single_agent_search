@@ -8,9 +8,9 @@ xMin = field.endpoints(1);
 xMax = field.endpoints(2);
 yMin = field.endpoints(3);
 yMax = field.endpoints(4);
-step = field.grid_step;
-xLength = (xMax-xMin)/step;
-yLength = (yMax-yMin)/step;
+grid_step = field.grid_step;
+xnum = (xMax-xMin)/grid_step; % number of points on x axis
+ynum = (yMax-yMin)/grid_step;
 w = field.w;
 mu = field.mu;
 sigma = field.sigma;
@@ -36,7 +36,7 @@ gmm_obj = gmdistribution(mu',sigma,w');
 prob_map_pf(5,:) = (pdf(gmm_obj,[prob_map_pf(1,:)',prob_map_pf(2,:)']))';
 
 % mix_num = length(w);
-[x_axis,y_axis] = meshgrid(xMin+step/2:step:xMax-step/2,yMin+step/2:step:yMax-step/2);
+[x_axis,y_axis] = meshgrid(xMin+grid_step/2:grid_step:xMax-grid_step/2,yMin+grid_step/2:grid_step:yMax-grid_step/2);
 
 tmp = pdf(gmm_obj,[x_axis(:),y_axis(:)]);
-prob_map_gmm = (reshape(tmp,xLength,yLength)*step^2)';
+prob_map_gmm = (reshape(tmp,xnum,ynum)*grid_step^2)';
