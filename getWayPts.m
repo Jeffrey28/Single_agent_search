@@ -17,7 +17,9 @@ if (strcmp(type,'h'))
 % %     hold on
 % %     fill(cor(1,:),cor(2,:),'r');
 %     way_pts = [tar_pos(:,1),cor*scale,[190,190;90,110]*scale,tar_pos(:,3:4),[210,190;190,190]*scale,tar_pos(:,5)];
-way_pts = [40;20];
+% way_pts = [40;20];% one-cluster case
+% way_pts = repmat([40,15;20,20],1,5);
+way_pts = repmat([40,40],1,10);
 
 elseif (strcmp(type,'obs'))
     % obstacle way points

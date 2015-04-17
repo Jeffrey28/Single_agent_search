@@ -30,7 +30,7 @@ switch type
             psi(:,:,ii) = 1/2*eye(2)/sigma(:,:,ii);
         end
         
-        c_set = [30;30];
+        c_set = [28;30];
         r_set = 3;
         campus = field([xMin xMax yMin yMax],grid_step,tar_pos,w,mu,sigma,lambda,psi);
         campus.agentNum = 1;
@@ -69,6 +69,11 @@ switch type
         campus = field([xMin xMax yMin yMax],grid_step,tar_pos,w,mu,sigma,lambda,psi);
         campus.agentNum = 1;
         campus.obs_info = [c_set;r_set]; % gives the center and radius of each obstacle
+        
+        inPara_gp = struct('type','gmm','xMin',xMin,'xMax',xMax,...
+            'yMin',yMin,'yMax',yMax,'c_set',c_set,'r_set',r_set,'n_data',n_data,...
+            'mu',mu,'sigma',sigma,'w',w);
+        particles = genParticles(inPara_gp);
 end
 
 % draw plot of the original distribution
@@ -81,11 +86,28 @@ tmp = pdf(gmm_obj,[x_axis(:),y_axis(:)]);
 prob_map_gmm = (reshape(tmp,xnum,ynum)*grid_step^2)';
 
 % draw gmm probability map
+figure(1)
+hold on
 plot_prob_map_gmm = [prob_map_gmm zeros(size(prob_map_gmm,1),1); zeros(1,size(prob_map_gmm,2)) 0]';
 p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map_gmm);
 set(p_handle,'EdgeColor','none');
+box
 colormap(b2r(min(plot_prob_map_gmm(:)),max(plot_prob_map_gmm(:))));
+% caxis([min(plot_prob_map_gmm(:)),max(plot_prob_map_gmm(:))])
+% colormap('default')
 colorbar
+
+% make the plot square
+xlim([0,campus.endpoints(2)]);
+ylim([0,campus.endpoints(4)]);
+axis equal
+grid minor
+
+% draw targets
+for jj = 1:campus.targetNum
+    h = plot(campus.targetPos(1,jj),campus.targetPos(2,jj),'MarkerSize',30);
+    set(h,'Marker','p');
+end
 end
 
 function particles = genParticles(inPara)

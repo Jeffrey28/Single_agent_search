@@ -67,6 +67,7 @@ all_pdf_sum = sum(prob_map_pf(5,:));
 fov_pdf_sum = sum(prob_map_pf(5,tmp_idx));
 if fov_pdf_sum > prob_thresh*all_pdf_sum
     game_end = 1;
+    display('end by condition 1')
     return
 else
     game_end = 0;
@@ -105,6 +106,7 @@ dif = uni_par - mean_p*ones(1,n_uniq);
 cov_p = dif*dif'/n_uniq;
 if norm(cov_p,2) < 5
     game_end = 1;
+    display('end by condition 1')
     return
 else
     game_end = 0;

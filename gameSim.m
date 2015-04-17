@@ -16,6 +16,8 @@ scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
 %%% define agents %%%
+% setting for one-cluster
+%{
 % Human agent 1
 h = agent('human');
 h.currentPos = [22;20;0];%*scale% [x y heading]
@@ -38,6 +40,40 @@ r.k_s = 2*pi*sqrt(det(r.sigma_s));
 r.cur_clt = 0; % current goal cluster
 r.d = 0.5; %robot diameter 
 
+% define field type
+campus_type = 'one_clt'; % one cluster campus
+tar_pos = [35;40];
+%}
+
+% setting for two-cluster
+%
+% Human agent 1
+h = agent('human');
+h.currentPos = [22;20;0];%*scale% [x y heading]
+% h.maxV = 1.5;
+h.currentV = 2;
+
+% Robot agent 1
+r = agent('robot');
+r.currentPos = [25;15;pi/2];%*scale; %[23.5;0.5;0];
+r.currentV = 1;
+r.maxV = 3;
+r.minV = 0;
+% r.a_lb = -1; 
+% r.a_ub = 1;
+r.w_lb = -pi/2;
+r.w_ub = pi/2;
+r.sigma_s = 9*eye(2);
+r.psi_s = 1/2*eye(2)/r.sigma_s;
+r.k_s = 2*pi*sqrt(det(r.sigma_s));
+r.cur_clt = 0; % current goal cluster
+r.d = 0.5; %robot diameter 
+
+% define field type
+campus_type = 'one_clt'; % one cluster campus
+tar_pos = [27;40];
+%}
+
 %%% Set field %%%
 xLength = 50;%*scale; 
 yLength = 50;%*scale; 
@@ -46,14 +82,27 @@ yMin = 0;
 xMax = xMin+xLength;
 yMax = yMin+yLength;
 grid_step = 0.5; % the side length of a probability cell
-
 n_data = 3000;% number of randomly generated particles
-campus_type = 'one_clt'; % one cluster campus
-tar_pos = [35;40];
 inPara_gc = struct('campus_type',campus_type,'scale',scale,'n_data',n_data,...
     'xMin',xMin,'xMax',xMax,'yMin',yMin,'yMax',yMax,'grid_step',grid_step,...
     'tar_pos',tar_pos,'xLength',xLength,'yLength',yLength);
 [campus,particles] = genCampus(inPara_gc);
+
+% draw agents on the initial environment
+figure(1)
+hold on 
+h1 = plot(h.currentPos(1),h.currentPos(2),'r','markers',2);
+set(h1,'MarkerFaceColor','r');
+set(h1,'MarkerEdgeColor','r');
+set(h1,'Color','r');
+set(h1,'LineStyle','-');
+set(h1,'Marker','o');
+h2 = plot(r.currentPos(1),r.currentPos(2),'g','markers',2);
+set(h2,'MarkerFaceColor','g');
+set(h2,'MarkerEdgeColor','g');
+set(h2,'Color','g');
+set(h2,'LineStyle','-');
+set(h2,'Marker','o');
 
 % generate obstacle points for drawing plots
 c_set = campus.obs_info(1:2,:);
@@ -61,6 +110,15 @@ r_set = campus.obs_info(3,:);
 theta_set = {{0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi;0:pi/8:2*pi}};
 inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta_set',theta_set,'type','obs');
 obs_pos = getWayPts(inPara_gwp);
+
+% draw obstacles on the initial environment
+for jj = 1:size(obs_pos)
+    tmp_pos = obs_pos{jj};
+    fill(tmp_pos(1,:),tmp_pos(2,:),'b');
+end
+%}
+xlim([0,campus.endpoints(2)]);
+ylim([0,campus.endpoints(4)]);
 
 %%% set way points
 %
@@ -84,15 +142,19 @@ samp_rate = 20; % sampling rate (/Hz)
 safe_dis = 0.5; %safe distance between human and robot
 safe_marg = 0; % safety margin between human the the obstacle
 mpc_dt = 0.5; % sampling time for model discretization used in MPC
-prob_thresh = 0.6;
+prob_thresh = 0.8;
 n_gmm = 7; % max cluster number
 
 % define cluster number
 switch campus_type
     case 'one_clt'
         clt_num = 1; % clustering number
+        h.currentPos = [22;20;0];
+        r.currentPos = [25;15;pi/2];
     case 'two_clt'
         clt_num = 2;
+        h.currentPos = [20;30;0];
+        r.currentPos = [18;7;pi/2];
 end
 
 % precompute combinatorial matrix
@@ -339,13 +401,13 @@ for k = 1:kf
         disp(obj_w(:,k))
         %}
     end
+    
     %% plot trajectories
-    % Plot future agent positions
     
     % plot specifications
     color_agent = {'r','g','r','g'};
     marker_agent = {'o','o','^','^'};
-    line_agent = {'-','-','-','-'};
+    line_agent = {'-','-',':',':'};
     line_w_agent = [3,3,3,3];
     orange = [1 204/255 0];
     color_target = {'m','b',orange};
@@ -353,13 +415,15 @@ for k = 1:kf
 %     drawnow
     hold on
     box
-
+    grid on
+    axis equal
+    
     % draw probability map
     %{
     plot_prob_map = [prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
     p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map);
     set(p_handle,'EdgeColor','none');
-    colormap(b2r(min(plot_prob_map(:)),max(plot_prob_map(:))));
+    colormap(b2r_m(min(plot_prob_map(:)),max(plot_prob_map(:))));
     colorbar
     %}
     
@@ -367,7 +431,10 @@ for k = 1:kf
     plot_prob_map_gmm = [prob_map_gmm zeros(size(prob_map_gmm,1),1); zeros(1,size(prob_map_gmm,2)) 0]';
     p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_prob_map_gmm);
     set(p_handle,'EdgeColor','none');
-    colormap(b2r(min(plot_prob_map_gmm(:)),max(plot_prob_map_gmm(:))));
+    colormap(b2r_m(min(plot_prob_map_gmm(:)),max(plot_prob_map_gmm(:))));
+%     colormap(b2r_m(0,1));
+%     caxis([min(plot_prob_map_gmm(:)),max(plot_prob_map_gmm(:))]);
+%     colormap('default');
     colorbar
     
     % draw targets
@@ -385,6 +452,7 @@ for k = 1:kf
         fill(tmp_pos(1,:),tmp_pos(2,:),'b');
     end
     %}
+    % make the plot square
     xlim([0,campus.endpoints(2)]);
     ylim([0,campus.endpoints(4)]);
     
@@ -393,14 +461,14 @@ for k = 1:kf
     
     for ii = 1:length(agents)
         tmp_agent = agents(ii);
-        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',5);
+        h1 = plot(tmp_agent.traj(1,:),tmp_agent.traj(2,:),'markers',2);
         set(h1,'MarkerFaceColor',color_agent{ii});
         set(h1,'MarkerEdgeColor',color_agent{ii});
         set(h1,'Color',color_agent{ii});
         set(h1,'LineStyle',line_agent{ii});
         set(h1,'Marker',marker_agent{ii});
         set(h1,'LineWidth',line_w_agent(ii));
-        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',9);
+        h2 = plot(tmp_agent.currentPos(1),tmp_agent.currentPos(2),color_agent{ii},'markers',2);
         set(h2,'MarkerFaceColor',color_agent{ii});
         set(h2,'MarkerEdgeColor',color_agent{ii});
         set(h2,'Color',color_agent{ii});
@@ -435,7 +503,7 @@ for k = 1:kf
     end
     %}
     
-    % draw the sensor range (0.8*sig)
+    % draw the sensor range (sig)
     r = agents(2);
     c_set = r.currentPos(1:2);
     r_set = sqrt(r.sigma_s(1,1));
@@ -444,7 +512,7 @@ for k = 1:kf
     circle_pos = getWayPts(inPara_gwp);
     for jj = 1:size(circle_pos)
         tmp_pos = circle_pos{jj};
-        plot(tmp_pos(1,:),tmp_pos(2,:),'.-b');
+        plot(tmp_pos(1,:),tmp_pos(2,:),'--b');
     end
     
     % predicted human positions
@@ -454,8 +522,8 @@ for k = 1:kf
     set(h3,'MarkerEdgeColor',color_agent{3});
     set(h3,'Color',color_agent{3});
     set(h3,'LineStyle',line_agent{3});
-    set(h3,'Marker',marker_agent{3});
-    set(h1,'LineWidth',7);%line_w_agent(3)
+%     set(h3,'Marker',marker_agent{3});
+    set(h3,'LineWidth',3);%line_w_agent(3)
     c_set = [pre_traj(2,2:end,k);pre_traj(3,2:end,k)];
     r_set = safe_dis;
     theta = 0:pi/8:2*pi;
@@ -463,7 +531,7 @@ for k = 1:kf
     circle_pos = getWayPts(inPara_gwp);
     for jj = 1:size(circle_pos)
         tmp_pos = circle_pos{jj};
-        fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{3});
+        plot(tmp_pos(1,:),tmp_pos(2,:));%,color_agent{3});
     end
     %}
     
@@ -476,8 +544,8 @@ for k = 1:kf
         set(h4,'MarkerEdgeColor',color_agent{4});
         set(h4,'Color',color_agent{4});
         set(h4,'LineStyle',line_agent{4});
-        set(h4,'Marker',marker_agent{4});
-        set(h1,'LineWidth',7);%line_w_agent(4)
+%         set(h4,'Marker',marker_agent{4});
+        set(h4,'LineWidth',3);%line_w_agent(4)
         c_set = [plan_state(1,2:end,k);plan_state(2,2:end,k)];
         r_set = r.d;
         theta = 0:pi/8:2*pi;
@@ -485,7 +553,7 @@ for k = 1:kf
         circle_pos = getWayPts(inPara_gwp);
         for jj = 1:size(circle_pos)
             tmp_pos = circle_pos{jj};
-            fill(tmp_pos(1,:),tmp_pos(2,:),color_agent{4});
+            plot(tmp_pos(1,:),tmp_pos(2,:));%,color_agent{4});
         end
         grid minor
         set(gca,'MinorGridLineStyle','-','XColor',[0.5 0.5 0.5],'YColor',[0.5 0.5 0.5])
@@ -508,7 +576,7 @@ for k = 1:kf
         plot_dif_prob_map = [dif_prob_map zeros(size(prob_map,1),1); zeros(1,size(prob_map,2)) 0]';
         p_handle = pcolor(xMin:grid_step:xMax,yMin:grid_step:yMax,plot_dif_prob_map);
         set(p_handle,'EdgeColor','none');
-        colormap(b2r(min(plot_dif_prob_map(:)),max(plot_dif_prob_map(:))));
+        colormap(b2r_m(min(plot_dif_prob_map(:)),max(plot_dif_prob_map(:))));
         colorbar
     end
     %}
