@@ -196,30 +196,103 @@ colormap(ax,mycmap)
 box(ax,'on')
 %}
 
-%% check the property of the objective function
-sigma_s = 9*eye(2);
+%% check the property of the objective function with 2-step prediciton
+%
+sigma_s = eye(2);
 psi_s = 1/2*eye(2)/sigma_s;
-k_s = 2*pi*sqrt(det(sigma_s));
-sigma_i = eye(2);
-psi_i = 1/2*eye(2)/sigma_i;
-mu_i = zeros(2,1);
-lambda_i = sigma_i\mu_i;
 c = 2*pi*sqrt(det(sigma_s));
 
-A = @(lambda,psi) 1/4*lambda'/psi*lambda-1/2*det(psi)+log(pi);
+% target distribution
+sigma_i = 10*eye(2);
+psi_i = 1/2*eye(2)/sigma_i;
+mu_i = [5;3];
+lambda_i = sigma_i\mu_i;
+
+A = @(lambda,psi) 1/4*lambda'/psi*lambda-1/2*log(det(psi))+log(2*pi)-0.5*log(2);
 alpha = @(x,y) A(x+lambda_i,y+psi_i)-A(x,y)-A(lambda_i,psi_i);
 alpha_l = @(x,y,z,t) A(x+z+lambda_i,y+t+psi_i)-A(x,y)-A(z,t)-A(lambda_i,psi_i);
-mu_s1 = [1;-10];
+mu_s1 = [1;-1];
 a = -5:0.1:5;
 b = -5:0.1:5;
 lambda_s1 = sigma_s\mu_s1;
-obj = zeros(length(a),length(b));
+obj1 = zeros(length(a),length(b));
+obj2 = zeros(length(a),length(b));
 for ii = 1:length(a)
     for jj = 1:length(b)
-        alpha1 = alpha(lambda_s1,sigma_s);
-        alpha2 = alpha([a(ii);b(jj)],sigma_s);
-        alpha3 = alpha_l([a(ii);b(jj)],sigma_s,lambda_s1,sigma_s);
-        obj(ii,jj) = 1+c^2*exp(alpha3)-c*exp(alpha1)-c*exp(alpha2);
+        alpha11 = alpha(lambda_s1,psi_s);
+        alpha12 = alpha(sigma_s\[a(ii);b(jj)],psi_s);
+        alpha21 = alpha_l(sigma_s\[a(ii);b(jj)],psi_s,lambda_s1,psi_s);
+%         alpha1 = alpha(lambda_s1,sigma_s);
+%         alpha2 = alpha([a(ii);b(jj)],sigma_s);
+%         alpha3 = alpha_l([a(ii);b(jj)],sigma_s,lambda_s1,sigma_s);
+        obj1(ii,jj) = 1+c^2*exp(alpha21)-c*exp(alpha11)-c*exp(alpha12);
+        obj2(ii,jj) = 1-c*exp(alpha11)-c*exp(alpha12);
     end
 end
-surf(a,b,obj)
+figure
+surf(a,b,obj1)
+figure
+surf(a,b,obj2)
+%}
+
+%% check the property of the objective function with 3-step prediciton
+% code seems to be wrong: the obj has negative values, which is wrong
+% covariance of sensor
+%{
+sigma_s = eye(2);
+psi_s = 1/2*eye(2)/sigma_s;
+c = 2*pi*sqrt(det(sigma_s));
+
+% target distribution
+sigma_t = 9*eye(2);
+psi_t = 1/2*eye(2)/sigma_t;
+mu_t = zeros(2,1);
+lambda_t = sigma_t\mu_t;
+
+A = @(lambda,psi) 1/4*lambda'/psi*lambda-1/2*log(det(psi))+log(pi);
+alpha1 = @(x,y) A(x+lambda_t,y+psi_t)-A(x,y)-A(lambda_t,psi_t);
+alpha2 = @(x,y,z,t) A(x+z+lambda_t,y+t+psi_t)-A(x,y)-A(z,t)-A(lambda_t,psi_t);
+alpha3 = @(x,y,z,t,m,n) A(x+z+m+lambda_t,y+t+n+psi_t)-A(x,y)-A(z,t)-A(m,n)-A(lambda_t,psi_t);
+mu_s1 = [1;-1]; % sensor position at time 1
+mu_s2 = [2;2]; % sensor position at time 2
+a = -5:0.1:5; % sensor position at time 3
+b = -5:0.1:5;
+lambda_s1 = sigma_s\mu_s1;
+lambda_s2 = sigma_s\mu_s2;
+obj1 = zeros(length(a),length(b));
+obj2 = zeros(length(a),length(b));
+obj3 = zeros(length(a),length(b));
+for ii = 1:length(a)
+    for jj = 1:length(b)
+        lambda_ab = sigma_s\[a(ii);b(jj)];
+        alpha11 = alpha1(lambda_s1,psi_s);
+        alpha12 = alpha1(lambda_s2,psi_s);
+        alpha13 = alpha1(lambda_ab,psi_s);
+        alpha21 = alpha2(lambda_ab,psi_s,lambda_s1,psi_s);
+        alpha22 = alpha2(lambda_ab,psi_s,lambda_s2,psi_s);
+        alpha23 = alpha2(lambda_s1,psi_s,lambda_s2,psi_s);
+        alpha31 = alpha3(lambda_ab,psi_s,lambda_s1,psi_s,lambda_s2,psi_s);
+        obj1(ii,jj) = 1-c^3*exp(alpha31)+c^2*exp(alpha21)+c^2*exp(alpha22)+c^2*exp(alpha23)-c*exp(alpha11)-c*exp(alpha12)-c*exp(alpha13);
+        obj2(ii,jj) = 1+c^2*exp(alpha21)+c^2*exp(alpha22)+c^2*exp(alpha23)-c*exp(alpha11)-c*exp(alpha12)-c*exp(alpha13);
+        obj3(ii,jj) = 1-c*exp(alpha11)-c*exp(alpha12)-c*exp(alpha13);
+    end
+end
+figure
+surf(a,b,obj1)
+figure
+surf(a,b,obj2)
+figure
+surf(a,b,obj3)
+%}
+%% check the convexity of xy
+%{
+x = -5:0.1:5;
+y = -5:0.1:5;
+z = zeros(length(x),length(y));
+for ii = 1:length(x)
+    for jj = 1:length(y)
+        z(ii,jj) = x(ii)*y(jj);
+    end
+end
+surf(x,y,z)
+%}
