@@ -120,17 +120,6 @@ end
 xlim([0,campus.endpoints(2)]);
 ylim([0,campus.endpoints(4)]);
 
-%%% set way points
-%
-% manually pick the way pts for simulated human
-inPara_gwp = struct('scale',scale,'type','h');% not in use now
-h_way_pts = getWayPts(inPara_gwp);
-% apply different human speed between different way points.
-% h_v = [2,3,1,1,1,1,1,1,1,1,3,1.5,2,3,2,1.5,4];
-% apply different acceleration for human speed
-% h_acl = -h.maxA+2*h.maxA*rand(1,300);
-%}
-%%%
 %% Simulation
 % simulation parameters
 kf = 100; % simulation length (/s)
@@ -165,9 +154,7 @@ end
 
 % initialize variables
 % obv_traj = zeros(3,0); % observed human trajectory; first row denotes the time. [t,x,y]
-obv_traj = [0;h.currentPos(1:2)]; % observed human trajectory; first row denotes the time. [t,x,y]
-est_state = zeros(4,mpc_dt*samp_rate,kf); % estimated human states for every second [x,vx,y,vy];
-pre_traj = zeros(3,hor+1,kf); % current and predicted future human trajectory [t,x,y]
+plan_traj = zeros(3,hor+1,kf); % predicted trajectory of neighboring agents [t,x,y]
 plan_state = zeros(3,hor+1,kf); % robot's current and planned future state [x,y,v]
 r_state = zeros(3,kf); % robot's actual state [x,y,theta]
 r_state(:,1) = r.currentPos;
@@ -355,7 +342,7 @@ for k = 1:kf
         agentIndex = 1;
         inPara_ams = struct('campus',campus,'agents',agents,...
             'obv_traj',obv_traj,'est_state',est_state,...
-            'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
+            'pre_traj',plan_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'h_tar_wp',h_tar_wp);
@@ -373,7 +360,7 @@ for k = 1:kf
         %     parameter;  % parameter for IMM
         inPara_ams = struct('campus',campus,'agents',agents,'h_tar_wp',h_tar_wp,...
             'obv_traj',obv_traj,'est_state',est_state,...
-            'pre_traj',pre_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
+            'pre_traj',plan_traj,'plan_state',plan_state,'r_state',r_state,'r_input',r_input,...
             'k',k,'hor',hor,'pre_type',pre_type,'samp_rate',samp_rate,...
             'safe_dis',safe_dis,'mpc_dt',mpc_dt,'safe_marg',safe_marg,...
             'agentIndex',agentIndex,'plan_type',plan_type,'samp_num',samp_num,...
@@ -384,7 +371,7 @@ for k = 1:kf
         [outPara_ams] = agentMove(inPara_ams);
         agents = outPara_ams.agents;
         est_state = outPara_ams.est_state;
-        pre_traj = outPara_ams.pre_traj;
+        plan_traj = outPara_ams.pre_traj;
         pre_cov = outPara_ams.pre_cov;
         plan_state = outPara_ams.plan_state;
         r_state = outPara_ams.r_state;
@@ -517,14 +504,14 @@ for k = 1:kf
     
     % predicted human positions
     %
-    h3 = plot(pre_traj(2,:,k),pre_traj(3,:,k),color_agent{3},'markers',2);
+    h3 = plot(plan_traj(2,:,k),plan_traj(3,:,k),color_agent{3},'markers',2);
     set(h3,'MarkerFaceColor',color_agent{3});
     set(h3,'MarkerEdgeColor',color_agent{3});
     set(h3,'Color',color_agent{3});
     set(h3,'LineStyle',line_agent{3});
 %     set(h3,'Marker',marker_agent{3});
     set(h3,'LineWidth',3);%line_w_agent(3)
-    c_set = [pre_traj(2,2:end,k);pre_traj(3,2:end,k)];
+    c_set = [plan_traj(2,2:end,k);plan_traj(3,2:end,k)];
     r_set = safe_dis;
     theta = 0:pi/8:2*pi;
     inPara_gwp = struct('c_set',c_set,'r_set',r_set,'theta',theta,'type','agent');

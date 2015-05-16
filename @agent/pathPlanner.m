@@ -7,14 +7,12 @@ function outPara = pathPlanner(agent,inPara)
 hor = inPara.hor;
 safe_dis = inPara.safe_dis;
 mpc_dt = inPara.mpc_dt;
-% h_v = inPara.h_v;
 obs_info = inPara.obs_info;
 safe_marg = inPara.safe_marg;
 campus = inPara.campus;
 x_h = inPara.pre_traj;
 all_comb = inPara.all_comb;
 k = inPara.k;
-% max_pts = inPara.max_pts;
 prob_map_pf = inPara.prob_map_pf;
 guess_u = inPara.guess_u;
 guess_x = inPara.guess_x;
@@ -97,16 +95,6 @@ psi = campus.psi;
 % prob_map = agent.updateProbMap(campus);
 k_s = agent.k_s;
 
-% remove terms with very small weights to speed up the optimization
-%{
-max_w = max(w);
-rv_id = (abs(w) < max_w/10);
-w(rv_id) = [];
-sprintf('number of w is %d',length(w));
-w = w/sum(w);
-lambda(:,rv_id) = [];
-psi(:,:,rv_id) = [];
-%}
 persistent x u Af
 
 if k == 1    
@@ -168,18 +156,6 @@ end
 % humans)
 w2 = 1;
 obj2 = 0;
-% potential function
-%{
-pen = 100; % rescale the gaussian distribution to impose penalty
-pf_sigma_h = ((safe_dis+agent.d))^2*eye(2); % covariance matrix for the potential field for the human
-for ii = 1:hor
-    obj2 = obj2 + pen*mvnpdf((agent.sigma_s*x(1:2,ii+1))',x_h(2:3,ii+1)',pf_sigma_h);
-    for jj = 1:size(obs_info,2)
-        pf_sigma_obs = ((obs_info(3,jj)+safe_marg+agent.d))^2*eye(2); % covariance matrix for the potential field for the obstacles
-        obj2 = obj2+pen*mvnpdf((agent.sigma_s*x(1:2,ii+1))',obs_info(1:2,jj)',pf_sigma_obs);
-    end
-end
-%} 
 
 % barrier function
 for ii = 1:hor
@@ -192,34 +168,6 @@ for ii = 1:hor
 end
 obj2 = 0.01*obj2; % rescale this term so that that negative term does not affect much when the robot is far from other objects
 
-% determine whether the robot is already in the cur_clt region.
-% clt_res = prob_map_pf(4,:);
-% tmp_pt = prob_map_pf(1:2,clt_res == cur_clt);
-
-%{
-clt_res = agent.clt_res(3,:);
-tmp_pt = agent.clt_res(1:2,clt_res == cur_clt);
-tmp_vec = tmp_pt - agent.currentPos(1:2)*ones(1,size(tmp_pt,2));
-tmp_dis = sqrt(sum(tmp_vec.*tmp_vec,1));
-tmp_min = min(tmp_dis);
-tmp_min_pt = tmp_pt(:,tmp_dis == tmp_min); % tmp_min_pt may contain several points
-% tmp_min_pt = [45;35];
-sprintf('the nearest point in current cluster is [%d,%d]',tmp_min_pt(1,1),tmp_min_pt(2,1))
-% if the agent is not in the cur_clt region, add a terminal cost in the obj.
-w3 = last_obj_w(3);
-if tmp_min < agent.currentV * mpc_dt
-    w3 = 0;
-    obj3 = 0; 
-else
-    tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));%-1; *grid_step
-    obj3 = norm(tmp_vec2);
-    if  w3 == 0
-        w3 = 1;
-    else
-        w3 = w3*1.2;
-    end    
-end
-%}
 % for debug use
 % w3 = 1;
 % tmp_vec2 = agent.sigma_s*x(1:2,end) - (tmp_min_pt(:,1));
@@ -229,11 +177,6 @@ w3 = 0;
 
 % add a terminal cost that guides the robot to the nearest highest probability
 % point in current cluster or the goal cluster
-% tmp_vec3 = max_pts*grid_step - ones(size(max_pts,1),1)*agent.currentPos(1:2)';
-% tmp_dis2 = sqrt(sum(tmp_vec3.*tmp_vec3,2));
-% tmp_min2 = min(tmp_dis2);
-% tmp_min_pt2 = max_pts(tmp_dis2 == tmp_min2,:);
-
 % this snippet may not work well since the particle number cannot
 % represent the real probability, may need density estimation
 clt_res = prob_map_pf(4,:);
@@ -242,7 +185,6 @@ cur_max_cnt = max(cur_prob_map_pf(3,:));
 cur_max_idx = cur_prob_map_pf(3,:) == cur_max_cnt;
 sprintf('max count of particles is %d at k = %d',cur_max_cnt,k)
 sprintf('the position is [%d,%d]',cur_prob_map_pf(1,cur_max_idx),cur_prob_map_pf(2,cur_max_idx))
-%         tmp_idx = (prob_map_pf(1:2,agent.clt_res == agent.cur_clt)==max(tmp_cnt));
 max_pts = cur_prob_map_pf(1:2,cur_max_idx);
 tmp_dif = max_pts-agent.currentPos(1:2)*ones(1,size(max_pts,2));
 % find the closest point
@@ -392,6 +334,8 @@ outPara.psi = sum(psi,3);
 outPara.lambda = sum(lambda,2);
 end
 
+% unused functions
+%{
 function cst_chk = collisionCheck(agent,x,x_h,obs_info,safe_dis,safe_marg,safe_marg2)
 len = size(x,2);
 cst_chk = 1;
@@ -424,6 +368,7 @@ end
 outPara.sigma = eye(2)/tmp2;
 outPara.mu = outPara.sigma*tmp1;
 end
+
 function cost = termCost(inPara)
 % use the distance to the nearest high probability positions as the
 % terminal cost. need to rescale this cost.
@@ -519,3 +464,5 @@ a = v2(2)-v1(2);
 b = v1(1)-v2(1);
 c = v1(2)*v2(1)-v2(2)*v1(1);
 end
+
+%}
