@@ -7,5 +7,5 @@ pt = pt - x_r*ones(1,xlen*ylen);
 tmp = pt'/sigma*pt;
 tmp_diag = diag(tmp);
 % prob = exp(-1/2*(t-x_r)'/sigma*(t-x_r));
-prob = exp(-1/2*reshape(tmp_diag,xlen,ylen));
+prob = exp(-1/2*(reshape(tmp_diag,xlen,ylen))');
 end

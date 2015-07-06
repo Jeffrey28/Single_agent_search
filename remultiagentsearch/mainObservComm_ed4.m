@@ -33,18 +33,22 @@ fld.target.dx=-0.5;
 fld.target.dy=0.7;
 
 %% Binary Sensor Model
-sigmaVal=(fld.x/3)^2+(fld.y/3)^2;
+sigmaVal=(fld.x/5)^2+(fld.y/5)^2;
 
 %% Probability Map Consensus setup
-ConsenFigure=0;
+ConsenFigure=0; % if 1, draw the concensus steps
 % ConsenStep=0;
 
 %% Observation Exchange strategy setup
 % ObservExch='multi';  % 'off', 'sing', 'multi'
 
 %% Path Plannign setup
-hor = 5; % planning horizon
-d = [0 1 0 0 0 1; 1 0 1 0 0 0; 0 1 0 1 0 0; 0 0 1 0 1 0; 0 0 0 1 0 1; 1 0 0 0 1 0];
+hor = 3; % planning horizon
+% desired distances among neighboring agents
+d = 5*[0 1 0 0 0 1; 1 0 1 0 0 0; 0 1 0 1 0 0; 0 0 1 0 1 0; 0 0 0 1 0 1; 1 0 0 0 1 0];
+dt = 1; % discretization time
+vl = 0; vu = 3; % lower and upper bounds for robot speed
+
 
 %% Multi-Robot Setup
 NumOfRobot = 6;
@@ -53,12 +57,21 @@ if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end 
 for i=1:NumOfRobot
     rbt(i).x = 1 + fld.x/(1+NumOfRobot)*i; % sensor position.x
     rbt(i).y = 1 ; % sensor position.x
-    rbt(i).speed = 1;
+    rbt(i).speed = 3;
     rbt(i).map = ones(fld.x,fld.y);
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
-    subplot(2,3,i); contourf(rbt(i).map); hold on; title(['Sensor ',num2str(i)]);
+    subplot(2,3,i); contourf((rbt(i).map)'); hold on; title(['Sensor ',num2str(i)]);
     rbt(i).prob = zeros(fld.x,fld.y);
 end
+
+% robot colors
+rbt(1).color = 'r';
+rbt(2).color = 'g';
+rbt(3).color = 'y';
+rbt(4).color = 'c';
+rbt(5).color = 'm';
+rbt(6).color = 'w';
+
 %% Communication structure
 rbt(1).neighbour=[2,6];
 rbt(2).neighbour=[1,3];
@@ -80,6 +93,10 @@ end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Distributed Bayesian Filter for Target Tracking
 count = 1;
+% record the time that the mpc solver cannot give a solution and the
+% corresponding robot
+err.time = [];
+err.rbt = [];
 while (1) %% Filtering Time Step
     figure(1);clf(hFig);
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -182,15 +199,16 @@ while (1) %% Filtering Time Step
     end
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Plot Local PDFs for Each Sensor
+    %% Plot Local PDFs for Each Sensor After Including Observation
     for i=1:NumOfRobot
-        subplot(2,3,i); contourf(rbt(i).map); hold on;
+        figure (1)
+        subplot(2,3,i); contourf((rbt(i).map)'); hold on;
         title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)]);
         for j=1:NumOfRobot
             if i==j
-                plot(rbt(j).x, rbt(j).y, 'rs','MarkerSize',8,'LineWidth',3);
+                plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',8,'LineWidth',3);
             else
-                plot(rbt(j).x, rbt(j).y, 'mp','MarkerSize',8,'LineWidth',1.5);
+                plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',8,'LineWidth',1.5);
             end
             plot(fld.tx, fld.ty, 'c+','MarkerSize',8,'LineWidth',3);
         end
@@ -211,16 +229,17 @@ while (1) %% Filtering Time Step
             end
             tempRbtCon(i).map=tempRbtCon(i).map/neighNum;
         end
+        % plot local PDFs after concensus
         for i=1:NumOfRobot
             rbtCon(i).map=tempRbtCon(i).map;
             if ConsenFigure==1
-                subplot(2,3,i); contourf(rbtCon(i).map); title(['Sensor ',num2str(i)]);
+                subplot(2,3,i); contourf((rbtCon(i).map)'); title(['Sensor ',num2str(i)]);
                 hold on;
                 for j=1:NumOfRobot
                     if i==j
-                        plot(rbt(j).x, rbt(j).y, 'rs', 'MarkerSize',8,'LineWidth',3);
+                        plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',8,'LineWidth',3);
                     else
-                        plot(rbt(j).x, rbt(j).y, 'mp', 'MarkerSize',8,'LineWidth',1.5);
+                        plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color, 'MarkerSize',8,'LineWidth',1.5);
                     end
                 end
             end
@@ -229,7 +248,7 @@ while (1) %% Filtering Time Step
     for i=1:NumOfRobot % Robot Iteration
         rbt(i).map=rbtCon(i).map;
     end
-    
+     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Path Planning for Multi-Robots
     % transmit planned path to neighbors
@@ -254,23 +273,52 @@ while (1) %% Filtering Time Step
     end
     
     % path planning for each robot    
-    for i=1:NumOfRobot
+    for i=1:NumOfRobot 
         % find peak PDF
         maxValue=max(max(rbt(i).map));
         [xPeak, yPeak] = find(rbt(i).map == maxValue);
-        
+        rbt(i).peak(:,count) = [xPeak(1);yPeak(1)];
         % define varaibles for Yalmip
-        x = sdpvar(4,hor+1); % robot state, the current state is the first column
-        u = sdpvar(2,hor); % robot input
+        x = sdpvar(2,hor+1); % robot state, the current state is the first column [x;y]
+%         u = sdpvar(2,hor); % robot input; [v;theta]
+        u = sdpvar(1,hor); % robot input; [theta]
         
-        % distance to peak position (choose one if there are multiple)
-        obj1 = sum((x(1:2,end)-[xPeak(1);yPeak(1)]).^2);
+        %% define objective function
+        % find initial solution
+        %
+        init_x = zeros(size(x));
+        init_u = zeros(size(u));
+        init_x(:,1) = [rbt(i).x;rbt(i).y];
+        for kk = 1:hor
+            ang = calAngle([xPeak(1);yPeak(1)]-init_x(:,kk));
+            init_u(kk) = ang;
+            init_x(:,kk+1) = init_x(:,kk)+rbt(i).speed*[cos(init_u(kk));sin(init_u(kk))];
+        end
+        assign(x,init_x);
+        assign(u,init_u);
+        %}
         
-        % probability mass
-        obj2 = sum(abs(ones(1,hor)-interp2(xpt(:),ypt(:),prob_map(:),x(1,:)',y(2,:)')));
+        % obj1: distance to peak position (choose one if there are multiple)
+        obj1 = sum((x(1:2,2)-[xPeak(1);yPeak(1)]).^2);
+%         obj1 = 0;
         
-        % distance among neighbors
-        tmp_v = zeros(2,1);
+        % obj2: probability mass
+        obj2 = 0;
+        % fit the grid using gmm
+        % need to check how matlab decides the k
+        %
+        k = 1;
+        tol = 1e-5;
+        [gmm_w,gmm_mu,gmm_sig] = getGmmApprox([xpt(:),ypt(:)],reshape(rbt(i).map',numel(rbt(i).map),1),k,tol);
+        
+        for k = 1:hor
+            obj2 = obj2+1-calGmmProb(gmm_w,gmm_mu,gmm_sig,x(1:2,k+1));
+        end
+        %}
+        
+        % obj3: distance among neighbors
+%         obj3 = 0;
+        %
         tmp_obj = 0;
         for t = rbt(i).neighbour
            tmp_plan_path = rbtBuffer{i}.rbt(t).plan_path;
@@ -278,9 +326,46 @@ while (1) %% Filtering Time Step
            tmp_obj = tmp_obj + sum(abs(sum(tmp_v.^2,1)-d(i,t)^2));
         end
         obj3 = tmp_obj;
+        %}
         
         % define obj
+        obj = obj1 + obj2 + obj3;
         
+        % define constraints
+        constr = [x(:,1) == [rbt(i).x;rbt(i).y]];
+        for j = 1:hor
+            % kinematic model
+%             constr = [constr,x(1:2,j+1) == x(1:2,j)+u(1,j)*[cos(u(2,j));sin(u(2,j))]];
+%             constr = [constr,vl <= u(1,j) <= vu];
+            constr = [constr,x(1:2,j+1) == x(1:2,j)+rbt(i).speed*[cos(u(j));sin(u(j))]];
+            constr = [constr, x(1:2,j+1) >= [1;1] , x(1:2,j+1) <= [fld.x;fld.y]];
+            constr = [constr,-2*pi<= u(j) <= 2*pi];
+        end
+        
+        % solve mpc
+        optset = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',1,...
+        'fmincon.Algorithm','sqp','fmincon.Display','iter-detailed','fmincon.Diagnostics','on',...
+        'fmincon.TolCon',1e-5,'fmincon.TolFun',1e-5,'fmincon.MaxFunEvals',3000);
+        sol = optimize(constr,obj,optset);
+        if sol.problem == 0
+            opt_x = value(x);
+            opt_u = value(u);
+        else
+            err.time = [err.time,count];
+            err.rbt = [err.rbt,i];
+%             error(sprintf('fail to solve mpc for robot %d',i))
+            opt_x = init_x;
+            opt_u = init_u;
+        end                
+        
+        % predict one-step robot motion and send it to 
+%         pre_x = opt_x(1:2,end)+u(1,end)*[cos(u(2,end));sin(u(2,end))];
+        pre_x = opt_x(1:2,end)+rbt(i).speed*[cos(opt_u(end));sin(opt_u(end))];
+        rbt(i).plan_path = [opt_x(:,2:end),pre_x];
+        rbt(i).x = opt_x(1,2);
+        rbt(i).y = opt_x(2,2);
+        rbt(i).opt_x{count} = opt_x;
+        rbt(i).opt_u{count} = opt_u;
         
 %         % calculate moving direction in unity
 %         direction.x=rowOfPeak - rbt(i).x;
