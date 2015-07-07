@@ -19,7 +19,7 @@ dummy_robot = [10;10];
 des_dis = 1;
 for ii = 1:100
     x = sdpvar(2,hor+1);
-    u = sdpvar(1,hor);
+    u = sdpvar(2,hor);
     
     % find initial solution
     %
@@ -60,9 +60,9 @@ for ii = 1:100
     
     constr = [x(:,1) == [rbt.x;rbt.y]];
     for jj = 1:hor
-        constr = [constr,x(:,jj+1) == x(:,jj)+rbt.speed*[cos(u(jj));sin(u(jj))]];
+        constr = [constr,x(:,jj+1) == x(:,jj)+u(:,jj);
         constr = [constr,x(:,jj+1) >= [1;1] , x(:,jj+1) <= [field.x;field.y]];
-        constr = [constr,-2*pi<= u(jj) <= 2*pi];
+        constr = [constr,u(1,jj)^2+u(2,jj)^2 <= rbt.speedLimit^2];
     end
        
     optset = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',1,...

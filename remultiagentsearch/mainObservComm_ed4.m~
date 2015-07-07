@@ -9,7 +9,7 @@
 
 clear; clc; close all
 Selection = 5;    % select strategies
-max_EstStep = 1; % max step
+max_EstStep = 50; % max step
 switch Selection
     case 1,  ObservExch='off'; ConsenStep=0;
     case 2,  ObservExch='off'; ConsenStep=10;
@@ -27,7 +27,7 @@ fld.map = ones(fld.x,fld.y)/(fld.x*fld.y);
 [xpt,ypt] = meshgrid(1:fld.x,1:fld.y);
 
 %% Target Steup
-fld.tx = 35; fld.ty = 35;% Target position, but unknown to estimator
+fld.tx = 35; fld.ty = 20;% Target position, but unknown to estimator
 fld.target.speed=0;
 fld.target.dx=-0.5;
 fld.target.dy=0.7;
@@ -60,12 +60,10 @@ useSimObs = 0; % if 1, each robot simulates the observations for neighbors' plan
 NumOfRobot = 6;
 hf1=figure(1); set(hf1,'Position',[50,50,1000,600]); % for filtering cycle
 if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end % for consensus cycle
-x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
-y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
 for i=1:NumOfRobot
-    rbt(i).x = x_set(i); % sensor position.x
-    rbt(i).y = y_set(i); % sensor position.x
-    rbt(i).speedLimit = 1;
+    rbt(i).x = 1 + fld.x/(1+NumOfRobot)*i; % sensor position.x
+    rbt(i).y = 10 + rand(1,1)*10 ; % sensor position.x
+    rbt(i).speedLimit = 5;
     rbt(i).map = ones(fld.x,fld.y);
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
     subplot(2,3,i); contourf((rbt(i).map)'); hold on; title(['Sensor ',num2str(i)]);
@@ -363,13 +361,13 @@ while (1) %% Filtering Time Step
         % obj3: distance among neighbors
         obj3 = 0;
         %
-        peak = [fld.tx;fld.ty];
+        peak = [25;25];
         tmp_obj = 0;
         for t = rbt(i).neighbour
            tmp_plan_path = rbtBuffer{i}.rbt(t).plan_path;
            tmp_v = x(1:2,2:end) - tmp_plan_path(:,2:end);
            tmp_obj = sum((sum(tmp_v.^2,1)-desDist(i,t)^2).^2);
-%            tmp_obj = tmp_obj + 0*sum(sum((x(:,2:end)-peak*ones(1,hor)).^2));
+           tmp_obj = tmp_obj + sum((x(:,2:end)-peak).^2,
 %            for ll = 1:size(tmp_v,2)
 %                tmp_obj = tmp_obj + tmp_v(1,ll)^2+tmp_v(2,ll)^2-2*sqrtm(tmp_v(1,ll)^2+tmp_v(2,ll)^2)*d(i,t)+d(i,t)^2;
 %            end
@@ -444,6 +442,7 @@ while (1) %% Filtering Time Step
     
     %% Plot Planned Path
     % Plot plan_map
+    %{
     hf3 = figure(3); clf(hf3)
     for i=1:NumOfRobot     
         subplot(2,3,i); contourf((rbt(i).plan_map)'); hold on;
@@ -460,7 +459,8 @@ while (1) %% Filtering Time Step
         end
     end
     subplot(2,3,5); xlabel(['Step=',num2str(count)]);
-%     pause
+    %}
+    
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Terminate Time Cycle
     count = count+1;
