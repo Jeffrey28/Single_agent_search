@@ -9,7 +9,7 @@
 
 clear; clc; close all
 Selection = 5;    % select strategies
-max_EstStep = 1; % max step
+max_EstStep = 100; % max step
 switch Selection
     case 1,  ObservExch='off'; ConsenStep=0;
     case 2,  ObservExch='off'; ConsenStep=10;
@@ -43,7 +43,7 @@ ConsenFigure=0; % if 1, draw the concensus steps
 % ObservExch='multi';  % 'off', 'sing', 'multi'
 
 %% Path Planning setup
-hor = 3; % planning horizon
+hor = 5; % planning horizon
 % desired distances among neighboring agents
 desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
     1 0 1 sqrt(3) 0 sqrt(3); 
@@ -60,11 +60,13 @@ useSimObs = 0; % if 1, each robot simulates the observations for neighbors' plan
 NumOfRobot = 6;
 hf1=figure(1); set(hf1,'Position',[50,50,1000,600]); % for filtering cycle
 if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end % for consensus cycle
-x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
-y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
+% x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
+% y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
+x_set = [5:5:30];
+y_set = 5*ones(1,NumOfRobot);
 for i=1:NumOfRobot
-    rbt(i).x = x_set(i); % sensor position.x
-    rbt(i).y = y_set(i); % sensor position.x
+    rbt(i).x = x_set(i)+0.1*rand(1,1); % sensor position.x
+    rbt(i).y = y_set(i)+0.1*rand(1,1); % sensor position.x
     rbt(i).speedLimit = 1;
     rbt(i).map = ones(fld.x,fld.y);
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
@@ -367,8 +369,18 @@ while (1) %% Filtering Time Step
         tmp_obj = 0;
         for t = rbt(i).neighbour
            tmp_plan_path = rbtBuffer{i}.rbt(t).plan_path;
-           tmp_v = x(1:2,2:end) - tmp_plan_path(:,2:end);
-           tmp_obj = sum((sum(tmp_v.^2,1)-desDist(i,t)^2).^2);
+           tmp_v = x(:,2:end) - tmp_plan_path(:,2:end);
+           tmp_vpeak = x(:,2:end) - peak*ones(1,hor);
+           for ll = 1:hor
+               tmp1 = (tmp_v(1,ll)^2+tmp_v(2,ll)^2)-desDist(i,t)^2;
+               tmp2 = tmp_vpeak(1,ll)^2+tmp_vpeak(2,ll)^2;
+               if ll == hor
+                   tmp_obj = tmp_obj+1*tmp1^2+1*tmp2^2;
+               else
+                   tmp_obj = tmp_obj+tmp1^2+1*tmp2^2;
+               end
+           end
+%            tmp_obj = sum((sum(tmp_v.^2,1)-desDist(i,t)^2).^2);
 %            tmp_obj = tmp_obj + 0*sum(sum((x(:,2:end)-peak*ones(1,hor)).^2));
 %            for ll = 1:size(tmp_v,2)
 %                tmp_obj = tmp_obj + tmp_v(1,ll)^2+tmp_v(2,ll)^2-2*sqrtm(tmp_v(1,ll)^2+tmp_v(2,ll)^2)*d(i,t)+d(i,t)^2;
@@ -392,10 +404,10 @@ while (1) %% Filtering Time Step
         end
         
         % solve mpc
-%         optset = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',1,...
-%         'fmincon.Algorithm','sqp','fmincon.Display','iter-detailed','fmincon.Diagnostics','on',...
+%         optset = sdpsettings('solver','fmincon','usex0',1,'debug',0,'verbose',0,...
+%         'fmincon.Algorithm','sqp','fmincon.Display','final','fmincon.Diagnostics','off',...
 %         'fmincon.TolCon',1e-5,'fmincon.TolFun',1e-5,'fmincon.MaxFunEvals',5000);
-        optset = sdpsettings('solver','snopt','usex0',1,'debug',1,'verbose',1);
+        optset = sdpsettings('solver','snopt','usex0',0,'debug',0,'verbose',0);
         sol = optimize(constr,obj,optset);
         if sol.problem == 0
             opt_x = value(x);
@@ -453,7 +465,7 @@ while (1) %% Filtering Time Step
                 plot(rbt(j).opt_x{count}(1,1), rbt(j).opt_x{count}(2,1), 's','Color',rbt(j).color,'MarkerSize',8,'LineWidth',3);
                 plot(rbt(j).opt_x{count}(1,2:end), rbt(j).opt_x{count}(2,2:end), 's','Color',rbt(j).color,'MarkerSize',5,'LineWidth',3);
             else
-                plot(rbt(j).opt_x{count}(1,1), rbt(j).opt_x{count}(2,1), 'p','Color',rbt(j).color,'MarkerSize',8,'LineWidth',1.5);
+                plot(rbt(j).opt_x{count}(1,1), rbt(j).opt_x{count}(2,1), '.','Color',rbt(j).color,'MarkerSize',4,'LineWidth',1.5);
                 plot(rbt(j).opt_x{count}(1,2:end), rbt(j).opt_x{count}(2,2:end), 'p','Color',rbt(j).color,'MarkerSize',5,'LineWidth',1.5);
             end
             plot(fld.tx, fld.ty, 'c+','MarkerSize',8,'LineWidth',3);
@@ -461,6 +473,12 @@ while (1) %% Filtering Time Step
     end
     subplot(2,3,5); xlabel(['Step=',num2str(count)]);
 %     pause
+    
+    % save plots
+    file_name1 = sprintf('fig1_%d',count);
+    saveas(hf1,file_name1,'jpg')
+    file_name2 = sprintf('fig3_%d',count);
+    saveas(hf3,file_name2,'jpg')
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Terminate Time Cycle
     count = count+1;
@@ -468,4 +486,5 @@ while (1) %% Filtering Time Step
     if count > max_EstStep
         break
     end
+    
 end
