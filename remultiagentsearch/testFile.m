@@ -1,4 +1,4 @@
-%% this file is used to tune the mpc solver.
+%% this section is used to tune the mpc solver.
 
 clear
 close all
@@ -19,7 +19,7 @@ dummy_robot = [10;10];
 des_dis = 1;
 for ii = 1:100
     x = sdpvar(2,hor+1);
-    u = sdpvar(1,hor);
+    u = sdpvar(2,hor);
     
     % find initial solution
     %
@@ -60,9 +60,9 @@ for ii = 1:100
     
     constr = [x(:,1) == [rbt.x;rbt.y]];
     for jj = 1:hor
-        constr = [constr,x(:,jj+1) == x(:,jj)+rbt.speed*[cos(u(jj));sin(u(jj))]];
+        constr = [constr,x(:,jj+1) == x(:,jj)+u(:,jj)];
         constr = [constr,x(:,jj+1) >= [1;1] , x(:,jj+1) <= [field.x;field.y]];
-        constr = [constr,-2*pi<= u(jj) <= 2*pi];
+        constr = [constr,u(1,jj)^2+u(2,jj)^2 <= rbt.speedLimit^2];
     end
        
     optset = sdpsettings('solver','fmincon','usex0',1,'debug',1,'verbose',1,...
@@ -90,3 +90,30 @@ for ii = 1:100
     xlim([1,field.x])
     ylim([1,field.y])    
 end
+
+%% check the formation
+% desired distance
+desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
+    1 0 1 sqrt(3) 0 sqrt(3); 
+    sqrt(3) 1 0 1 sqrt(3) 0; 
+    0 sqrt(3) 1 0 1 sqrt(3); 
+    sqrt(3) 0 sqrt(3) 1 0 1; 
+    1 sqrt(3) 0 sqrt(3) 1 0];
+
+% Communication structure
+rbt(1).neighbour=[2,3,5,6];
+rbt(2).neighbour=[1,3,4,6];
+rbt(3).neighbour=[1,2,4,5];
+rbt(4).neighbour=[2,3,5,6];
+rbt(5).neighbour=[1,3,4,6];
+rbt(6).neighbour=[1,2,4,5];
+
+tmp_dis = zeros(6);
+for ii = 1:6
+    for jj = rbt(ii).neighbour
+        tmp_dis(ii,jj) = norm([rbt(ii).x;rbt(ii).y]-[rbt(jj).x;rbt(jj).y]);
+    end
+end
+
+dif = tmp_dis - desDist;
+        

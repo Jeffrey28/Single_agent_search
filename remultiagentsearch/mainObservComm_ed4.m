@@ -45,17 +45,30 @@ ConsenFigure=0; % if 1, draw the concensus steps
 %% Path Planning setup
 hor = 5; % planning horizon
 % desired distances among neighboring agents
-desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
-    1 0 1 sqrt(3) 0 sqrt(3); 
-    sqrt(3) 1 0 1 sqrt(3) 0; 
-    0 sqrt(3) 1 0 1 sqrt(3); 
-    sqrt(3) 0 sqrt(3) 1 0 1; 
-    1 sqrt(3) 0 sqrt(3) 1 0];
+% desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
+%     1 0 1 sqrt(3) 0 sqrt(3); 
+%     sqrt(3) 1 0 1 sqrt(3) 0; 
+%     0 sqrt(3) 1 0 1 sqrt(3); 
+%     sqrt(3) 0 sqrt(3) 1 0 1; 
+%     1 sqrt(3) 0 sqrt(3) 1 0];
+desDist = 10*[0 1 sqrt(3) 2 sqrt(3) 1; 
+    1 0 1 sqrt(3) 2 sqrt(3); 
+    sqrt(3) 1 0 1 sqrt(3) 2; 
+    2 sqrt(3) 1 0 1 sqrt(3); 
+    sqrt(3) 2 sqrt(3) 1 0 1; 
+    1 sqrt(3) 2 sqrt(3) 1 0];
+
 dt = 1; % discretization time
 vl = 0; vu = 3; % lower and upper bounds for robot speed
 
 usePathUpdMap = 0; % if 1, each robot update its map based on neighbors' planned path; if 0, no update is conducted
 useSimObs = 0; % if 1, each robot simulates the observations for neighbors' planned path
+
+% precompute combinatorial matrix for calculating POD
+all_comb = {};
+for ii = 1:hor
+    all_comb = [all_comb;num2cell(nchoosek(1:hor,ii),2)];
+end
 %% Multi-Robot Setup
 NumOfRobot = 6;
 hf1=figure(1); set(hf1,'Position',[50,50,1000,600]); % for filtering cycle
@@ -83,13 +96,18 @@ rbt(5).color = 'm';
 rbt(6).color = 'w';
 
 %% Communication structure
-rbt(1).neighbour=[2,3,5,6];
-rbt(2).neighbour=[1,3,4,6];
-rbt(3).neighbour=[1,2,4,5];
-rbt(4).neighbour=[2,3,5,6];
-rbt(5).neighbour=[1,3,4,6];
-rbt(6).neighbour=[1,2,4,5];
-
+% rbt(1).neighbour=[2,3,5,6];
+% rbt(2).neighbour=[1,3,4,6];
+% rbt(3).neighbour=[1,2,4,5];
+% rbt(4).neighbour=[2,3,5,6];
+% rbt(5).neighbour=[1,3,4,6];
+% rbt(6).neighbour=[1,2,4,5];
+rbt(1).neighbour=[2,3,4,5,6];
+rbt(2).neighbour=[1,3,4,5,6];
+rbt(3).neighbour=[1,2,4,5,6];
+rbt(4).neighbour=[1,2,3,5,6];
+rbt(5).neighbour=[1,2,3,4,6];
+rbt(6).neighbour=[1,2,3,4,5];
 %% Robot Buffer for Observation Exchange
 for i=1:NumOfRobot
     for j=1:NumOfRobot
@@ -344,15 +362,15 @@ while (1) %% Filtering Time Step
 %         assign(u,init_u);
         %}
         
-        % obj1: distance to peak position (choose one if there are multiple)
+        %% obj1: distance to peak position (choose one if there are multiple)
 %         obj1 = sum((x(1:2,2)-[xPeak(1);yPeak(1)]).^2);
         obj1 = 0;
         
-        % obj2: probability mass
+        %% obj2: probability mass
         obj2 = 0;
         % fit the grid using gmm
         % need to check how matlab decides the k
-        %{
+        %
         k = 1;
         tol = 1e-5;
         [gmm_w,gmm_mu,gmm_sig] = getGmmApprox([xpt(:),ypt(:)],reshape(rbt(i).plan_map',numel(rbt(i).plan_map),1),k,tol);
@@ -362,7 +380,39 @@ while (1) %% Filtering Time Step
         end
         %}
         
-        % obj3: distance among neighbors
+        for j = 1:length(gmm_w)
+            alpha = sdpvar(size(all_comb,1),1);
+            Af1 = A_fct2s(agent,lambda(:,j),psi(:,:,j));
+            tmp_obj = 0;
+            tmp_psi_prod = psi(:,:,j);
+            for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
+                tmp_idx = all_comb{kk};
+                tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
+                tmp_para = updPara2([lambda(:,j),tmp_x],...
+                    cat(3,psi(:,:,j),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
+                tmp_psi = tmp_para.psi;
+                tmp_lambda = tmp_para.lambda;
+                %         for ll = 1:length(tmp_idx)
+                tmp_psi_prod = tmp_psi_prod*(agent.psi_s)^length(tmp_idx);
+                %         end
+                tmp_psi_prod = tmp_psi_prod/tmp_psi;
+                % it seems that if the robot is stuck in a small region for a few
+                % steps, the tmp_psi_prod tends to be singular. Haven't looked into
+                % why this happens
+                if abs(det(tmp_psi_prod)) < 1e-6
+                    tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
+                end
+                tmp_coef = sqrt(det(tmp_psi_prod));
+                alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
+                tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
+            end
+            if is(tmp_obj,'complex')
+                display('complex obj')
+            end
+            obj1 = obj1+w(j)*(1+tmp_obj);
+        end
+        
+        %% obj3: distance among neighbors
         obj3 = 0;
         %
         peak = [fld.tx;fld.ty];
@@ -375,9 +425,9 @@ while (1) %% Filtering Time Step
                tmp1 = (tmp_v(1,ll)^2+tmp_v(2,ll)^2)-desDist(i,t)^2;
                tmp2 = tmp_vpeak(1,ll)^2+tmp_vpeak(2,ll)^2;
                if ll == hor
-                   tmp_obj = tmp_obj+1*tmp1^2+1*tmp2^2;
+                   tmp_obj = tmp_obj+1*tmp1^2+0.1*tmp2^2;
                else
-                   tmp_obj = tmp_obj+tmp1^2+1*tmp2^2;
+                   tmp_obj = tmp_obj+tmp1^2+0.1*tmp2^2;
                end
            end
 %            tmp_obj = sum((sum(tmp_v.^2,1)-desDist(i,t)^2).^2);
@@ -475,9 +525,9 @@ while (1) %% Filtering Time Step
 %     pause
     
     % save plots
-    file_name1 = sprintf('fig1_%d',count);
+    file_name1 = sprintf('./figures/5connect/sim_1_0.1/fig1_%d',count);
     saveas(hf1,file_name1,'jpg')
-    file_name2 = sprintf('fig3_%d',count);
+    file_name2 = sprintf('./figures/5connect/sim_1_0.1/fig3_%d',count);
     saveas(hf3,file_name2,'jpg')
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Terminate Time Cycle
