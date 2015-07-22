@@ -33,7 +33,7 @@ fld.target.dx=-0.5;
 fld.target.dy=0.7;
 
 %% Binary Sensor Model
-sigmaVal=(fld.x/5)^2+(fld.y/5)^2;
+
 
 %% Probability Map Consensus setup
 ConsenFigure=0; % if 1, draw the concensus steps
@@ -87,6 +87,10 @@ for i=1:NumOfRobot
     rbt(i).prob = zeros(fld.x,fld.y);
 end
 
+% binary sensor model
+k_s = 2*pi*sqrt(det(r.sigma_s)); % normalizing factor
+sigmaVal=(fld.x/5)^2+(fld.y/5)^2;
+psi_s = 1/2*eye(2)/sigmaVal; % psi for the sensor
 % robot colors
 rbt(1).color = 'r';
 rbt(2).color = 'g';
@@ -375,25 +379,39 @@ while (1) %% Filtering Time Step
         tol = 1e-5;
         [gmm_w,gmm_mu,gmm_sig] = getGmmApprox([xpt(:),ypt(:)],reshape(rbt(i).plan_map',numel(rbt(i).plan_map),1),k,tol);
         
+        % objective function to guide the robot towards high probability
+        % position at every step
+        %{
         for k = 1:hor
             obj2 = obj2+1-calGmmProb(gmm_w,gmm_mu,gmm_sig,x(1:2,k+1));
         end
         %}
         
+        % objective function to guide the robot to follow the probability
+        % of high info gain
+        Af = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
+        for ii = 1:hor
+            Af(ii) = A_fct2s(x(1:2,ii+1),psi_s);
+        end
+        
+        lambda = zeros(size(gmm_mu));
+        psi = cell(size(gmm_sig));
         for j = 1:length(gmm_w)
             alpha = sdpvar(size(all_comb,1),1);
-            Af1 = A_fct2s(agent,lambda(:,j),psi(:,:,j));
+            lambda(:,j) = gmm_sig{j}\gmm_mu(:,j);
+            psi{j} = (2*gmm_sig{j})\eye(2);
+            Af1 = A_fct2s(lambda(:,j),psi{j});
             tmp_obj = 0;
-            tmp_psi_prod = psi(:,:,j);
+            tmp_psi_prod = psi{j};
             for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
                 tmp_idx = all_comb{kk};
                 tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
                 tmp_para = updPara2([lambda(:,j),tmp_x],...
-                    cat(3,psi(:,:,j),repmat(agent.psi_s,[1,1,length(tmp_idx)])));
+                    cat(3,psi{j},repmat(psi_s,[1,1,length(tmp_idx)])));
                 tmp_psi = tmp_para.psi;
                 tmp_lambda = tmp_para.lambda;
                 %         for ll = 1:length(tmp_idx)
-                tmp_psi_prod = tmp_psi_prod*(agent.psi_s)^length(tmp_idx);
+                tmp_psi_prod = tmp_psi_prod*(psi_s)^length(tmp_idx);
                 %         end
                 tmp_psi_prod = tmp_psi_prod/tmp_psi;
                 % it seems that if the robot is stuck in a small region for a few
@@ -403,7 +421,7 @@ while (1) %% Filtering Time Step
                     tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
                 end
                 tmp_coef = sqrt(det(tmp_psi_prod));
-                alpha(kk) = A_fct2s(agent,tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
+                alpha(kk) = A_fct2s(tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
                 tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
             end
             if is(tmp_obj,'complex')
