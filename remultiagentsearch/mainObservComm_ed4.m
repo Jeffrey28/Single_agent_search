@@ -43,7 +43,7 @@ ConsenFigure=0; % if 1, draw the concensus steps
 % ObservExch='multi';  % 'off', 'sing', 'multi'
 
 %% Path Planning setup
-hor = 5; % planning horizon
+hor = 3; % planning horizon
 % desired distances among neighboring agents
 % desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
 %     1 0 1 sqrt(3) 0 sqrt(3); 
@@ -76,7 +76,7 @@ if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end 
 % x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
 % y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
 x_set = [5:5:30];
-y_set = 5*ones(1,NumOfRobot);
+y_set = 10*ones(1,NumOfRobot);
 for i=1:NumOfRobot
     rbt(i).x = x_set(i)+0.1*rand(1,1); % sensor position.x
     rbt(i).y = y_set(i)+0.1*rand(1,1); % sensor position.x
@@ -88,9 +88,9 @@ for i=1:NumOfRobot
 end
 
 % binary sensor model
-k_s = 2*pi*sqrt(det(r.sigma_s)); % normalizing factor
-sigmaVal=(fld.x/5)^2+(fld.y/5)^2;
-psi_s = 1/2*eye(2)/sigmaVal; % psi for the sensor
+sigmaVal=(fld.x/5)^2+(fld.y/5)^2; % covariance matrix for the sensor
+k_s = 2*pi*sqrt(det(sigmaVal)); % normalizing factor
+s_psi = 1/2*eye(2)/sigmaVal; % psi for the sensor
 % robot colors
 rbt(1).color = 'r';
 rbt(2).color = 'g';
@@ -342,14 +342,15 @@ while (1) %% Filtering Time Step
     % path planning for each robot    
     for i=1:NumOfRobot 
         % find peak PDF
-%         maxValue=max(max(rbt(i).plan_map));
-%         [xPeak, yPeak] = find(rbt(i).plan_map == maxValue);
-%         rbt(i).peak(:,count) = [xPeak(1);yPeak(1)];
-        
+        maxValue=max(max(rbt(i).plan_map));
+        [xPeak, yPeak] = find(rbt(i).plan_map == maxValue);
+%         xPeak = fld.tx;
+%         yPeak = fld.ty;
+        rbt(i).peak(:,count) = [xPeak(1);yPeak(1)];
         % define varaibles for Yalmip
         x = sdpvar(2,hor+1); % robot state, the current state is the first column [x;y]
 %         u = sdpvar(2,hor); % robot input; [v;theta]
-        u = sdpvar(2,hor); % robot input; [theta]
+        u = sdpvar(2,hor); % robot input; [dx;dy]
         
         %% define objective function
         % find initial solution
@@ -370,14 +371,27 @@ while (1) %% Filtering Time Step
 %         obj1 = sum((x(1:2,2)-[xPeak(1);yPeak(1)]).^2);
         obj1 = 0;
         
+        for t = rbt(i).neighbour
+           tmp_plan_path = rbtBuffer{i}.rbt(t).plan_path;
+           tmp_vpeak = x(:,2:end) - rbt(i).peak(:,count)*ones(1,hor);
+           for ll = 1:hor    
+               obj1 = obj1+(tmp_vpeak(1,ll)^2+tmp_vpeak(2,ll)^2)^2;
+           end
+        end
+%         obj1 = 0;
+        
         %% obj2: probability mass
         obj2 = 0;
+        %
         % fit the grid using gmm
         % need to check how matlab decides the k
-        %
+        % another issue: it's possible for the fitting to diverge. May need
+        % to add certain minimum gmm_w,mu,sig to deal with this problem. Or
+        % fix this issue by improving this fitting method.
         k = 1;
         tol = 1e-5;
         [gmm_w,gmm_mu,gmm_sig] = getGmmApprox([xpt(:),ypt(:)],reshape(rbt(i).plan_map',numel(rbt(i).plan_map),1),k,tol);
+        
         
         % objective function to guide the robot towards high probability
         % position at every step
@@ -389,63 +403,86 @@ while (1) %% Filtering Time Step
         
         % objective function to guide the robot to follow the probability
         % of high info gain
-        Af = sdpvar(hor,1); % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future positions
+        % A funcitons [A_1,...,A_hor], A_1,...A_hor are for future
+        % positions, i.e. A(Phi^R_(k+ii)) in (27b) in DSCC2015 paper
+        s_Af = sdpvar(hor,1); 
         for ii = 1:hor
-            Af(ii) = A_fct2s(x(1:2,ii+1),psi_s);
+            s_Af(ii) = A_fct2s(sigmaVal\x(1:2,ii+1),s_psi);
         end
         
-        lambda = zeros(size(gmm_mu));
-        psi = cell(size(gmm_sig));
+        % lambda and psi for the target
+        gmm_lambda = zeros(size(gmm_mu));
+        gmm_psi = cell(size(gmm_sig));
         for j = 1:length(gmm_w)
             alpha = sdpvar(size(all_comb,1),1);
-            lambda(:,j) = gmm_sig{j}\gmm_mu(:,j);
-            psi{j} = (2*gmm_sig{j})\eye(2);
-            Af1 = A_fct2s(lambda(:,j),psi{j});
+            gmm_lambda(:,j) = gmm_sig{j}\gmm_mu(:,j);
+            gmm_psi{j} = 1/2*eye(2)/gmm_sig{j};
+            gmm_Af = A_fct2s(gmm_lambda(:,j),gmm_psi{j});
+            
             tmp_obj = 0;
-            tmp_psi_prod = psi{j};
+            tmp_psi_prod = gmm_psi{j}; % this term is used for representing the constant term in exp(alpha)
             for kk = 1:size(all_comb,1) % give the term in the form of exp(A_(ij))-exp(A_i)-exp(A_j)+1
                 tmp_idx = all_comb{kk};
-                tmp_x = x(1:2,tmp_idx+1); % get the corresponding x
-                tmp_para = updPara2([lambda(:,j),tmp_x],...
-                    cat(3,psi{j},repmat(psi_s,[1,1,length(tmp_idx)])));
-                tmp_psi = tmp_para.psi;
-                tmp_lambda = tmp_para.lambda;
+                
+                % assemble all lambda's for calculating sum_lambda -- the sum of
+                % all lambda's
+                s_lambda = sigmaVal\x(1:2,tmp_idx+1); % get the corresponding lambda for the robot
+                tmp_lambda_set = [gmm_lambda(:,j),s_lambda];
+
+                % assemble all psi's for calculating tmp_psi -- the sum of
+                % all psi's
+                tmp_psi_set = zeros(2,2,length(tmp_idx)+1);
+                tmp_psi_set(:,:,1) = gmm_psi{j};
+                for ll = 1:length(tmp_idx)
+                    tmp_psi_set(:,:,ll+1) = s_psi;
+                end
+                
+                sum_para = updPara2(tmp_lambda_set,tmp_psi_set);
+                sum_psi = sum_para.psi;
+                sum_lambda = sum_para.lambda;
                 %         for ll = 1:length(tmp_idx)
-                tmp_psi_prod = tmp_psi_prod*(psi_s)^length(tmp_idx);
+                tmp_psi_prod = tmp_psi_prod*(2*s_psi)^length(tmp_idx);
                 %         end
-                tmp_psi_prod = tmp_psi_prod/tmp_psi;
+                tmp_psi_prod = tmp_psi_prod/sum_psi;
                 % it seems that if the robot is stuck in a small region for a few
                 % steps, the tmp_psi_prod tends to be singular. Haven't looked into
                 % why this happens
-                if abs(det(tmp_psi_prod)) < 1e-6
-                    tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
-                end
-                tmp_coef = sqrt(det(tmp_psi_prod));
-                alpha(kk) = A_fct2s(tmp_lambda,tmp_psi)-Af1-sum(Af(tmp_idx));
+%                 if abs(det(tmp_psi_prod)) < 1e-6
+%                     tmp_psi_prod = tmp_psi_prod+eye(2)*1e-6;
+%                 end
+                tmp_coef = sqrt(det(tmp_psi_prod))*(2*pi)^(-length(tmp_idx));
+                alpha(kk) = A_fct2s(sum_lambda,sum_psi)-gmm_Af-sum(s_Af(tmp_idx));
+%                 alpha(kk) = 1;
+%                 tmp_obj = tmp_obj+(-1)^length(tmp_idx)*(alpha(kk));
                 tmp_obj = tmp_obj+(-1)^length(tmp_idx)*k_s^length(tmp_idx)*tmp_coef*exp(alpha(kk));
             end
+            
+            %
             if is(tmp_obj,'complex')
                 display('complex obj')
             end
-            obj1 = obj1+w(j)*(1+tmp_obj);
+            %}
+            
+            obj2 = obj2+gmm_w(j)*(1+tmp_obj);
         end
+        %}
         
         %% obj3: distance among neighbors
-        obj3 = 0;
+%         obj3 = 0;
         %
-        peak = [fld.tx;fld.ty];
+%         peak = [fld.tx;fld.ty];
         tmp_obj = 0;
         for t = rbt(i).neighbour
            tmp_plan_path = rbtBuffer{i}.rbt(t).plan_path;
            tmp_v = x(:,2:end) - tmp_plan_path(:,2:end);
-           tmp_vpeak = x(:,2:end) - peak*ones(1,hor);
+%            tmp_vpeak = x(:,2:end) - peak*ones(1,hor);
            for ll = 1:hor
                tmp1 = (tmp_v(1,ll)^2+tmp_v(2,ll)^2)-desDist(i,t)^2;
-               tmp2 = tmp_vpeak(1,ll)^2+tmp_vpeak(2,ll)^2;
+%                tmp2 = tmp_vpeak(1,ll)^2+tmp_vpeak(2,ll)^2;
                if ll == hor
-                   tmp_obj = tmp_obj+1*tmp1^2+0.1*tmp2^2;
+                   tmp_obj = tmp_obj+tmp1^2;%+0.3*tmp2^2;
                else
-                   tmp_obj = tmp_obj+tmp1^2+0.1*tmp2^2;
+                   tmp_obj = tmp_obj+tmp1^2;%+0.3*tmp2^2;
                end
            end
 %            tmp_obj = sum((sum(tmp_v.^2,1)-desDist(i,t)^2).^2);
@@ -457,25 +494,36 @@ while (1) %% Filtering Time Step
         obj3 = tmp_obj;
         %}
         
+        %% obj4: regulation term to minimize the control input
+        obj4 = 0;
+        for j = 1:hor
+            obj4 = obj4+u(1,j)^2+u(2,j)^2;
+        end
+        
+        %% Define obj and constraints
         % define obj
-        obj = obj1 + obj2 + obj3;
+        
+        obj_w = [0.3;0.1;1;1];
+        obj = obj_w'*[obj1;obj2;obj3;obj4];
         
         % define constraints
         constr = [x(:,1) == [rbt(i).x;rbt(i).y]];
+        %
         for j = 1:hor
             % kinematic model
 %             constr = [constr,x(1:2,j+1) == x(1:2,j)+u(1,j)*[cos(u(2,j));sin(u(2,j))]];
 %             constr = [constr,vl <= u(1,j) <= vu];
             constr = [constr,x(:,j+1) == x(:,j)+u(:,j)];
-            constr = [constr, x(1:2,j+1) >= [1;1] , x(1:2,j+1) <= [fld.x;fld.y]];
+            constr = [constr,x(1:2,j+1) >= [1;1] , x(1:2,j+1) <= [fld.x;fld.y]];
             constr = [constr,u(1,j)^2+u(2,j)^2 <= rbt(i).speedLimit^2];
         end
+        %}
         
         % solve mpc
 %         optset = sdpsettings('solver','fmincon','usex0',1,'debug',0,'verbose',0,...
 %         'fmincon.Algorithm','sqp','fmincon.Display','final','fmincon.Diagnostics','off',...
 %         'fmincon.TolCon',1e-5,'fmincon.TolFun',1e-5,'fmincon.MaxFunEvals',5000);
-        optset = sdpsettings('solver','snopt','usex0',0,'debug',0,'verbose',0);
+        optset = sdpsettings('solver','snopt','usex0',0,'debug',1,'verbose',1);
         sol = optimize(constr,obj,optset);
         if sol.problem == 0
             opt_x = value(x);
@@ -543,10 +591,12 @@ while (1) %% Filtering Time Step
 %     pause
     
     % save plots
-    file_name1 = sprintf('./figures/5connect/sim_1_0.1/fig1_%d',count);
+    %
+    file_name1 = sprintf('./figures/5connect/sim_0.3_0.1_1_1_actual_peak/fig1_%d',count);
     saveas(hf1,file_name1,'jpg')
-    file_name2 = sprintf('./figures/5connect/sim_1_0.1/fig3_%d',count);
+    file_name2 = sprintf('./figures/5connect/sim_0.3_0.1_1_1_actual_peak/fig3_%d',count);
     saveas(hf3,file_name2,'jpg')
+    %}
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Terminate Time Cycle
     count = count+1;

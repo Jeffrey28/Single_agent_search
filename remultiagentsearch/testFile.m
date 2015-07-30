@@ -117,3 +117,15 @@ end
 
 dif = tmp_dis - desDist;
         
+
+%% debug the POD
+jjj = 1;
+lam1 = sigmaVal\value(x(:,2)); %lambda for x2
+lam2 = sigmaVal\value(x(:,3));
+psi1 = psi_s;
+psi2 = psi_s;
+Af_sum = A_fct2s(lam1+lam2+lambda(:,jjj),psi1+psi2+psi{jjj})
+Af1
+value(Af(1))
+value(Af(2))
+Af_sum-Af1-value(Af(1))-value(Af(2))

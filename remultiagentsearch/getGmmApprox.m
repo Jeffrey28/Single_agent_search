@@ -14,9 +14,9 @@ n = size(X,2);
 
 %%===================================================
 %% Expectation Maximization
-
+n_iter = 100; % maximum iteration number
 % Loop until convergence
-for iter = 1:1000    
+for iter = 1:n_iter    
     %%===============================================
     %% Expectation
     %
@@ -37,6 +37,11 @@ for iter = 1:1000
         
         % For each cluster
         for j = 1:k
+            % if sigma is close to singularity, make it less singular
+            rcond(sigma{j})
+            if (rcond(sigma{j}) < 1e-10) || (isequaln(rcond(sigma{j}),nan))
+                sigma{j} = eye(2);
+            end
             % Evaluate the Gaussian for all data points for cluster 'j'.
             gau_pdf(:, j) = gaussianND(X, mu(j, :), sigma{j});
         end
@@ -84,6 +89,14 @@ end
 % make mu a column vector
 mu = mu';
 fprintf('EM Iteration ends at %d\n', iter);
+% this is a temporary fix for the issue of no-convergence
+if iter == n_iter
+    w = ones(k,1)/k;
+    mu = [35;35]*ones(1,k); % assign the mean to be the target position
+    for tt = 1:k
+        sigma{tt} = 5*eye(2);
+    end
+end
 end
 
 function pdf = gaussianND(X, mu, Sigma)
@@ -96,7 +109,7 @@ n = size(X, 2);
 meanDiff = bsxfun(@minus, X, mu);
 
 % Calculate the multivariate gaussian.
-pdf = 1 / sqrt((2*pi)^n * det(Sigma)) * exp(-1/2 * sum((meanDiff * inv(Sigma) .* meanDiff), 2));
+pdf = 1 / sqrt((2*pi)^n * det(Sigma)) * exp(-1/2 * sum((meanDiff/(Sigma) .* meanDiff), 2));
 
 end
 
