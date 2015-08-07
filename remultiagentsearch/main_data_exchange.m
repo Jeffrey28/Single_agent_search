@@ -212,11 +212,26 @@ while (1) %% Filtering Time Step
         case 'multi',
             % Observation of each robot
             for i=1:NumOfRobot
-                rbtBuffer{i}.rbt(i).x=rbt(i).x;
-                rbtBuffer{i}.rbt(i).y=rbt(i).y;
-                rbtBuffer{i}.rbt(i).z=rbt(i).z;
-                rbtBuffer{i}.rbt(i).k=count;
+                if count == 1
+                    % initialize the buffer
+                    rbtBuffer{i}.rbt(i).x=rbt(i).x;
+                    rbtBuffer{i}.rbt(i).y=rbt(i).y;
+                    rbtBuffer{i}.rbt(i).z=rbt(i).z;
+                    rbtBuffer{i}.rbt(i).k=count;
+                elseif count > 1
+                    rbtBuffer{i}.rbt(i).x=[rbt(i).x,rbtBuffer{i}.rbt(i).x];
+                    rbtBuffer{i}.rbt(i).y=[rbt(i).y,rbtBuffer{i}.rbt(i).y];
+                    rbtBuffer{i}.rbt(i).z=[rbt(i).z,rbtBuffer{i}.rbt(i).z];
+                    rbtBuffer{i}.rbt(i).k=[count,rbtBuffer{i}.rbt(i).k];
+                    % remove unneeded records
+                    rmv_idx = rbtBuffer{i}.rbt(i).k < rbt(i).talign_t;
+                    rbtBuffer{i}.rbt(i).x(rmv_idx)=[];
+                    rbtBuffer{i}.rbt(i).y(rmv_idx)=[];
+                    rbtBuffer{i}.rbt(i).z(rmv_idx)=[];
+                    rbtBuffer{i}.rbt(i).k(rmv_idx)=[];
+                end
             end
+            
             % multi-step transmit of observation
             for i=1:NumOfRobot % Robot Iteration
                 % for information from neighbours to compare whether it is
@@ -224,13 +239,21 @@ while (1) %% Filtering Time Step
                 tempRbtBuffer{i}=rbtBuffer{i};
                 for j=1:NumOfRobot
                     for t=rbt(i).neighbour
-                        if (tempRbtBuffer{i}.rbt(j).k <= rbtBuffer{t}.rbt(j).k)
-                            tempRbtBuffer{i}.rbt(j).x = rbtBuffer{t}.rbt(j).x;
-                            tempRbtBuffer{i}.rbt(j).y = rbtBuffer{t}.rbt(j).y;
-                            tempRbtBuffer{i}.rbt(j).z = rbtBuffer{t}.rbt(j).z;
-                            tempRbtBuffer{i}.rbt(j).k = rbtBuffer{t}.rbt(j).k;
+                        % note: communication only transmit the latest
+                        % observation stored in each neighbor
+                        if (tempRbtBuffer{i}.rbt(j).k(1) <= rbtBuffer{t}.rbt(j).k(1))
+                            tempRbtBuffer{i}.rbt(j).x = [rbtBuffer{t}.rbt(j).x(1),tempRbtBuffer{i}.rbt(j).x];
+                            tempRbtBuffer{i}.rbt(j).y = [rbtBuffer{t}.rbt(j).y(1),tempRbtBuffer{i}.rbt(j).y];
+                            tempRbtBuffer{i}.rbt(j).z = [rbtBuffer{t}.rbt(j).z(1),tempRbtBuffer{i}.rbt(j).z];
+                            tempRbtBuffer{i}.rbt(j).k = [rbtBuffer{t}.rbt(j).k(1),tempRbtBuffer{i}.rbt(j).k];
                         end
                     end
+                     % remove unneeded records
+                     rmv_idx = tempRbtBuffer{i}.rbt(j).k < rbt(i).talign_t;
+                     tempRbtBuffer{i}.rbt(j).x(rmv_idx)=[];
+                     tempRbtBuffer{i}.rbt(j).y(rmv_idx)=[];
+                     tempRbtBuffer{i}.rbt(j).z(rmv_idx)=[];
+                     tempRbtBuffer{i}.rbt(j).k(rmv_idx)=[];
                 end
             end
             % return temperary buffer to robut buffer
@@ -262,6 +285,8 @@ while (1) %% Filtering Time Step
                     [ptx,pty] = meshgrid(1:fld.x,1:fld.y);
                     pt = [ptx(:),pty(:)];
                     tmp_map = zeros(size(rbt(i).map));
+                    
+                    
                     if rem(count,2) == 1
                         for k = 1:size(pt,1)
                             tmp_map = tmp_map+upd_cell1{k}*rbt(i).map(pt(k,1),pt(k,2));
