@@ -129,3 +129,11 @@ Af1
 value(Af(1))
 value(Af(2))
 Af_sum-Af1-value(Af(1))-value(Af(2))
+
+%% debug the moving target case
+tmp = 0;
+for ii = 1:length(upd_cell1)
+    if sum(sum(upd_cell1{ii}-upd_cell2{ii})) ~= 0
+        tmp = tmp+1;
+    end
+end
