@@ -20,7 +20,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 3; % select the motion of agents and target
+Selection2 = 2; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -37,7 +37,7 @@ fld.map = ones(fld.x,fld.y)/(fld.x*fld.y);
 
 %% Target Steup
 fld.tx = 25; fld.ty = 25;% Target position, but unknown to estimator
-fld.target.speed = 5;
+fld.target.speed = 1;
 fld.target.cov = 0.0001*eye(2);% covariance of the target motion model
 if tar_move == 0
     fld.target.dx= 0;
@@ -52,7 +52,7 @@ ConsenFigure=0; % if 1, draw the concensus steps
 
 %% Probability Map Update
 % calculate the prediction matrix
-% if tar_move == 1
+if tar_move == 1
     [ptx,pty] = meshgrid(1:fld.x,1:fld.y);
     pt = [ptx(:),pty(:)];
     upd_cell1 = cell(size(pt,1),1);
@@ -74,7 +74,7 @@ ConsenFigure=0; % if 1, draw the concensus steps
 %         upd_cell2{ii} = mvnpdf(pt,pt(ii,:)-[fld.target.speed*fld.target.dx,fld.target.speed*fld.target.dy],fld.target.cov);
 %         upd_cell2{ii} = reshape(upd_cell2{ii}',fld.x,fld.y);
     end
-% end
+end
 
 %% Path Planning setup
 hor = 3; % planning horizon
@@ -117,10 +117,10 @@ for i=1:NumOfRobot
     rbt(i).speedLimit = 0;
     rbt(i).map = ones(fld.x,fld.y);
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
-%     if tar_move == 1
+    if tar_move == 1
         rbt(i).talign_map = rbt(i).map; % store the prob_map for observations with same tiem index, i.e. P(x|z^1_1:k,...,z^N_1:k)
         rbt(i).talign_t = 0; % record the time for the time-aligned map 
-%     end
+    end
     subplot(2,3,i); contourf((rbt(i).map)'); hold on; title(['Sensor ',num2str(i)]);
     rbt(i).prob = zeros(fld.x,fld.y);
 end
@@ -285,17 +285,16 @@ while (1) %% Filtering Time Step
                 tmp_t = rbt(i).talign_t;
                 tmp_map = rbt(i).talign_map;
                 
-%                 if i == 1
-%                     hf2 = figure (2);
-%                     contourf((tmp_map)'); hold on;
-%                     title('t_align map before prediction step');
-%                 end
+                hf2 = figure (2);
+                subplot(2,3,i); contourf((tmp_map)'); hold on;
+                title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)]);
                 
-                for t = (rbt(i).talign_t+1):count                   
+                for t = (rbt(i).talign_t+1):count
+                    
                     % prediction step
                     tmp_map2 = zeros(size(tmp_map));
                     % dynamic model
-                    if rem(t,2) == 1
+                    if rem(count,2) == 1
                         for k = 1:size(pt,1)
                             tmp_map2 = tmp_map2+upd_cell1{k}*tmp_map(pt(k,1),pt(k,2));
                         end
@@ -305,7 +304,12 @@ while (1) %% Filtering Time Step
                         end
                     end
                     tmp_map = tmp_map2;
-                                       
+                    
+                    hf3 = figure (3);
+                    if i == 1
+                    contourf((tmp_map)'); hold on;
+                    title('t_aglign map');
+                    
                     % updating step
                     for j=1:NumOfRobot
                         if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).k(1) >= t)
@@ -325,8 +329,7 @@ while (1) %% Filtering Time Step
                         rbt(i).talign_map = rbt(i).talign_map/sum(sum(rbt(i).talign_map));
                         tmp_t = tmp_t+1;
                     end
-                end
-                
+                end      
                 rbt(i).talign_t = tmp_t;
                 rbt(i).map = tmp_map;
                 rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
@@ -399,20 +402,11 @@ while (1) %% Filtering Time Step
     end
     
     % save plots
-    %
-    if (count == 1) || (count == 10) || (count == 30) || (count == 50) || (count == 100)
-        switch Selection2
-            case 1,  tag = 'sta_sen_sta_tar';
-            case 2,  tag = 'sta_sen_mov_tar';
-            case 3,  tag = 'mov_sen_sta_tar';
-            case 4,  tag = 'mov_sen_mov_tar';
-        end
-        file_name1 = sprintf('./figures/data_exchange/%s_%d',tag,count);
-        saveas(hf1,file_name1,'fig')
-        saveas(hf1,file_name1,'jpg')
-    end
-%     file_name2 = sprintf('./figures/data_exchange/sim_0.3_0.1_1_1_actual_peak/fig3_%d',count);
-%     saveas(hf3,file_name2,'jpg')
+    %{
+    file_name1 = sprintf('./figures/5connect/sim_0.3_0.1_1_1_actual_peak/fig1_%d',count);
+    saveas(hf1,file_name1,'jpg')
+    file_name2 = sprintf('./figures/5connect/sim_0.3_0.1_1_1_actual_peak/fig3_%d',count);
+    saveas(hf3,file_name2,'jpg')
     %}
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
