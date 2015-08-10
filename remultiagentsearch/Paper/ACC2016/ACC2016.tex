@@ -1,0 +1,360 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
+
+\IEEEoverridecommandlockouts                              % This command is only needed if 
+                                                          % you want to use the \thanks command
+
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphics} % for pdf, bitmapped graphics files
+%\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+%\usepackage{amsmath} % assumes amsmath package installed
+%\usepackage{amssymb}  % assumes amsmath package installed
+
+\title{\LARGE \bf
+Distributed Bayesian Filtering by using Observation Exchange Strategy
+}
+
+
+\author{Albert Author$^{1}$ and Bernard D. Researcher$^{2}$% <-this % stops a space
+\thanks{*This work was not supported by any organization}% <-this % stops a space
+\thanks{$^{1}$Albert Author is with Faculty of Electrical Engineering, Mathematics and Computer Science,
+        University of Twente, 7500 AE Enschede, The Netherlands
+        {\tt\small albert.author@papercept.net}}%
+\thanks{$^{2}$Bernard D. Researcheris with the Department of Electrical Engineering, Wright State University,
+        Dayton, OH 45435, USA
+        {\tt\small b.d.researcher@ieee.org}}%
+}
+
+
+\begin{document}
+
+
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+This electronic document is a ÒliveÓ template. The various components of your paper [title, text, heads, etc.] are already defined on the style sheet, as illustrated by the portions given in this document.
+
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{INTRODUCTION}
+
+Distributed estimation that focuses on utilizing a group of networked agents to collectively infer the state of an environment has been adopted for various applications, such as object detection (Chamberland), target tracking (Beaudeau) and environmental monitoring etc. The communication topology plays a vital role in distributed estimation algorithms. In (L. Zuo), a central processing unit, called the fusion center, is used. Local a-posteriori distributions from all agents are transmitted to the fusion center and the Best Linear Unbiased Estimator is used for fusion. In (Furukawa), agents are fully connected in that they can directly communicate their observations to all other agents in the network in a single transmission round. Each agent estimates the environment state using its own and received observations. These communication topologies are beneficial in that all the observations are employed for state estimation in a single step. However, the assumption of full connectivity of the communication network makes the methods of limited applications.
+
+In many realistic situations, each agent can communicate only with neighboring agents due to the limited communication range. Local state estimate is achieved by fusing each agent?s local information with its neighboring agents. For example,  
+
+Following the taxonomy in (Hlinka), the distributed estimation algorithms can be divided into two categories based on the type of the transmitted data between agents: statistics dissemination-based algorithms and measurement dissemination-based DPFs. In statistics dissemination-based algorithms, processed data, such as posterior or likelihood functions, are exchanged between agents. Consensus algorithm, since proposed in (Olfat-Saber), has become a popular approach for fusion in statistics dissemination-based algorithms. For example, in (Olfati-Saber), a distributed Kalman filter is proposed by constructing low-pass and band-pass consensus filters. (Julian) et. al. proposed a consensus-based algorithm for the sequential Bayesian filter to approximate agents? joint measurement probabilities, even when the network diameter, the maximum in/out degree, and the number of agents are unknown. (Bandyopadhyay) presented a Bayesian consensus filter that can incorporate nonlinear target dynamic models, heterogeneous nonlinear measurement models, non-Gaussian uncertainties, and higher-order moments of the locally estimated posterior probability distribution of the target?s states. A consensus algorithm using a logarithmic opinion pool is used to estimate posterior probability distributions. 
+
+In measurement dissemination-based DPFs, raw or quantized measurements are exchanged among agents. For example, (Coates) proposed a distributed
+particle filtering approach in a sensor network. A predictive scalar quantizer
+training step is added to the particle filtering for adaptive encoding of the measurements to minimize communication overhead. In (Djuric), agents measure received signal strengths from the tracked targets and communicate it to the remaining agents engaged in the tracking. Each agent applies particle filtering for tracking. 
+
+Most of works on the target-search application utilize the statistics dissemination-based method. However, the transmitted data, either the posterior or the likelihood functions, contain large amount of data that can cause high burden on the inter-agent communication due to the finite bandwidth of their communication network.  A better approach is transmitting the local observations of each agent in the communication network. In this work, we propose a local exchange of observation (LEO) strategy for distributed Bayesian estimation. Each agent can make observations of the environment and communicates the observations (both current and previously received observations) to neighboring agents. Local Bayesian estimation is conducted by each agent. Following contributions have been made in this paper:
+(1)	The consistency of the algorithm is proved, showing that the proposed data exchange strategy enables the local Bayesian estimation?
+(2)	The complexity analysis shows the great reduction in the transmitted data for target-search scenario using the proposed LEO strategy than statistics dissemination-based methods.
+
+\section{PROBLEM FORMULATION}
+
+Consider a network of N agents. The set of neighbors of the ith robot is denoted as   and the number of neighbors in   is  . The communication topology is defined as an n-by-n matrix A:
+ 
+i.e. each agent can only communicate with its neighboring agents.  The communicated information is limited to the observation of each robot. Each robot has its individual estimation of the target PDF. Considering the limit of the communication range and bandwidth, no PDF is allowed to be transmitted. The individual PDF of robot i is initialized by the prior function   at time k=0, given all available prior information including past experience and domain knowledge. The superscript T represents the target, whose position is unknown for robots. Once determining the prior distribution, the ith individual PDF at time k,  , can be estimated recursively by distributed Bayesian filter based on measurements from the neighborhood  of robot i. 
+
+
+\subsection{Model of Binary Sensors}
+
+The sensor model is subject to a Gaussian distribution. 
+
+\subsection{Bayesian Filtering for Multiple Sensors}
+
+\subsubsection{Prediction}
+
+Suppose the system is at time step k-1 and the latest update for ith individual PDF is 
+ . The prior PDF is predicted forward to time step k by using the Chapman-Kolmogorov equation:
+ 
+where   is a probabilistic Markov motion model of target, independent of robot states. This model describes the state transition probability of the target from the prior state to the destination state  . For a static target, 
+ 
+and the above equation can be reduced to  .
+
+\subsection{Updating}
+
+At time step k, the neighbors of the ith robot, denoted as  , the observation of robot i is   and its corresponding observation probability for given target state  , is denoted as  . This is referred to as the observation likelihood for a fixed  . It is assumed that all observations are conditionally independent given the current state. Then the target PDF is updated by using the Bayes rule: 
+
+  
+where   is a normalization factor, given by:
+ .
+If the target is static, the updating step is reduced to
+
+ 
+
+
+\section{Distributed Bayesian Filter via Observation Exchange}
+
+\subsubsection{Algorithm for Local Exchange of observations (LEO)}
+We propose an observation local exchange (OLE) strategy for the network of robots to search for a static target. The observation of i-th robot at k-th step is denoted as  . Besides its own observation, robot i contains an observation buffer (OB) to store its latest knowledge of the observations of all agents:
+ 
+where  denotes that at k-th step, the latest information of j-th robot received by th i-th robot is the j-th robot?s observation at the  -th step(note that  <=k). 
+
+The following broadcasting algorithm is used: 
+
+(1) Initialization: The storage buffer of the i-th robot is initialized when k=0: 
+ 
+(2) At k-th step and for the i-th robot
+(2.1) Receiving Step: The i-th robot receives OBs from its neighboring nodes, i.e,  . The received OBs contain   groups, each of which is actually the (k-1)-step OB of a node in  . To be specific, the received OB from the the l-th ( ) agent is noted as
+ 
+(2.2) Observation Step: The i-th robot updates  , in its buffer according to its current-step observation  
+ 
+(2.3) Comparison Step: 
+Except  , the values in the i-th robot?s OB, i.e,  , is updated by using the latest information among all received OBs from  :
+For all  , 
+ 
+ 
+End
+(2.4) Transmission Step: the i-th robot broadcasts the updated OB to all of its neighbors in  . 
+(3) Repeat step (2) until stop. 
+
+It can be proved that in a network of N robots, each robot will obtain the history observations of all other robots within a finite number of communication rounds, as stated in the following proposition:
+
+Proposition 1: For any agent   in a connected network composed of N robots with constant communication, all elements in the observation buffer   becomes nonempty when  , i.e. the information delay from agent j to agent i, ; moreover, once becoming nonempty, the updating of each element in buffer   is non-intermittent, i.e.,   becomes a constant. 
+
+Proof:
+Consider a graph  , where   is the set of nodes and   is the set of edges. Let V represent all agents in the network and E represent the communication link. Then  . The transmission delay between the i-th and j-th node is the shortest path between   and  . For any connected graph with   nodes, the maximal shortest path between any two nodes is  . Therefore, any node   receives the j-th node?s observation with delay no greater than  . This proves  . For a connected network with unchanged edges (constant communication link), the shortest path is a constant. Therefore,  is a constant.
+End of proof.
+
+Remark (1): Example
+
+Remark (2): in the proposed LEO, only the latest available observation from each agents are stored in OBs. This makes sense for the purpose of searching a static target. Since the target does not move, the observations made at different time carry equal importance for estimating the target position. The LEO for searching a moving target is presented in section 4.
+
+Remark (3): the proposed LEO strategy is a more transmission-efficient approach than the traditionally used statistics-based dissemination approaches. To be specific, consider a grid world that contains a target to be searched and localized. With a network of  robots, the transmitted data of the LEO between each pair of robots are composed of the observation buffer of each robot, the quantity of which is  . On the contrary, the quantity of transmitted data for the posterior or likelihood functions are  . Since  , our LEO strategy requires much less data transmission than the statistics-based dissemination approaches for the target-search application.
+
+
+\subsection{Algorithm for Distributed Bayesian Filtering} 
+
+We are interested in distributed computation of the target PDF based on the measurement history. Once updating the history measurement, each robot locally runs the Bayesian filter for updating the target PDF. We first present the distributed Bayesian filter for a static target. Next a distributed Bayesian filter for a moving target will be proposed. 
+Since the target is static, the prediction step is unnecessary and we remove the subscript of  . The update step becomes:
+ 
+Note that only the observations with indices in   are used for updating the target PDF at time k. Because the target is static, observations at different time equally contribute to the estimation process. The effectiveness of this strategy in estimating the target position is proved in the following proposition:
+
+
+\subsection{Consistency proof of distributed Bayesian Filter}
+
+\subsubsection{Proof for static sensors}
+
+Theorem 1 (consistency of DBF) Using multiple binary sensors to detect the single static target, the posterior probability given by the Bayesian estimator will concentrate on the true location of the target after infinitely many observations, i.e.
+ 
+where   denotes the true location of the target. The proof of the proposition is presented in the Appendix.
+
+
+Proof: The batch form of DBF at K-th step
+ 
+(1)
+where   is initial guess of i-th local PDF. It is known from the proposition 1: 
+ 
+(2)
+Since both target and sensors are static,   (k=1:kj, j=1:N)  are conditionally independent samples from sensor models   (j=1:N) for given  . Any binary observation subjects to Bernoulli distribution, yielding
+ 
+(3)
+where 
+ 
+Take the logarithm of (1) and average it over the K steps:
+ 
+(4)
+where
+ 
+ . 
+Utilizing the fact that (1)  (k=1:kj, j=1:N)  are conditionally independent, and (2)  , recalling the law of large numbers yields
+ 
+where  . Then, the first term of Eq. (4) has the following limit
+ 
+(5)
+Note that the r.h.s of (5) achieves maximum iff  . 
+Considering the equality
+ 
+The third term of Eq. (4) is simplified to 
+ 
+Further, considering the equality
+ 
+Considering Eq. (5), we have  in the condition of  when   . Then, 
+ 
+Therefore, the limit of Eq. (4) becomes
+ 
+(6)
+
+It is known from Eq. (6): 
+(1) When  ,   and  ; 
+(2) When  ,   and  . (End of proof) 
+
+\subsubsection{Proof for Moving Sensors}
+
+Lemma: Consider N sensor in a finite set of sensor position, 
+
+Theorem 2. Consider a finite set of target position . Using one binary sensor (sensors can move) to detect the single static target, the posterior probability given by the Bayesian estimator will concentrate on the true location of the target, i.e.
+ 
+where   denotes the true location of the target.
+
+Proof:  
+The batch form of DBF at K-th step
+ 
+(7)
+where   is initial guess of i-th local PDF. By converting 
+ 
+(7)
+The only difference is that Eq. (2) does not hold, but for each sensor, at least there is one position has infinite observation. We can classify into finite-observation spot and infinite-observation spot. For the former, it is easy to know that
+ 
+The corresponding item in   has zero-limit. Therefore, the proof of Eq. (7) can be reduced to infinite-observation spot, which is similar to Theorem 1. (End of Proof)
+
+Remark: It is interesting to find that even in Theorem 1, the consistency of DBF does not require that all sensors have infinite observation. The theorem 2 implies that if only one sensor has infinite observation, the consistency of DBF is achievable. 
+
+
+\section{Extend DBF for Moving Target}
+
+This section derives the DBF for a moving target. For the purpose of simplicity, we consider the update of the target PDF   of the 1st robot with new measurement  .  
+Following the Bayesian estimation framework:
+ 
+Different from the DBF for the static target that utilizes the target PDF from previous time for updating, DBF for the moving target requires the ?time-aligned? target PDF   and all available measurement after time k-2. Define the set  , called the local measurement history, as the set that contains the previous measurement (not belong to  ) necessary for updating the target PDF. In this three-robot example,  . The robot needs to update   and   over time and implement the formula. Algorithm 1 gives the general formula of DBF for a moving target. Without loss of generality, assume   and let  .
+
+For the ith robot
+?	Initialize  
+?	At the time k,
+o	Update ?time-aligned? target PDF  from  
+ 
+o	Update the target PDF
+ 
+For the network with N robots, the space complexity is.
+
+\section{Simulation}
+This section presents three scenarios in order to demonstrate the use of the LEO strategy for recursive Bayesian filtering in autonomous target search. In all scenarios, six sensors are utilized for target search, each receiving binary observation following the sensor model in xxx. 
+
+The first scenario consists of six static sensors and single static target, which acts as a proof of concept of the LEO strategy for static cases. The second scenario subsequently deals with the six moving sensors for searching the single static target. Finally, a general scenario is presented that contains six moving sensors and one moving target. 
+
+\subsection{Static Sensors, Static Target}
+
+The six static sensors are places at. Each sensor constantly receives binary observations from the target, using the sensor model in xxx. Sensors use LEO strategy to communicate their current and saved observations with their communication neighbors. Recursive Bayesian filtering is conducted for target position estimation.
+
+Figure 1 shows the result of the estimation. After the initial observation, each sensor forms a semicircle of the probability map, centered at the corresponding sensor position. As more observations are received, the posterior probability concentrates on the true location of the target. This demonstrates the effectiveness of the LEO strategy for achieving the consensus on the estimate of the target position. 
+
+
+\subsection{Moving Sensors, Static Target}
+
+The six sensors start moving from the positions respectively to estimate the target position. The motion planning of sensors for effective target search has received much attention in the past decade. In this work, the sensor positions are randomly generated at each time in order to demonstrate the effectiveness of the LEO strategy. Readers interested in sensor motion planning can refer to xxx.
+
+Figure 2 shows the result of the estimation. Similar to sec. 5.1, the posterior probability concentrates to the true target location. Figure 2(b) gives the decrease of the entropy of the posterior distribution, showing the reduction of uncertainty in the estimated target position.
+
+\subsection{Moving Sensors, Moving Target}
+
+The target in the scenario moves on a horizontal plane and the model is given by. The sensor positions are randomly generated at each time. LEO given in section 4 is utilized for distributed recursive Bayesian filtering. Figure 3 shows the result of the estimation. As expected, the posterior probability concentrates to the true target location.
+
+\section{CONCLUSION}
+
+
+
+\begin{table}[h]
+\caption{An Example of a Table}
+\label{table_example}
+\begin{center}
+\begin{tabular}{|c||c|}
+\hline
+One & Two\\
+\hline
+Three & Four\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+   \begin{figure}[thpb]
+      \centering
+      \framebox{\parbox{3in}{We suggest that you use a text box to insert a graphic (which is ideally a 300 dpi TIFF or EPS file, with all fonts embedded) because, in an document, this method is somewhat more stable than directly inserting a picture.
+}}
+      %\includegraphics[scale=1.0]{figurefile}
+      \caption{Inductance of oscillation winding on amorphous
+       magnetic core versus DC bias magnetic field}
+      \label{figurelabel}
+   \end{figure}
+   
+
+
+\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+                                  % on the last page of the document manually. It shortens
+                                  % the textheight of the last page by a suitable amount.
+                                  % This command does not take effect until the next page
+                                  % so it should come on the page before the last. Make
+                                  % sure that you do not shorten the textheight too much.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{APPENDIX}
+
+Appendixes should appear before the acknowledgment.
+
+\section*{ACKNOWLEDGMENT}
+
+The preferred spelling of the word ÒacknowledgmentÓ in America is without an ÒeÓ after the ÒgÓ. Avoid the stilted expression, ÒOne of us (R. B. G.) thanks . . .Ó  Instead, try ÒR. B. G. thanksÓ. Put sponsor acknowledgments in the unnumbered footnote on the first page.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+References are important to the reader; therefore, each citation must be complete and correct. If at all possible, references should be commonly available publications.
+
+
+
+\begin{thebibliography}{99}
+
+\bibitem{c1} G. O. Young, ÒSynthetic structure of industrial plastics (Book style with paper title and editor),Ó 	in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 15Ð64.
+\bibitem{c2} W.-K. Chen, Linear Networks and Systems (Book style).	Belmont, CA: Wadsworth, 1993, pp. 123Ð135.
+\bibitem{c3} H. Poor, An Introduction to Signal Detection and Estimation.   New York: Springer-Verlag, 1985, ch. 4.
+\bibitem{c4} B. Smith, ÒAn approach to graphs of linear forms (Unpublished work style),Ó unpublished.
+\bibitem{c5} E. H. Miller, ÒA note on reflector arrays (Periodical styleÑAccepted for publication),Ó IEEE Trans. Antennas Propagat., to be publised.
+\bibitem{c6} J. Wang, ÒFundamentals of erbium-doped fiber amplifiers arrays (Periodical styleÑSubmitted for publication),Ó IEEE J. Quantum Electron., submitted for publication.
+\bibitem{c7} C. J. Kaufman, Rocky Mountain Research Lab., Boulder, CO, private communication, May 1995.
+\bibitem{c8} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ÒElectron spectroscopy studies on magneto-optical media and plastic substrate interfaces(Translation Journals style),Ó IEEE Transl. J. Magn.Jpn., vol. 2, Aug. 1987, pp. 740Ð741 [Dig. 9th Annu. Conf. Magnetics Japan, 1982, p. 301].
+\bibitem{c9} M. Young, The Techincal Writers Handbook.  Mill Valley, CA: University Science, 1989.
+\bibitem{c10} J. U. Duncombe, ÒInfrared navigationÑPart I: An assessment of feasibility (Periodical style),Ó IEEE Trans. Electron Devices, vol. ED-11, pp. 34Ð39, Jan. 1959.
+\bibitem{c11} S. Chen, B. Mulgrew, and P. M. Grant, ÒA clustering technique for digital communications channel equalization using radial basis function networks,Ó IEEE Trans. Neural Networks, vol. 4, pp. 570Ð578, July 1993.
+\bibitem{c12} R. W. Lucky, ÒAutomatic equalization for digital communication,Ó Bell Syst. Tech. J., vol. 44, no. 4, pp. 547Ð588, Apr. 1965.
+\bibitem{c13} S. P. Bingulac, ÒOn the compatibility of adaptive controllers (Published Conference Proceedings style),Ó in Proc. 4th Annu. Allerton Conf. Circuits and Systems Theory, New York, 1994, pp. 8Ð16.
+\bibitem{c14} G. R. Faulhaber, ÒDesign of service systems with priority reservation,Ó in Conf. Rec. 1995 IEEE Int. Conf. Communications, pp. 3Ð8.
+\bibitem{c15} W. D. Doyle, ÒMagnetization reversal in films with biaxial anisotropy,Ó in 1987 Proc. INTERMAG Conf., pp. 2.2-1Ð2.2-6.
+\bibitem{c16} G. W. Juette and L. E. Zeffanella, ÒRadio noise currents n short sections on bundle conductors (Presented Conference Paper style),Ó presented at the IEEE Summer power Meeting, Dallas, TX, June 22Ð27, 1990, Paper 90 SM 690-0 PWRS.
+\bibitem{c17} J. G. Kreifeldt, ÒAn analysis of surface-detected EMG as an amplitude-modulated noise,Ó presented at the 1989 Int. Conf. Medicine and Biological Engineering, Chicago, IL.
+\bibitem{c18} J. Williams, ÒNarrow-band analyzer (Thesis or Dissertation style),Ó Ph.D. dissertation, Dept. Elect. Eng., Harvard Univ., Cambridge, MA, 1993. 
+\bibitem{c19} N. Kawasaki, ÒParametric study of thermal and chemical nonequilibrium nozzle flow,Ó M.S. thesis, Dept. Electron. Eng., Osaka Univ., Osaka, Japan, 1993.
+\bibitem{c20} J. P. Wilkinson, ÒNonlinear resonant circuit devices (Patent style),Ó U.S. Patent 3 624 12, July 16, 1990. 
+
+
+
+
+
+
+\end{thebibliography}
+
+
+
+
+\end{document}
