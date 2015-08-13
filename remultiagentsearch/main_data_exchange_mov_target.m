@@ -20,7 +20,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 3; % select the motion of agents and target
+Selection2 = 4; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -123,6 +123,7 @@ for i=1:NumOfRobot
 %     end
     subplot(2,3,i); contourf((rbt(i).map)'); hold on; title(['Sensor ',num2str(i)]);
     rbt(i).prob = zeros(fld.x,fld.y);
+    rbt(i).entropy = zeros(1,max_EstStep);
 end
 
 % binary sensor model
@@ -336,6 +337,17 @@ while (1) %% Filtering Time Step
     end
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Entropy calculation of posterior pdf
+    for i=1:NumOfRobot 
+        tmp_map = rbt(i).map;
+        % this avoids the error when some grid has zeros probability
+        tmp_map(tmp_map <= realmin) = realmin;
+        dis_entropy = -(tmp_map).*log2(tmp_map); % get the p*log(p) for all grid points    
+%         fun = @(x,y) interp2(1:fld.x,1:fld.y,dis_entropy,x,y);
+%         rbt(i).entropy(count) =  integral2(fun,1,fld.x,1,fld.y);
+        rbt(i).entropy(count) = sum(sum(dis_entropy));
+    end
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Plot Local PDFs for Each Sensor After Including Observations
     hf1 = figure (1); 
 %     clf(hf1)
@@ -400,7 +412,7 @@ while (1) %% Filtering Time Step
     
     % save plots
     %
-    if (count == 1) || (count == 10) || (count == 30) || (count == 50) || (count == 100)
+    if (count == 1) || (count == 3) || (count == 5) || (count == 7) || (count == 10) || (count == 50) || (count == 100)
         switch Selection2
             case 1,  tag = 'sta_sen_sta_tar';
             case 2,  tag = 'sta_sen_mov_tar';
@@ -424,3 +436,22 @@ while (1) %% Filtering Time Step
     end
     
 end
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% plot the entropy
+hf2 = figure(2);
+for i=1:NumOfRobot
+    subplot(2,3,i); plot(1:count-1,rbt(i).entropy); hold on;
+    xlim([0,count])
+end
+subplot(2,3,5); xlabel('Entropy of the Target PDF');
+
+switch Selection2
+    case 1,  tag = 'sta_sen_sta_tar';
+    case 2,  tag = 'sta_sen_mov_tar';
+    case 3,  tag = 'mov_sen_sta_tar';
+    case 4,  tag = 'mov_sen_mov_tar';
+end
+file_name2 = sprintf('./figures/data_exchange/%s_entropy',tag);
+saveas(hf2,file_name2,'fig')
+saveas(hf2,file_name2,'jpg')
