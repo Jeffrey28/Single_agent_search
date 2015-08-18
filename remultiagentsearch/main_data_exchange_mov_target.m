@@ -9,7 +9,7 @@
 
 clear; clc; close all
 Selection1 = 5;    % select observaition exchange and fusion strategies
-max_EstStep = 100; % max step
+max_EstStep = 60; % max step
 switch Selection1
     case 1,  ObservExch='off'; ConsenStep=0;
     case 2,  ObservExch='off'; ConsenStep=10;
@@ -20,7 +20,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 4; % select the motion of agents and target
+Selection2 = 3; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -31,13 +31,13 @@ end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Field Setup
-fld.x = 50; fld.y = 50;  % Field size
+fld.x = 100; fld.y = 100;  % Field size
 fld.map = ones(fld.x,fld.y)/(fld.x*fld.y);
 [xpt,ypt] = meshgrid(1:fld.x,1:fld.y);
 
 %% Target Steup
 fld.tx = 25; fld.ty = 25;% Target position, but unknown to estimator
-fld.target.speed = 5;
+fld.target.speed = 1;
 fld.target.cov = 0.0001*eye(2);% covariance of the target motion model
 if tar_move == 0
     fld.target.dx= 0;
@@ -65,15 +65,15 @@ ConsenFigure=0; % if 1, draw the concensus steps
 %         upd_cell1{ii} = reshape(upd_cell1{ii}',fld.x,fld.y);
     end
     
-    upd_cell2 = cell(size(pt,1),1);
-    for ii = 1:size(pt,1)
-        upd_cell2{ii} = zeros(fld.x,fld.y);
-        if (pt(ii,1)-fld.target.speed*fld.target.dx >= 1) && (pt(ii,2)-fld.target.speed*fld.target.dy >= 1)
-            upd_cell2{ii}(pt(ii,1)-fld.target.speed*fld.target.dx,pt(ii,2)-fld.target.speed*fld.target.dy) = 1;
-        end    
-%         upd_cell2{ii} = mvnpdf(pt,pt(ii,:)-[fld.target.speed*fld.target.dx,fld.target.speed*fld.target.dy],fld.target.cov);
-%         upd_cell2{ii} = reshape(upd_cell2{ii}',fld.x,fld.y);
-    end
+%     upd_cell2 = cell(size(pt,1),1);
+%     for ii = 1:size(pt,1)
+%         upd_cell2{ii} = zeros(fld.x,fld.y);
+%         if (pt(ii,1)-fld.target.speed*fld.target.dx >= 1) && (pt(ii,2)-fld.target.speed*fld.target.dy >= 1)
+%             upd_cell2{ii}(pt(ii,1)-fld.target.speed*fld.target.dx,pt(ii,2)-fld.target.speed*fld.target.dy) = 1;
+%         end    
+% %         upd_cell2{ii} = mvnpdf(pt,pt(ii,:)-[fld.target.speed*fld.target.dx,fld.target.speed*fld.target.dy],fld.target.cov);
+% %         upd_cell2{ii} = reshape(upd_cell2{ii}',fld.x,fld.y);
+%     end
 % end
 
 %% Path Planning setup
@@ -109,7 +109,7 @@ hf1=figure(1); set(hf1,'Position',[50,50,1000,600]); % for filtering cycle
 if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end % for consensus cycle
 % x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
 % y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
-x_set = [5:5:30];
+x_set = linspace(5,fld.x-5,6);
 y_set = 10*ones(1,NumOfRobot);
 for i=1:NumOfRobot
     rbt(i).x = x_set(i)+0.1*rand(1,1); % sensor position.x
@@ -154,10 +154,11 @@ rbt(6).neighbour=[1,5];
 %% Robot Buffer for Observation Exchange
 for i=1:NumOfRobot
     for j=1:NumOfRobot
-        rbtBuffer{i}.rbt(j).x=rbt(j).x;
-        rbtBuffer{i}.rbt(j).y=rbt(j).y;
-        rbtBuffer{i}.rbt(j).z=0;
-        rbtBuffer{i}.rbt(j).k=0;
+        rbtBuffer{i}.rbt(j).x=[];
+        rbtBuffer{i}.rbt(j).y=[];
+        rbtBuffer{i}.rbt(j).z=[];
+        rbtBuffer{i}.rbt(j).k=[];
+        rbtBuffer{i}.rbt(j).map = {};% record the previously calculated map to reduce computation
     end
 end
 
@@ -172,13 +173,13 @@ while (1) %% Filtering Time Step
     figure(1); clf(hf1);
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Target Movement
-    if rem(count,2) == 1
+%     if rem(count,2) == 1
         fld.tx = fld.tx + fld.target.speed * fld.target.dx;
         fld.ty = fld.ty + fld.target.speed * fld.target.dy;
-    else
-        fld.tx = fld.tx - fld.target.speed * fld.target.dx;
-        fld.ty = fld.ty - fld.target.speed * fld.target.dy;
-    end
+%     else
+%         fld.tx = fld.tx - fld.target.speed * fld.target.dx;
+%         fld.ty = fld.ty - fld.target.speed * fld.target.dy;
+%     end
     
     %% Generate measurement and observation probability
     for i=1:NumOfRobot % Robot Iteration
@@ -223,114 +224,196 @@ while (1) %% Filtering Time Step
             
             %% with Multis-step observation exch
         case 'multi',
-            %% data transmission
-            % (1) sending/receive
-            % multi-step transmit of observation
-            tempRbtBuffer=rbtBuffer;
-            for i=1:NumOfRobot % Robot Iteration
-                % for information from neighbours to compare whether it is
-                % latest                
-                for j=1:NumOfRobot
-                    for t=rbt(i).neighbour
-                        % note: communication only transmit the latest
-                        % observation stored in each neighbor
-                        if (~isempty(rbtBuffer{t}.rbt(j).k)) && (isempty(tempRbtBuffer{i}.rbt(j).k) || (tempRbtBuffer{i}.rbt(j).k(1) < rbtBuffer{t}.rbt(j).k(1)))
-                            tempRbtBuffer{i}.rbt(j).x = [rbtBuffer{t}.rbt(j).x(1),tempRbtBuffer{i}.rbt(j).x];
-                            tempRbtBuffer{i}.rbt(j).y = [rbtBuffer{t}.rbt(j).y(1),tempRbtBuffer{i}.rbt(j).y];
-                            tempRbtBuffer{i}.rbt(j).z = [rbtBuffer{t}.rbt(j).z(1),tempRbtBuffer{i}.rbt(j).z];
-                            tempRbtBuffer{i}.rbt(j).k = [rbtBuffer{t}.rbt(j).k(1),tempRbtBuffer{i}.rbt(j).k];
+            if (Selection2 == 1) || (Selection2 == 3)
+                % static target
+                %% data transmission
+                % (1) sending/receive
+                % multi-step transmit of observation
+                for i=1:NumOfRobot % Robot Iteration
+                    % for information from neighbours to compare whether it is
+                    % latest
+                    tempRbtBuffer{i}=rbtBuffer{i};
+                    for j=1:NumOfRobot
+                        for t=rbt(i).neighbour
+                            % note: communication only transmit the latest
+                            % observation stored in each neighbor
+                            if (~isempty(rbtBuffer{t}.rbt(j).k)) && (isempty(tempRbtBuffer{i}.rbt(j).k) || (tempRbtBuffer{i}.rbt(j).k < rbtBuffer{t}.rbt(j).k))
+                                tempRbtBuffer{i}.rbt(j).x = rbtBuffer{t}.rbt(j).x;
+                                tempRbtBuffer{i}.rbt(j).y = rbtBuffer{t}.rbt(j).y;
+                                tempRbtBuffer{i}.rbt(j).z = rbtBuffer{t}.rbt(j).z;
+                                tempRbtBuffer{i}.rbt(j).k = rbtBuffer{t}.rbt(j).k;
+                            end
                         end
                     end
+                end
+                
+                % return temperary buffer to robot buffer
+                for i=1:NumOfRobot
+                    for j=1:NumOfRobot
+                        rbtBuffer{i}.rbt(j).x = tempRbtBuffer{i}.rbt(j).x;
+                        rbtBuffer{i}.rbt(j).y = tempRbtBuffer{i}.rbt(j).y;
+                        rbtBuffer{i}.rbt(j).z = tempRbtBuffer{i}.rbt(j).z;
+                        rbtBuffer{i}.rbt(j).k = tempRbtBuffer{i}.rbt(j).k;
+                    end
+                end
+                
+                % (2) observation
+                % Observation of each robot
+                for i=1:NumOfRobot
+                    if count == 1
+                        % initialize the buffer
+                        rbtBuffer{i}.rbt(i).x=rbt(i).x;
+                        rbtBuffer{i}.rbt(i).y=rbt(i).y;
+                        rbtBuffer{i}.rbt(i).z=rbt(i).z;
+                        rbtBuffer{i}.rbt(i).k=count;
+                    elseif count > 1
+                        rbtBuffer{i}.rbt(i).x=rbt(i).x;
+                        rbtBuffer{i}.rbt(i).y=rbt(i).y;
+                        rbtBuffer{i}.rbt(i).z=rbt(i).z;
+                        rbtBuffer{i}.rbt(i).k=count;
+                    end
+                end
+                display(rbtBuffer{1}.rbt(1)),display(rbtBuffer{1}.rbt(2)),display(rbtBuffer{1}.rbt(3))
+                display(rbtBuffer{1}.rbt(4)),display(rbtBuffer{1}.rbt(5)),display(rbtBuffer{1}.rbt(6))
+                
+                %% update by bayes rule
+                % calculate probility of latest z
+                for i=1:NumOfRobot % Robot Iteration
+                    for j=1:NumOfRobot
+                        if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).z == 1)
+                            rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
+                            rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
+                        elseif ~isempty(rbtBuffer{i}.rbt(j).k) && rbtBuffer{i}.rbt(j).z == 0
+                            rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
+                            rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
+                        end
+                    end
+                    rbt(i).map=rbt(i).map/sum(sum(rbt(i).map));
+                end
+                
+                
+            elseif (Selection2 == 2) || (Selection2 == 4)
+                % moving target
+                %% data transmission
+                % (1) sending/receive
+                % multi-step transmit of observation
+                tempRbtBuffer=rbtBuffer;
+                for i=1:NumOfRobot % Robot Iteration
+                    % for information from neighbours to compare whether it is
+                    % latest
+                    for j=1:NumOfRobot
+                        for t=rbt(i).neighbour
+                            % note: communication only transmit the latest
+                            % observation stored in each neighbor
+                            if (~isempty(rbtBuffer{t}.rbt(j).k)) && (isempty(tempRbtBuffer{i}.rbt(j).k) || (tempRbtBuffer{i}.rbt(j).k(1) < rbtBuffer{t}.rbt(j).k(1)))
+                                tempRbtBuffer{i}.rbt(j).x = [rbtBuffer{t}.rbt(j).x(1),tempRbtBuffer{i}.rbt(j).x];
+                                tempRbtBuffer{i}.rbt(j).y = [rbtBuffer{t}.rbt(j).y(1),tempRbtBuffer{i}.rbt(j).y];
+                                tempRbtBuffer{i}.rbt(j).z = [rbtBuffer{t}.rbt(j).z(1),tempRbtBuffer{i}.rbt(j).z];
+                                tempRbtBuffer{i}.rbt(j).k = [rbtBuffer{t}.rbt(j).k(1),tempRbtBuffer{i}.rbt(j).k];
+                            end
+                        end
+                        % remove unneeded records
+                        rmv_idx = tempRbtBuffer{i}.rbt(j).k <= rbt(i).talign_t;
+                        tempRbtBuffer{i}.rbt(j).x(rmv_idx)=[];
+                        tempRbtBuffer{i}.rbt(j).y(rmv_idx)=[];
+                        tempRbtBuffer{i}.rbt(j).z(rmv_idx)=[];
+                        tempRbtBuffer{i}.rbt(j).k(rmv_idx)=[];
+                    end
+                end
+                
+                % return temperary buffer to robot buffer
+                for i=1:NumOfRobot
+                    for j=1:NumOfRobot
+                        rbtBuffer{i}.rbt(j).x = tempRbtBuffer{i}.rbt(j).x;
+                        rbtBuffer{i}.rbt(j).y = tempRbtBuffer{i}.rbt(j).y;
+                        rbtBuffer{i}.rbt(j).z = tempRbtBuffer{i}.rbt(j).z;
+                        rbtBuffer{i}.rbt(j).k = tempRbtBuffer{i}.rbt(j).k;
+                    end
+                end
+                
+                % (2) observation
+                % Observation of each robot
+                for i=1:NumOfRobot
+                    rbtBuffer{i}.rbt(i).x=[rbt(i).x,rbtBuffer{i}.rbt(i).x];
+                    rbtBuffer{i}.rbt(i).y=[rbt(i).y,rbtBuffer{i}.rbt(i).y];
+                    rbtBuffer{i}.rbt(i).z=[rbt(i).z,rbtBuffer{i}.rbt(i).z];
+                    rbtBuffer{i}.rbt(i).k=[count,rbtBuffer{i}.rbt(i).k];
                     % remove unneeded records
-                    rmv_idx = tempRbtBuffer{i}.rbt(j).k <= rbt(i).talign_t;
-                    tempRbtBuffer{i}.rbt(j).x(rmv_idx)=[];
-                    tempRbtBuffer{i}.rbt(j).y(rmv_idx)=[];
-                    tempRbtBuffer{i}.rbt(j).z(rmv_idx)=[];
-                    tempRbtBuffer{i}.rbt(j).k(rmv_idx)=[];
+                    % only observations that are got no less than talign_t+1
+                    % are used for Bayes filtering
+                    rmv_idx = rbtBuffer{i}.rbt(i).k <= rbt(i).talign_t;
+                    rbtBuffer{i}.rbt(i).x(rmv_idx)=[];
+                    rbtBuffer{i}.rbt(i).y(rmv_idx)=[];
+                    rbtBuffer{i}.rbt(i).z(rmv_idx)=[];
+                    rbtBuffer{i}.rbt(i).k(rmv_idx)=[];
                 end
-            end
                 
-            % return temperary buffer to robot buffer
-            for i=1:NumOfRobot
-                for j=1:NumOfRobot
-                    rbtBuffer{i}.rbt(j).x = tempRbtBuffer{i}.rbt(j).x;
-                    rbtBuffer{i}.rbt(j).y = tempRbtBuffer{i}.rbt(j).y;
-                    rbtBuffer{i}.rbt(j).z = tempRbtBuffer{i}.rbt(j).z;
-                    rbtBuffer{i}.rbt(j).k = tempRbtBuffer{i}.rbt(j).k;
-                end
-            end
-            
-            % (2) observation
-            % Observation of each robot
-            for i=1:NumOfRobot
-                rbtBuffer{i}.rbt(i).x=[rbt(i).x,rbtBuffer{i}.rbt(i).x];
-                rbtBuffer{i}.rbt(i).y=[rbt(i).y,rbtBuffer{i}.rbt(i).y];
-                rbtBuffer{i}.rbt(i).z=[rbt(i).z,rbtBuffer{i}.rbt(i).z];
-                rbtBuffer{i}.rbt(i).k=[count,rbtBuffer{i}.rbt(i).k];
-                % remove unneeded records
-                % only observations that are got no less than talign_t+1
-                % are used for Bayes filtering
-                rmv_idx = rbtBuffer{i}.rbt(i).k <= rbt(i).talign_t;
-                rbtBuffer{i}.rbt(i).x(rmv_idx)=[];
-                rbtBuffer{i}.rbt(i).y(rmv_idx)=[];
-                rbtBuffer{i}.rbt(i).z(rmv_idx)=[];
-                rbtBuffer{i}.rbt(i).k(rmv_idx)=[];
-            end
+                display(rbtBuffer{1}.rbt(1)),display(rbtBuffer{1}.rbt(2)),display(rbtBuffer{1}.rbt(3))
+                display(rbtBuffer{1}.rbt(4)),display(rbtBuffer{1}.rbt(5)),display(rbtBuffer{1}.rbt(6))
                 
-            display(rbtBuffer{1}.rbt(1)),display(rbtBuffer{1}.rbt(2)),display(rbtBuffer{1}.rbt(3))   
-            display(rbtBuffer{1}.rbt(4)),display(rbtBuffer{1}.rbt(5)),display(rbtBuffer{1}.rbt(6))  
-            
-            %% update by bayes rule
-            for i=1:NumOfRobot % Robot Iteration
-                talign_flag = 1; % if all agent's observation's time are no less than talign_t+1, then talign_flag = 1, increase talign_t
-                tmp_t = rbt(i).talign_t;
-                tmp_map = rbt(i).talign_map;
+                %% update by bayes rule
                 
-%                 if i == 1
-%                     hf2 = figure (2);
-%                     contourf((tmp_map)'); hold on;
-%                     title('t_align map before prediction step');
-%                 end
-                
-                for t = (rbt(i).talign_t+1):count                   
-                    % prediction step
-                    tmp_map2 = zeros(size(tmp_map));
-                    % dynamic model
-                    if rem(t,2) == 1
+                for i=1:NumOfRobot % Robot Iteration
+                    talign_flag = 1; % if all agent's observation's time are no less than talign_t+1, then talign_flag = 1, increase talign_t
+                    tmp_t = rbt(i).talign_t;
+                    tmp_map = rbt(i).talign_map;
+                    
+                    %                 if i == 1
+                    %                     hf2 = figure (2);
+                    %                     contourf((tmp_map)'); hold on;
+                    %                     title('t_align map before prediction step');
+                    %                 end
+                    
+                    for t = (rbt(i).talign_t+1):count
+                        %% prediction step
+                        tmp_map2 = zeros(size(tmp_map));
+                        
+                        % dynamic model
+                        %                     if rem(t,2) == 1
                         for k = 1:size(pt,1)
                             tmp_map2 = tmp_map2+upd_cell1{k}*tmp_map(pt(k,1),pt(k,2));
                         end
-                    else
-                        for k = 1:size(pt,1)
-                            tmp_map2 = tmp_map2+upd_cell2{k}*tmp_map(pt(k,1),pt(k,2));
-                        end
-                    end
-                    tmp_map = tmp_map2;
-                                       
-                    % updating step
-                    for j=1:NumOfRobot
-                        if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).k(1) >= t)
-                            l = find(rbtBuffer{i}.rbt(j).k == t);
-                            if rbtBuffer{i}.rbt(j).z(l) == 1
-                                rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x(l),rbtBuffer{i}.rbt(j).y(l),fld.x,fld.y,sigmaVal);
-                            elseif rbtBuffer{i}.rbt(j).z(l) == 0
-                                rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x(l),rbtBuffer{i}.rbt(j).y(l),fld.x,fld.y,sigmaVal);
+                        %                     else
+                        %                         for k = 1:size(pt,1)
+                        %                             tmp_map2 = tmp_map2+upd_cell2{k}*tmp_map(pt(k,1),pt(k,2));
+                        %                         end
+                        %                     end
+                        tmp_map = tmp_map2;
+                        
+                        %% updating step
+                        for j=1:NumOfRobot
+                            if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).k(1) >= t)
+                                %                             l = find(rbtBuffer{i}.rbt(j).k == t);
+                                if t < rbtBuffer{i}.rbt(j).k(1)
+                                    rbtBuffer{i}.rbt(j).prob = rbtBuffer{i}.rbt(j).map{t};
+                                elseif t == rbtBuffer{i}.rbt(j).k(1)
+                                    if rbtBuffer{i}.rbt(j).z(1) == 1
+                                        rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x(1),rbtBuffer{i}.rbt(j).y(1),fld.x,fld.y,sigmaVal);
+                                    elseif rbtBuffer{i}.rbt(j).z(1) == 0
+                                        rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x(1),rbtBuffer{i}.rbt(j).y(1),fld.x,fld.y,sigmaVal);
+                                    end
+                                    % record the previously calculated map to
+                                    % reduce computation
+                                    rbtBuffer{i}.rbt(j).map{t} = rbtBuffer{i}.rbt(j).prob;
+                                end
+                                tmp_map = tmp_map.*rbtBuffer{i}.rbt(j).prob;
+                            else
+                                talign_flag = 0;
                             end
-                            tmp_map = tmp_map.*rbtBuffer{i}.rbt(j).prob;
-                        else
-                            talign_flag = 0;
+                        end
+                        if (t == rbt(i).talign_t+1) && (talign_flag == 1)
+                            rbt(i).talign_map = tmp_map;
+                            rbt(i).talign_map = rbt(i).talign_map/sum(sum(rbt(i).talign_map));
+                            tmp_t = tmp_t+1;
                         end
                     end
-                    if (t == rbt(i).talign_t+1) && (talign_flag == 1)
-                        rbt(i).talign_map = tmp_map;
-                        rbt(i).talign_map = rbt(i).talign_map/sum(sum(rbt(i).talign_map));
-                        tmp_t = tmp_t+1;
-                    end
+                    
+                    rbt(i).talign_t = tmp_t;
+                    rbt(i).map = tmp_map;
+                    rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
                 end
-                
-                rbt(i).talign_t = tmp_t;
-                rbt(i).map = tmp_map;
-                rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
+                % record the map for each time
+                rbt(i).map_cell{count} = rbt(i).map;
             end
             %% Error
         otherwise, error('Observation Communication Error!');
@@ -402,8 +485,8 @@ while (1) %% Filtering Time Step
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% robot moves
     if r_move == 1
-        x_tmp = unidrnd(fld.x,1,NumOfRobot);
-        y_tmp = unidrnd(fld.y,1,NumOfRobot);
+        x_tmp = unidrnd(fld.x-2,1,NumOfRobot)+1; % generate random number within 2:fld.x-1
+        y_tmp = unidrnd(fld.y-2,1,NumOfRobot)+1;
         for i=1:NumOfRobot % Robot Iteration
             rbt(i).x = x_tmp(i);
             rbt(i).y = y_tmp(i);
@@ -419,7 +502,7 @@ while (1) %% Filtering Time Step
             case 3,  tag = 'mov_sen_sta_tar';
             case 4,  tag = 'mov_sen_mov_tar';
         end
-        file_name1 = sprintf('./figures/data_exchange/%s_%d',tag,count);
+        file_name1 = sprintf('./figures/data_exchange/%s_%d_%s',tag,count,datestr(now,1));
         saveas(hf1,file_name1,'fig')
         saveas(hf1,file_name1,'jpg')
     end
@@ -438,13 +521,16 @@ while (1) %% Filtering Time Step
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% plot the entropy
 hf2 = figure(2);
+line_clr = ['r','g','b','c','m','k'];
 for i=1:NumOfRobot
-    subplot(2,3,i); plot(1:count-1,rbt(i).entropy); hold on;
-    xlim([0,count])
+    plot(1:count-2,rbt(i).entropy(1:count-2),line_clr(i)); hold on;
+    xlim([0,count-1])
 end
-subplot(2,3,5); xlabel('Entropy of the Target PDF');
+xlabel('Entropy of the Target PDF');
+legend('Robot 1','Robot 2','Robot 3','Robot 4','Robot 5','Robot 6');
 
 switch Selection2
     case 1,  tag = 'sta_sen_sta_tar';
@@ -452,6 +538,10 @@ switch Selection2
     case 3,  tag = 'mov_sen_sta_tar';
     case 4,  tag = 'mov_sen_mov_tar';
 end
-file_name2 = sprintf('./figures/data_exchange/%s_entropy',tag);
+file_name2 = sprintf('./figures/data_exchange/%s_entropy_%s',tag,datestr(now,1));
 saveas(hf2,file_name2,'fig')
 saveas(hf2,file_name2,'jpg')
+
+%% save robot structure
+file_name3 = sprintf('./figures/data_exchange/%s_robot.mat_%s',tag,datestr(now,1));
+save(file_name3,'rbt')

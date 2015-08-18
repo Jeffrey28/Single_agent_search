@@ -9,14 +9,14 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="28.744303in"
-   height="19.137444in"
-   viewBox="0 0 2586.9874 1722.3698"
+   width="29.944302in"
+   height="19.048553in"
+   viewBox="0 0 2694.9873 1714.3697"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="DBF_demo_3.svg"
-   inkscape:export-filename="/Users/changliu/Documents/TortoiseHg/multi-agent_search/remultiagentsearch/Paper/ACC2016/figures/DBF_demo_3.png"
+   inkscape:export-filename="D:\Chang Liu\DBF_demo_3.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -69,10 +69,10 @@
     </marker>
     <inkscape:perspective
        sodipodi:type="inkscape:persp3d"
-       inkscape:vp_x="0 : 743.98348 : 1"
-       inkscape:vp_y="0 : 999.99996 : 0"
-       inkscape:vp_z="2432.4998 : 743.98348 : 1"
-       inkscape:persp3d-origin="1216.2499 : 495.98898 : 1"
+       inkscape:vp_x="0 : 743.98344 : 1"
+       inkscape:vp_y="0 : 999.9999 : 0"
+       inkscape:vp_z="2432.4999 : 743.98344 : 1"
+       inkscape:persp3d-origin="1216.2499 : 495.98895 : 1"
        id="perspective4838" />
     <marker
        inkscape:stockid="Arrow1Lstart"
@@ -297,17 +297,17 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.25"
-     inkscape:cx="1004.3373"
-     inkscape:cy="943.04066"
+     inkscape:cx="713.37344"
+     inkscape:cy="939.89892"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1440"
-     inkscape:window-height="801"
-     inkscape:window-x="0"
-     inkscape:window-y="88"
+     inkscape:window-width="1680"
+     inkscape:window-height="988"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      units="in"
      fit-margin-top="0.2"
@@ -316,41 +316,41 @@
      fit-margin-bottom="0.2"
      showborder="true">
     <sodipodi:guide
-       position="-119.21293,2617.9528"
+       position="-119.21295,2617.9527"
        orientation="1,0"
        id="guide4959"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="80.787059,2547.4365"
+       position="80.787056,2547.4365"
        orientation="1,0"
        id="guide4961"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="480.78711,2384.4364"
+       position="480.78713,2384.4365"
        orientation="1,0"
        id="guide4965"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="-562.64441,1517.4366"
+       position="-562.64444,1517.4366"
        orientation="0,1"
        id="guide4967"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="-704.06577,1517.4366"
+       position="-704.06581,1517.4366"
        orientation="0,1"
        id="guide4969" />
     <sodipodi:guide
-       position="-573.95795,1667.4366"
+       position="-573.95798,1667.4366"
        orientation="0,1"
        id="guide4971"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="680.78701,3104.4421"
+       position="680.78705,3104.442"
        orientation="1,0"
        id="guide4973"
        inkscape:label=""
@@ -364,7 +364,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -372,7 +372,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(158.84289,-60.657198)">
+     transform="translate(158.84289,-68.657382)">
     <flowRoot
        xml:space="preserve"
        id="flowRoot8611"
@@ -579,7 +579,7 @@
        x="601.17126"
        y="1417.949" />
     <g
-       transform="matrix(1.161111,0,0,1.161111,1573.8469,654.27671)"
+       transform="matrix(1.161111,0,0,1.161111,1567.8469,654.27671)"
        id="g5099-1">
       <g
          style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-opacity:1"
@@ -623,10 +623,10 @@
                x="-582.85712"
                y="160.93364" /></flowRegion><flowPara
              id="flowPara3358-1-0"
-             style="font-size:28.48920441px">k-N</flowPara></flowRoot>      </g>
+             style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>      </g>
     </g>
     <g
-       transform="matrix(1.161111,0,0,1.161111,1032.7142,1419.1168)"
+       transform="matrix(1.161111,0,0,1.161111,1024.7142,1419.1168)"
        id="g4375-9"
        style="fill:#076507;fill-opacity:1;stroke:#076507;stroke-opacity:1">
       <flowRoot
@@ -667,10 +667,10 @@
              y="160.93364"
              style="fill:#076507;fill-opacity:1;stroke:#076507;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4399-4"
-           style="font-size:28.48920441px">k-N</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>    </g>
     <g
        id="g4401-21"
-       transform="matrix(1.161111,0,0,1.161111,1492.7289,1419.1168)"
+       transform="matrix(1.161111,0,0,1.161111,1486.7289,1419.1168)"
        style="fill:#ff2600;fill-opacity:1;stroke:#ff2600;stroke-opacity:1">
       <flowRoot
          transform="translate(0,-4)"
@@ -710,7 +710,7 @@
              id="rect4423-8"
              style="fill:#ff2600;fill-opacity:1;stroke:#ff2600;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4425-3"
-           style="font-size:28.48920441px">k-N</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>    </g>
     <g
        style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-opacity:1"
        id="g5644"
@@ -767,7 +767,7 @@
                x="-1753.5676"
                y="-635.16119" /></flowRegion><flowPara
              style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1"
-             id="flowPara3342-1-6-8-2">(k-N+2)</flowPara></flowRoot>      </g>
+             id="flowPara3342-1-6-8-2">(k-N+3)</flowPara></flowRoot>      </g>
     </g>
     <g
        style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-opacity:1"
@@ -946,12 +946,12 @@
            width="770"
            id="rect5612" /></flowRegion><flowPara
          id="flowPara5614" /></flowRoot>    <rect
-       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:11.43670273;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:11.64823151;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect7241"
-       width="2539.5505"
-       height="1674.9332"
-       x="-135.12454"
-       y="84.375549" />
+       width="2647.3391"
+       height="1666.7217"
+       x="-135.01877"
+       y="92.481316" />
     <rect
        y="1417.949"
        x="833.88654"
@@ -967,7 +967,7 @@
        id="rect5022-5"
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:7.54722214;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <g
-       transform="matrix(1.161111,0,0,1.161111,2736.1058,647.41365)"
+       transform="matrix(1.161111,0,0,1.161111,2730.1058,647.41365)"
        id="g5099-11-2">
       <g
          style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-opacity:1"
@@ -1011,7 +1011,7 @@
                x="-582.85712"
                y="160.93364" /></flowRegion><flowPara
              id="flowPara3358-1-60-9"
-             style="font-size:28.48920441px">k-N</flowPara></flowRoot>      </g>
+             style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>      </g>
     </g>
     <g
        id="g4401-0-6"
@@ -1055,7 +1055,7 @@
              id="rect4423-53-3"
              style="fill:#0000ff;fill-opacity:1;stroke:#0000ff;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4425-0-2"
-           style="font-size:28.48920441px">k-N</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>    </g>
     <g
        id="g5258"
        transform="matrix(0.75609427,0,0,0.75609427,1041.9153,91.769954)">
@@ -1153,10 +1153,10 @@
                x="-582.85712"
                y="160.93364" /></flowRegion><flowPara
              id="flowPara3358-1-0-5"
-             style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>      </g>
+             style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>      </g>
     </g>
     <g
-       transform="matrix(1.161111,0,0,1.161111,1022.5778,1169.5039)"
+       transform="matrix(1.161111,0,0,1.161111,1014.5778,1169.5039)"
        id="g4375-9-5"
        style="fill:#076507;fill-opacity:1;stroke:#076507;stroke-opacity:1">
       <flowRoot
@@ -1197,7 +1197,7 @@
              y="160.93364"
              style="fill:#076507;fill-opacity:1;stroke:#076507;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4399-4-6"
-           style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>    </g>
     <g
        id="g4401-21-0"
        transform="matrix(1.161111,0,0,1.161111,1487.1291,1169.5039)"
@@ -1240,7 +1240,7 @@
              id="rect4423-8-5"
              style="fill:#ff2600;fill-opacity:1;stroke:#ff2600;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4425-3-3"
-           style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>    </g>
     <rect
        y="1168.3362"
        x="832.82336"
@@ -1290,7 +1290,7 @@
              id="rect4423-53-3-7"
              style="fill:#0000ff;fill-opacity:1;stroke:#0000ff;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4425-0-2-1"
-           style="font-size:28.48920441px">k-N+1</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>    </g>
     <g
        id="g5258-1"
        transform="matrix(0.75609427,0,0,0.75609427,1040.852,-157.843)">
@@ -1388,7 +1388,7 @@
                x="-582.85712"
                y="160.93364" /></flowRegion><flowPara
              id="flowPara3358-1-0-5-5"
-             style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>      </g>
+             style="font-size:28.48920441px">k-N+3</flowPara></flowRoot>      </g>
     </g>
     <g
        transform="matrix(1.161111,0,0,1.161111,1016.4482,936.62668)"
@@ -1432,7 +1432,7 @@
              y="160.93364"
              style="fill:#076507;fill-opacity:1;stroke:#076507;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4399-4-6-5"
-           style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+3</flowPara></flowRoot>    </g>
     <g
        id="g4401-21-0-3"
        transform="matrix(1.161111,0,0,1.161111,1484.0239,936.62668)"
@@ -1475,7 +1475,7 @@
              id="rect4423-8-5-9"
              style="fill:#ff2600;fill-opacity:1;stroke:#ff2600;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara4425-3-3-0"
-           style="font-size:28.48920441px">k-N+2</flowPara></flowRoot>    </g>
+           style="font-size:28.48920441px">k-N+3</flowPara></flowRoot>    </g>
     <g
        id="g5258-1-2"
        transform="matrix(0.75609427,0,0,0.75609427,1040.7711,-390.72014)">
@@ -1554,7 +1554,7 @@
              id="rect3340-9-6-6-2-6-5"
              style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara3342-1-6-8-2-4-8"
-           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N-1)</flowPara></flowRoot>    </g>
+           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N)</flowPara></flowRoot>    </g>
     <g
        id="g5258-1-2-6"
        transform="matrix(0.75609427,0,0,0.75609427,688.80394,-680.59021)">
@@ -1635,7 +1635,7 @@
                id="rect5883"
                style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1" /></flowRegion><flowPara
              id="flowPara5885"
-             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N+1)</flowPara></flowRoot>      </g>
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N+2)</flowPara></flowRoot>      </g>
     </g>
     <g
        style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-opacity:1"
@@ -1693,7 +1693,7 @@
                x="-1753.5676"
                y="-635.16119" /></flowRegion><flowPara
              style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1"
-             id="flowPara5921">(k-N)</flowPara></flowRoot>      </g>
+             id="flowPara5921">(k-N+1)</flowPara></flowRoot>      </g>
     </g>
     <path
        inkscape:connector-curvature="0"
@@ -1801,8 +1801,8 @@
          inkscape:connector-curvature="0" />
     </g>
     <path
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.87536311;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:8.62608967, 8.62608967;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
-       d="m 1677.338,1365.2725 364.1927,0"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:10.5, 10.5;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 1755.338,1365.2725 316.6963,0"
        id="path8652-9-0-0"
        inkscape:connector-curvature="0" />
     <g
@@ -1859,7 +1859,7 @@
              id="rect3340-9-6-6-2-6-5-6"
              style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1" /></flowRegion><flowPara
            id="flowPara3342-1-6-8-2-4-8-5"
-           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N)</flowPara></flowRoot>    </g>
+           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N+1)</flowPara></flowRoot>    </g>
     <path
        style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.87536311;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:8.62608967, 8.62608967;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend-2)"
        d="m 1677.338,163.44628 364.1927,0"
