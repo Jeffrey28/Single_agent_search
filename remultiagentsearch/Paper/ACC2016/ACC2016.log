@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  10 AUG 2015 12:02
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  19 AUG 2015 00:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -106,42 +106,42 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 (./ACC2016.aux)
 \openout1 = `ACC2016.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 41.
-LaTeX Font Info:    ... okay on input line 41.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 41.
-LaTeX Font Info:    ... okay on input line 41.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 41.
-LaTeX Font Info:    ... okay on input line 41.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 41.
-LaTeX Font Info:    ... okay on input line 41.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 41.
-LaTeX Font Info:    ... okay on input line 41.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 41.
-LaTeX Font Info:    ... okay on input line 41.
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 45.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 40.
+LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 40.
+LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 40.
+LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 40.
+LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 40.
+LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 40.
+LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <11> on input line 45.
+(Font)              <11> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7.69997> on input line 45.
+(Font)              <7.69997> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5.5> on input line 45.
+(Font)              <5.5> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 45.
+(Font)              <8> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 45.
+(Font)              <6> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 45.
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 45.
+(Font)              <5> on input line 44.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 44.
  (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-Underfull \hbox (badness 10000) in paragraph at lines 45--45
+Underfull \hbox (badness 10000) in paragraph at lines 44--44
 [][][]$[]$\OT1/ptm/m/n/8 Bernard D. Re-searcheris with the De-part-ment of Elec
 -tri-cal
  []
 
 
-Underfull \hbox (badness 8075) in paragraph at lines 45--45
+Underfull \hbox (badness 8075) in paragraph at lines 44--44
 \OT1/ptm/m/n/8 En-gi-neer-ing, Wright State Uni-ver-sity, Day-ton, OH 45435, US
 A
  []
@@ -152,13 +152,22 @@ Missing character: There is no Ó in font ptmb7t!
 
 
 ]
-Underfull \hbox (badness 1577) in paragraph at lines 146--147
-[]\OT1/ptm/m/n/10 Remark (3): the pro-posed LEO strat-egy is a more
+Underfull \hbox (badness 2173) in paragraph at lines 79--80
+[]\OT1/ptm/m/n/10 Consider a net-work of N robots in bounded two-
  []
 
-[2] [3]
+[2]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [3]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 286.
+(Font)              <7> on input line 210.
+
+[4]
+Underfull \hbox (badness 4699) in paragraph at lines 315--316
+[]\OT1/ptm/m/n/10 In this study, we pro-posed the local-exchange-of-
+ []
+
 Missing character: There is no Ò in font ptmr7t!
 Missing character: There is no Ó in font ptmr7t!
 Missing character: There is no Ò in font ptmr7t!
@@ -173,6 +182,7 @@ Missing character: There is no Ò in font ptmr7t!
 Missing character: There is no Ó in font ptmr7t!
 Missing character: There is no Ð in font ptmr7t!
 Missing character: There is no Ð in font ptmr7t!
+[5]
 Missing character: There is no Ò in font ptmr7t!
 Missing character: There is no Ó in font ptmr7t!
 Missing character: There is no Ò in font ptmr7t!
@@ -226,7 +236,7 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-[4] (./ACC2016.aux) ) 
+[6] (./ACC2016.aux) ) 
 Here is how much of TeX's memory you used:
  882 strings out of 493117
  14262 string characters out of 6135433
@@ -234,19 +244,22 @@ Here is how much of TeX's memory you used:
  4407 multiletter control sequences out of 15000+600000
  38737 words of font info for 77 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 26i,9n,20p,1314b,283s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 26i,9n,20p,1153b,283s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8
-r.enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.p
-fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb>
-</usr/local/texlive/2014/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/lo
-cal/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texliv
-e/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/te
-xmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/f
-onts/type1/urw/times/utmri8a.pfb>
-Output written on ACC2016.pdf (4 pages, 93526 bytes).
+r.enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10
+.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.p
+fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb>
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/
+local/texlive/2014/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014
+/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/texmf-di
+st/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
+ype1/urw/times/utmri8a.pfb>
+Output written on ACC2016.pdf (6 pages, 124333 bytes).
 PDF statistics:
- 46 PDF objects out of 1000 (max. 8388607)
- 32 compressed objects within 1 object stream
+ 64 PDF objects out of 1000 (max. 8388607)
+ 45 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

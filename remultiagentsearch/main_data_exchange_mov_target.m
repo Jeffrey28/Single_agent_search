@@ -20,7 +20,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 3; % select the motion of agents and target
+Selection2 = 1; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -495,7 +495,7 @@ while (1) %% Filtering Time Step
     
     % save plots
     %
-    if (count == 1) || (count == 3) || (count == 5) || (count == 7) || (count == 10) || (count == 50) || (count == 100)
+    if (count == 1) || (count == 3) || (count == 5) || (count == 7) || (count == 10) || (count == 20) || (count == 30) || (count == 40)
         switch Selection2
             case 1,  tag = 'sta_sen_sta_tar';
             case 2,  tag = 'sta_sen_mov_tar';
