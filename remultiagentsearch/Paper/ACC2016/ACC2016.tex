@@ -15,15 +15,15 @@
 % on the last page of the document
 
 % The following packages can be found on http:\\www.ctan.org
-%\usepackage{graphics} % for pdf, bitmapped graphics files
-%\usepackage{epsfig} % for postscript graphics files
+\usepackage{graphics} % for pdf, bitmapped graphics files
+\usepackage{epsfig} % for postscript graphics files
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
-%\usepackage{amsmath} % assumes amsmath package installed
-%\usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amssymb}  % assumes amsmath package installed
 
 \title{\LARGE \bf
-Distributed Bayesian Filter in Multi-Robot Network by using Local-Exchange-of-Observation Strategy}
+Distributed Bayesian Filter for Multi-Robot Network by Using Local-Exchange-of-Observation Strategy}
 
 
 \author{Albert Author$^{1}$ and Bernard D. Researcher$^{2}$% <-this % stops a space
@@ -57,31 +57,65 @@ This electronic document is a ÒliveÓ template. The various components of your pa
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
 
-Distributed filtering in multi-robot network that focuses on utilizing a group of networked robots to collectively infer the state of an environment has been used for various applications, such as object detection (Chamberland), target tracking (Beaudeau) and environmental monitoring etc. [need to mention target search somewhere]
+Distributed filtering in multi-robot network that focuses on using a group of networked robots to collectively infer the state of an environment has been used for various applications, such as object detection (Chamberland), target tracking (Beaudeau) and environmental monitoring etc (give 2nd-level details of the examples). This study focuses on the distributed estimation of a target position in the environment for target search and tracking applications. History, main stream methods (Kalman filter, particle filter, Bayesian filter)? ???Bayesian filter, generalization. 
 
-The communication topology of multi-robot network plays a vital role in distributed filtering algorithms. There have been a number of works on distributed filtering using fusion center-based topology that local information is transmitted (via multihopping) to the fusion center for forming global estimation. For example, in (L. Zuo) each robot sensor transmits local estimation of environment state to the fusion center, where the Best Linear Unbiased Estimator is utilized forming the global estimation of the environment. Ribero et.al. (A) studied deterministic mean-location parameter estimation using quantized sensor observations. At the fusion center, maximum-likelihood estimators were applied to the quantized observations transmitted from sensors for achieving a parameter estimation with variance close to that of the clairvoyant sample mean estimator.
 
-More recently, many works focus on the distributed filtering using the neighborhood-based communication topology that each robot can only exchange information with neighboring robots. For example, Sheng et. al. (S.) proposed distributed particle filters with Gaussian Mixer to localize and track multiple moving targets in a wireless sensor network. The distributed particle filters run on a set of uncorrelated sensor cliques and information among cliques is exchanged for global estimation of targets. In (Ram.S), a circular topology that each sensor can only communicate with a fixed neighboring sensor is deployed for parameter estimation of a spatial field, using the incremental Robbins-Monro gradient algorithm locally at each sensor.
 
-Consensus algorithms, as proposed in (Olfat-Saber) (Ren.) (Jadbabie.) have become a popular distributed filtering approach for robot teams with neighborhood-based communication topology. As far, the commonly used consensus strategy is based on the statistics dissemination (Hlinka), which actually exchanges posterior distribution or likelihood functions to neighboring robots for distributed estimation. For example, Saptarshi et. al. (Bandyopadhyay) presented a Bayesian consensus filter (BCF) that uses logarithmic opinion pool for fusing posterior distributions among neighboring robots. The proposed BCF can incorporate non-Gaussian uncertainties and nonlinearity in target dynamic models and measurement models. A consensus-based distributed particle filter (DPF) is proposed by Julian et. al. (Julian) for estimating environmental state by exchanging and fusing posterior functions of the state among neighbors. The DPF can work even when the network diameter, the maximum in/out degree, and the number of robots are unknown. 
+The communication topology of multi-robot network plays a vital role in distributed filtering algorithms. Fusion center-based DBF has been the most common structure for distributed filtering, in which local information of robots is transmitted (possibly via multi-hopping) to the fusion center for forming global estimation (L. Zuo) (A). Pros and cos. The other is ****. , many works focus on the neighborhood-based DBF that each robot can only exchange information with neighboring robots and each robot forms local estimation of the environment state. Pros and cons.
+Definition, 
 
-Despite the popularity of these distributed filtering approaches, exchanging posterior distribution or likelihood functions can consume high communication resources, which may be infeasible in many applications in vast area or complex environment, such as marine search, seismological rescue, etc. Different from the statistics dissemination-based approaches, this study focuses on the strategy of exchanging observation in the neighborhood of each robot for the purpose of achieving a consensus of local target PDFs. The main benefit of this strategy is the reduction of communication burden, the data volume of which scales linearly with the robot number while statistics dissemination-based strategies suffer from the data volume on the order of the environmental size. 
+Statistics dissemination based ****. 
+For example, Sheng et. al. (S.) proposed a leader agent based distributed particle filters with Gaussian Mixer to localize and track multiple moving targets. The distributed particle filters ran on a set of uncorrelated sensor cliques and information among cliques was exchanged for global estimation of targets. An improvement is conducted by ****. *****
 
-Several works have focused on the dissemination of observation for distributed filtering, in which raw or quantized observations are exchanged among robots for environmental state estimation. For example, Coates et. al. (Coates) proposed a distributed particle filter that uses adaptive encoding of the observations to minimize communication overhead. In (Djuric), each robot communicate the observation of the tracked targets to all the remaining agents and apply local particle filter for tracking targets.  In both works, communication topology is assumed fully connected that each robot broadcasts observations to all robots in single transmission step.
 
-In this work, we propose a local-exchange-of-observation (LEO) strategy for distributed Bayesian filters (DBF). Each robot broadcasts its own observation and previously received neighboring robots? observations to all neighbors. After receiving observation from neighbors, each robot runs Bayesian filter locally for environmental state estimation. The proposed LEO-DBF has following properties:
-(1)	LEO- DBF reduces the communication burden for multi-robot network compared to statistics dissemination-based distributed filtering approaches
-(2)	LEO-DBF can ensure consistency of the state estimate, thus guaranteeing consensus. 
 
-The consistency property, referring to the agreement between the state estimates and the true state, differentiates LEO-DBF from the statistics dissemination-based filtering approaches. In fact, the statistics dissemination-based methods can ensure the convergence of the state estimate among robots. However, there?s no guarantee whether the agreed quantity is close to the true value. In this study, a formal proof of the consistency of the proposed LEO-based DBF is provided, ensuring the agreement between robots? state estimate and true environmental state.
+
+
+
+Another popular strategy for statistics dissemination is to use ***** consensus. *** 
+
+
+Consensus algorithms, as proposed in (Olfat-Saber) (Ren.) (Jadbabie.), have become a popular distributed filtering approach for neighborhood-based communication topology. As far, the commonly used consensus strategy is based on the statistics dissemination (Hlinka), which actually exchanges posterior distribution or likelihood functions to neighboring robots for distributed estimation. For example, Saptarshi et. al. (Bandyopadhyay) presented a Bayesian consensus filter (BCF) that uses logarithmic opinion pool for fusing posterior distributions of the tracked target among neighboring robots. The proposed BCF can incorporate non-Gaussian uncertainties and nonlinearity in target dynamic models and measurement models. A consensus-based distributed particle filter (DPF) is proposed by Julian et. al. (Julian) for estimating environmental state by exchanging and fusing posterior functions of the state among neighbors. The DPF can work even when the network diameter, the maximum in/out degree, and the number of robots are unknown.
+
+
+
+
+There are other types of variants, for example, In (Ram.S), a circular topology that each sensor can only communicate with a fixed neighboring sensor is deployed for parameter estimation of a spatial field. Each sensor generates state estimate based on the estimate of previous sensor and its own observation and sequentially passes the estimate to its neighbor, who using the incremental Robbins-Monro gradient algorithm locally at each sensor.
+
+
+
+Despite the popularity of statistics dissemination approaches, exchanging posterior distribution or likelihood functions can consume high communication resources, which may be infeasible for applications in vast area or complex environment, such as marine search, seismological rescue, etc. This study focuses on the strategy of exchanging observation in the neighborhood of each robot for the purpose of achieving a consensus of local target PDFs.  Some pioneering studies have been done on measurement dissemination strategies, in which raw or quantized observations are exchanged among robots. For example, Coates et. al. (Coates) used adaptive encoding of observations to minimize communication overhead. In (Djuric), each robot communicates the observation of the targets to all the remaining agents and apply local particle filter for target tracking (add more details about how the observations are exchanged). Another example can be found in ***, in which both observation and statistics are exchanged.  In aforementioned works, communication topology is assumed fully connected that each robot broadcasts observations to all robots in single transmission step. 
+
+This paper proposes a local-exchange-of-observation (LEO) strategy for distributed Bayesian filters (DBF) for undirected local topology. Each robot only broadcasts its observation to its local neighbors and ****. introduce DBF, two steps. The main benefit of this strategy is the reduction of communication burden, with the transmission data volume scaling linearly with the robot number, while statistics dissemination-based strategies suffer from the data volume on the order of environmental size.  After receiving observation from neighbors, each robot runs Bayesian filter locally for environment state estimation. The proposed DBF has following properties:
+(1)	For *** topology, LEO can guarantee , all elements in  under LEO become filled when  .  (mainly about proposition 1, corollary 1,2)
+(2)	LEO-DBF can ensure consistency of the state estimate, thus guaranteeing consensus.  (mainly about theorem 1 and 2)
+
+(merge this with property (2))The consistency property refers to the agreement between the robot?s state estimate and the true state. In this study, a formal proof of the consistency of LEO-DBF is provided. This property differentiates LEO-DBF from the statistics dissemination-based filtering approaches. In fact, the statistics dissemination-based methods can ensure the convergence of the state estimate among robots. However, there?s no guarantee whether the agreed estimate is close to the true state.
+
+The rest of this paper is organized as follows: Section 1 ***; section 2 ***. 
+
 
 \section{PROBLEM FORMULATION}
-Consider a network of N robots in bounded two-dimensional space S. Each robot is equipped with a binary sensor for observing the environment state. Due to the limit of communication range and bandwidth, each robot can only exchange observations with its neighboring robots using the local-exchange-of-observation strategy. Distributed Bayesian filter is run locally on each robot for environmental state estimation based on own and received observations.
+Consider a network of N robots in bounded two-dimensional space S. Each robot is equipped with a binary sensor for environmental perception. Due to the limit of communication range, each robot can only exchange observations with its neighbors. Bayesian filter is run locally on each robot for environment state estimation based on its own and received observations. 
 
 
 \subsection{Probabilistic Model of Binary Sensor}
 
-The sensor model is subject to a Gaussian distribution. 
+The binary sensor only gives two types of observation: 1 if the target is detected, and 0 if no target is detected. The observation of i-th sensor at k-th time step is denoted as  . The likelihood function that the target is detected is:
+ 
+(1)
+where   is the target position,    is the set of all possible target positions. Correspondingly, the likelihood function that no target is detected is
+ 
+(2)
+The combination of Eq. (1) and (2) is actually binary sensor model, parameterized by  . The goal of Bayesian filter is to estimate the actual target position, i.e.,  , with which all observations are generated. 
+
+The commonly used likelihood functions for binary sensor are Gaussian function (Bonnie) (Liu) and step function (Djuric P. ). In addition, LEO also works for other types of sensors, including imaging sensors (need to think about this wording. Is it possible to find something opposite to binary sensor) such as laser scanners (D) and cameras (J.).
+
+Remark (1): The current observation of each robot is conditionally independent from both its own past observations and those of other robots, given the information of target position. 
+
+
+Remark (3): This study is applicable for both homogenous and heterogeneous binary sensors A homogeneous model can simplify the analysis of completeness, while the heterogeneous model is more close to real sensing characteristics. 
+
 
 \subsection{Bayesian Filtering for Multiple Sensors}
 
@@ -97,49 +131,53 @@ Remark (1): The current observation of each robot is conditionally independent f
 Remark (2): In this study, both homogenous and heterogeneous models of binary sensor are applicable.  The definition of heterogeneity is in the sense of observation likelihood function, which means that the observation spaces are the same, but the observation probability can differ. The homogenous assumption can simplify the analysis of completeness, while the heterogeneous models is more close to real sensing characteristics.  
 
 \subsubsection{Graphical model of communication topology}
-Consider an undirected and connected graph  , where   is the set of nodes (i.e., robots) and   is the edge set of nodes. The adjacency matrix  is used to describe the communication topology of the robot network:
+Consider an undirected and connected graph  , where   is the set of robots and   denotes the edge set. The adjacency matrix   describes the communication topology of G:
  , 
-where  denotes the entity of adjacency matrix. The notation  indicates there is a communication link between i-th and j-th robot and  indicates no communication. The direct neighborhood of i-th robot is defined as . All the robots in   can directly exchange information with the i-th robot. In addition to the direct neighborhood, another neighborhood, called the available neighborhood, is defined as , which contains robots whose observations is received by the i-th robot through single-hopping and multi-hopping. Note that if only single-hopping is allowed, then   is equal to  .
-Figure 1 illustrates three types of common communication topologies: circular, serial, and star. 
-Remarks (3): The communication topology in this study is connected, which means that there exists a communication path between any two robots. 
+where  denotes the entity of adjacency matrix. The notation  indicates that a communication link exists between i-th and j-th robot and  indicates no communication. 
+The direct neighborhood of i-th robot is defined as . All the robots in   can directly exchange information with the i-th robot. In addition to direct neighborhood, another set, called available neighborhood, is defined as , which contains robots whose observation is received by the i-th robot given a specific observation exchange algorithm. Note that in general  , but if only single-hopping is allowed,   is equal to  . Figure 1 illustrates three types of typical topologies: circular (Ram.S), serial (Bahceci), and star (S.). All of them are undirected and connected topologies. 
+
 
 \subsection{Distributed Bayesian Filter for Multiple Robots}
-The generic Distributed Bayesian Filter (DBF) is introduced in this section, which was also stated in (O, Distributed Sequential Estimation in Asynchronous Wireless Sensor Networks) and (T). Each robot has its individual estimation of the target PDF, called individual PDF. The i-th individual PDF at time k is defined as . Before starting DBF, the individual PDF is initialized by the prior function  , given all available prior information including past experience and domain knowledge. Then the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of the robots in  .
+The generic Distributed Bayesian Filter (DBF) is introduced in this section, which was also stated in (O, Distributed Sequential Estimation in Asynchronous Wireless Sensor Networks) and (T). Each robot has its individual estimation of target PDF, called individual PDF. The i-th individual PDF at time k is defined as . Before starting DBF, the individual PDF is initialized by the prior function  , given all available prior information including past experience and environmental knowledge. Then the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of the robots in  .
  
 \subsubsection{Prediction}
 The i-th individual PDF at time k-1 is known, denoted as  . At time k, the prior individual PDF is first predicted forward by using the Chapman-Kolmogorov equation:
  
 (3)
-where   is a Markov motion model of the target, independent of robot states. This model describes the state transition probability of the target from the prior state to the posterior state  . Note that the target can be static in many searching applications, for example, [] and []. For a static target, its motion model is simplified to be
+where   is a Markov motion model of the target, independent of robot states. This model describes the state transition probability of the target from a prior state to posterior state  . Note that the target can be static in many searching applications, for example, ****** (Kulich). For a static target, its Markov motion model is simplified to be
  
-and Eq. (3) can be reduced to 
+and Eq. (3) can be reduced to  . 
+
 
 \subsubsection{Updating}
-At time step k, the i-th individual PDF is then updated by Bayes? formula considering the latest available observation at time k: 
+At time step k, the i-th individual PDF is then updated by Bayes? formula using the latest available observations at time k: 
  
 (4)
 where   is a normalization factor, given by:
  .
-where   is called posterior individual PDF,   is the observation likelihood of   for a given target  , expressed in Eq. (1) and (2). 
+where   is called posterior individual PDF;  is the likelihood function of observation  , described in Eq. (1) and (2). 
+
 
 \section{Distributed Bayesian Filter via Local Exchange of Observation}
-This study proposes a Distributed Bayesian Filter (DBF) algorithm based on local exchange of observation (LEO) strategy. The LEO still uses the local communication within neighborhood of each robot, but allows the broadcast of the observation of each robot to any other nodes by multi-hopping along the shortest path in the communication network. The theoretical analysis show that LEO-based DBF can ensure the consistency of individual estimation (consistency also implies consensus) while requiring much less communication burden than the statistics-dissemination based DBF. 
+This study proposes a Distributed Bayesian Filtering (DBF) algorithm based on LEO strategy, shorted as LEO-DBF. The LEO only uses the local communication within the neighborhood of each robot, but allows to broadcast observations of each robot to any other nodes by multi-hopping along the shortest path in the undirected and connected network. The theoretical analysis show that LEO-DBF can ensure the consistency and consensus of individual PDF  while requiring much less communication burden than any statistics dissemination-based DBFs. 
 
-\subsubsection{Algorithm for Local Exchange of observations (LEO)}
-Under the LEO, each robot contains a communication buffer (CB) to store its latest knowledge of the observations of all robots:
- 
-where  represents the observation made by j-th robot at time  . At time k,   is received and stored in i-th robot CB, in which   is the latest available step of j-th robot known by the i-th robot. Due to the communication delay of multi-hopping,   always holds in practice.  
+\subsection{Algorithm for Local Exchange of observations (LEO)}
+Under the LEO, each robot contains a communication buffer (CB) to store its latest knowledge of the observations of all robots: 
+\begin{equation}
+\mathbf{z}^i_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
+\end{equation}
+where $z^j_{k^i_j}$ represents the observation made by ${j^\text{th}}$ robot at time $k^i_j$. Note that under LEO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace $. At time k, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest available observation time of ${j^\text{th}}$ robot known by ${i^\text{th}}$ robot. Due to the communication delay of multi-hopping, $k^i_j<k$ always holds in practice.  
 
-The LEO algorithm is stated as below:
+The LEO algorithm is stated as follows:
 
 (1) Initialization: The buffer of i-th robot is initialized when k=0: 
  
 (2) Repeat the following steps for i-th robot until stop
 (2.1) Receiving Step: 
-The i-th robot receives all CBs of its neighboring robots. The received CBs are totally   groups, each of which is actually the (k-1)-step CB of a robot in  . The received CB from l-th ( ) robot is denoted as
+The i-th robot receives all CBs of its neighboring robots. The received CBs are totally   groups, each of which corresponding to the (k-1)-step CB of a robot in  . The received CB from l-th ( ) robot is denoted as
  
 (2.2) Observation Step: 
-The i-th robot updates   by its personal observation at current step:
+The i-th robot updates   by its own observation at current step:
  . 
 (2.3) Comparison Step: 
 The i-th robot updates other elements of its own CB, i.e.,  , by selecting the latest information among all received CBs from  . For all  , 
@@ -149,52 +187,47 @@ The i-th robot updates other elements of its own CB, i.e.,  , by selecting the l
  (2.4) Sending Step: The i-th robot broadcasts its updated CB to all of its neighbors defined in  . 
 (End of LEO)
 
-Figure 2 illustrates the LEO algorithm with 3 robots using linear topology. Two facts can be observed in Figure 2: (1) the CBs are filled within 3 steps, which means LEO has a maximum delay of 2 steps; (2) after filled, the updating of CBs are non-intermittent, which means each robot continuously receives newer observations of other robots. Extending the two facts to a network of N robots, we have the following proposition:
 
-Proposition 1: For an undirected and connected network of N robots with fixed communication topology, the latest observation of an arbitrary robot i can be received and stored in another robot j?s CB under LEO only via the shortest paths between i and j, with the delay   equivalent to the length of shortest paths. 
+Figure 2 illustrates the LEO algorithm with 3 robots using a serial topology. Two facts can be observed in Figure 2: (1) all robot CBs are filled within 3 steps, which means under LEO each robot has a maximum delay of 2 steps when receiving observations from other robots; (2) after filled, the updating of CBs are non-intermittent, which means each robot continuously receives newer observations of other robots. Extending the two facts to a network of N robots, we have the following proposition:
+
+
+Proposition 1: For an undirected and connected network of N robots with fixed topology, LEO uses the shortest path(s) between i and j to exchange observation, i.e.,  the delay   between i and j is equivalent to the length of their shortest path(s). 
 
 Proof:  
-Let   denote a loopless path between two arbitrary robots, the i-th and j-th robot, with  and all  ?s being unique. The path length is n-1. For the purpose of simplicity, we assume there?s only one shortest path between i and j and let  be the shortest path, with  . Define the distance between two robots,  , as the length of the shortest path between the two robots. Then  . 
+Without loss of generality, assume that there is a unique shortest path between i and j, denoted by  , with  . Then, the distance between i and j is  . The following mathematical induction will prove Proposition 1. 
 
-Next, we will prove the following shortest-path transmission statement by the mathematical induction:
+Step (1): For  , this means   and j can directly send   to i. Then,  is stored in i-th CB at time k+1, i.e.  . Proposition 1 holds for  .
+Step (2): Suppose that Proposition 1 holds for  . Then for  , i.e.,  , by the Bellman?s principle of optimality, the path   is the shortest path between j and l, where  and  . The assumption that Proposition 1 holds for   implies that  is received and stored in l-th robot?s CB at time  . Since  , i-th robot receives  at  . Therefore, . For any other path  with  ,  cannot be received by i-th robot at  . This proves the Proposition 1 for  . 
+(End of proof)
 
-Let  be the j-th robot?s observation at time k. Then i-th robot can only receive and store  in its CB via the shortest path  at time  .
-
-Step (1):
-For  , this means   and j can directly send   to i. Since  is the latest observation that i-th robot can receive,  is stored in i-th CB at time k+1.   transmitted via other paths with length greater than 1 arrives at i later than k+1, thus getting discarded by i-th robot, since it has already received   at k+1. The delay  . Since i and j are arbitrary robots with distance equal to 1, the shortest-path transmission statement holds for all pairs of robots with distance equal to 1 in the network.
-
-Step (2):
-Suppose the shortest-path transmission statement holds for  . Then for  , by the Bellman?s principle of optimality, the path   is the shortest path between j and l, where l is the ( )-th robot on the path   and i is a neighboring robot of l. The assumption that the shortest-path transmission statement holds for   implies that  is received and stored in l-th robot?s CB at time  . Since  , i-th robot receives  at  . Therefore  . For any other path  with  ,  cannot be received by i-th robot at  . This proves the shortest-path transmission statement for  . 
-
-Based on the principle of mathematical induction, the shortest-path transmission statement holds. (End of proof)
-
-Corollary 1: For the same topology assumption in Proposition 1, all elements of  under LEO become filled when  .
+Corollary 1: For the same topology assumption in Proposition 1, all elements in  under LEO become filled when  .
 
 Proof:
-Based on proposition 1, the delay between any pair of two robots is the length of the shortest path connecting these two robots. In a network of N robots, the maximal length of shortest paths is no greater than N-1 []. Thus   and all elements of   becomes filled when  . (End of proof)
+In a network of N robots, the maximal length of shortest paths is no greater than N-1. Based on proposition 1,   and thus all elements of   become filled when  . (End of proof)
 
-Corollary 2: For the same topology in Proposition 1, once   is filled, the updating of each element in   is non-intermittent, i.e.,   is a constant. 
+Corollary 2: For the same topology in Proposition 1, once   is filled, the updating of each element in   is non-intermittent. 
 
 Proof:
-For a connected network with fixed topology, the shortest path between any nodes is fixed. Based on Proposition 1,  is constant. (End of proof)
+For a network with fixed topology, the shortest path between any nodes is fixed. Based on Proposition 1,  is constant, and then the updating of each element in   is non-intermittent. (End of proof)
 
-Remarks (4): Compared to statistics dissemination, LEO is a more transmission-efficient approach for the DBF consensus. To be specific, consider a grid environment with a network of  robots, the transmitted data of LEO between each pair of robots are only the CB of each robot, the length of which is  . On the contrary, the length of transmitted data for a statistics-dissemination approach is  . Since   is generally much larger than   in robot search community, LEO requires much less transmission sources than the statistics-dissemination approaches. 
+Remarks (5): Compared to statistics dissemination, LEO is a more communication-efficient approach for distributed filtering. To be specific, consider an grid environment with a network of  robots, the transmitted data of LEO between each pair of robots are only the CB of each robot, the length of which is  . On the contrary, the length of transmitted data for a statistics-dissemination approach is  , which is the size of environment grid. Since   is generally much larger than   in target search and tracking community, LEO requires much less communication resources than the statistics-dissemination approaches. 
 
-Remarks (5): This study only discusses a network of fixed topology, which has been commonly used in multi-robot search, e.g., (T) and (Bandyopadhyay). The switching topology can leads to unpredictable delay and intermittent transmission, thus significantly complicating the analysis of the consensus of individual PDFs.  Intuitively, a consensus is till achievable in practice if enough observations are transmitted between any two topological switches for slowly changing topology, or if a certain percentage of observations in probability from other robots can be always received for fast changing topology.  
 
 
 \subsection{Algorithm for LEO-based DBF for a Static Target} 
 
-This section derives the DBF for a static target. The robot store last step individual PDF, i.e., (k-1)-th step. The assumption of static target can simplify the Bayesian filter, in which the prediction step is unnecessary. Therefore, the i-th individual PDF is only updated by 
+This section gives the LEO-DBF for a static target. Each robot stores last-step individual PDF, i.e., (k-1)-th step. The assumption of static target can simplify the Bayesian filter, in which the prediction step is unnecessary. Therefore, the i-th individual PDF is only updated by 
+ 
+where
+ 
 
 
 \subsection{Algorithm for LEO-DBF for a Moving target}
-This section derives the DBF for a moving target. Instead of storing last step PDF , the robot maintains (k-N)-th individual PDF, and a triangular matrix of history observations from (k-N+1)-th to k-th steps. The i-th individual PDF is alternatively predicted and updated by using aforementioned Bayesian filter (Eq. (3) and (4)) from (k-N)-th individual PDF to k-th step. 
+This section gives the LEO-DBF for a moving target. Instead of storing last-step PDF , each robot maintains (k-N)-th individual PDF, and a triangular matrix of history observations from (k-N+1)-th to k-th steps. The i-th individual PDF is alternatively predicted and updated by using aforementioned Bayesian filter (Eq. (3) and (4)) from (k-N)-th individual PDF to k-th step. Figure 3 illustrates how to *****. 
 
-Without loss of generality, assume   and let  .
 For the i-th robot at k-th step: 
 1)	The stored individual PDF for (k-N)-th step is  
-2)	Initialize a virtual PDF by assigning the assigned PDF to it:
+2)	Initialize a virtual PDF by assigning the individual PDF to it:
  
 3)	From   to N, repeat two steps of Bayesian filtering
 (a)	Prediction 
@@ -202,61 +235,64 @@ For the i-th robot at k-th step:
 (b)	Updating
  
  
-4)	Store (k-N+1)-th individual PDF to be first-step virtual PDF
+4)	Store the first-step virtual PDF as the (k-N+1)-th individual PDF:
  
+where  denotes the index set of robots whose observation at time   is stored in i-th robot?s CB. The target PDF estimation of i-th robot at current step is  . *********************************************** (??????????????). 
 
-The target PDF estimation of i-th robot at current step is  .
+Remarks (7): For the static target, each robot only needs current step CB to update individual PDFs. Therefore, except storing individual PDFs, all historical CBs can be discarded and only current-step CB is stored in robot memory, the length of which is  . On the contrary, for the moving target, each robot needs to store a triangular matrix of history observation (except current step CB) with N-by-N dimension and an M-by-M individual PDF, which means that the length of occupied memory in each robot is $O(M^2+N^2)$.
 
-Remarks (6): For the static target, each robot only needs current step CB to update individual PDFs. Except storing individual PDFs, all historic CBs can be discarded and only current step CB is stored in robot memory, whose length is  . On the contrary, for the moving target, each robot needs to store a triangular matrix of history observation (except current step CB) with N-by-N dimension and a M-by-M virtual PDF, which means that the length of occupied memory in each robot is $O(M^2+N^2)$.
 
 \section{Proof of Consistency and Consensus}
+This section presents a consistency and consensus proof of LEO- DBF. Only the scenarios for the static target are presented, including both static robots and moving robots. The proof for LEO- DBF for moving target is similar to that of static target by assuming that the dynamic model of the target is accurately known, but with more complicated algebraic manipulation. 
 
-This section presents a consistency and consensus proof of LEO-based DBF. Only the scenarios for the static target are presented, including both static robot and moving robot. The proof for LEO-based DBF for moving target is similar to that of static target, if we can assume that the target positions are finite (such in a discretized bounded field) and the dynamic model of the target is accurately known.
+Assume that   is finite. Define an equi-parameter set   such that 
+  
+Since   is finite,  is also finite. Let  denote all equi-parameter sets. By definition, the following properties hold:
+(1)  
+(2)  
+Without loss of generality, assume  , where  denotes the true location of the target. 
+
+Remarks (8): the equi-parameter sets depend on the property of the sensor. For example, for a range-only sensor, all locations with equivalent distance to the sensor belong to the same equi-parameter set. For a laser scanner with perfect sensing capability, every equi-parameter set contains only one element. 
+
 
 \subsection{Proof for static robots}
-Theorem 1 (consistency of LEO-DBF for static robots) Under the condition of a binary sensor model that is parameterized by a finite set of target positions, the point estimate of the target position obtained by LEO-DBF converges to the true target position value (in what sense ?) as the number of observations tends to infinity, i.e.
- 
-
-where   denotes the true location of the target and  .
-
-Proof: Define  as the set of possible target positions. Thus  . Considering the conditional independence of observations   for given  , the batch form of DBF at k-th step is:
+The consistency of LEO-DBF for static robots is stated as follows: 
+Theorem 1 For static robots, each individual PDF by LEO-DBF converges to  when the number of observations goes to infinity, i.e.
  
 (6)
-where   is initial i-th local PDF. It is known from the proposition 1: 
+where  ,   are the timestamps of the i-th robot?s latest knowledge of all robots? observations.
+
+Proof: Considering the conditional independence of observations   for given  , the batch form of DBF at k-th step is:
  
 (7)
-The binary observations subject to Bernoulli distribution, yielding
+where   is initial i-th local PDF. It is known from the Corollary 2 that 
  
 (8)
-where 
- 
-Take the logarithm of (6) and average it over the k steps:
+Compare   with  :
  
 (9)
-where
- 
- . 
-Utilizing the fact that (1) are conditionally independent, and (2)  , the law of large numbers yields
- 
-where  . Then, the first term of Eq. (9) has the following limit
+Take the logarithm of (9) and average it over k steps:
  
 (10)
-Note that the r.h.s of (10) achieves maximum iff  . 
-Considering the equality
- 
-The third term of Eq. (9) is simplified to 
- 
-Further, considering the equality
- 
-Considering Eq. (10), we have  in the condition of  when  . Then, 
- 
-Therefore, the limit of Eq. (9) becomes
+Since  and   are bounded,
  
 (11)
+The binary observations subject to Bernoulli distribution  , yielding
+ 
+(12)
+where  . Utilizing the fact that (1) are conditionally independent samples from  , and (2)  , the law of large numbers yields
+ 
+where  . Then, 
+ 
+(13)
+Note that the r.h.s of (13) achieves maximum iff  . Considering (11) and (13), the limit of (10) can be obtained:
+ 
+(14)
+It is known from Eq. (14) that
+(1) When  , i.e.,  ,  and  ; 
+(2) When  , i.e.,  ,  and  . 
+(End of proof) 
 
-It is known from Eq. (11): 
-(1) When  ,   and  ; 
-(2) When  ,   and  . (End of proof) 
 
 \subsection{Proof for moving sensors}
 Lemma 1: For a finite number of robots within a finite number of possible positions, there exists at least one position for each robot that it visits for infinite times as k goes to infinity.
@@ -281,38 +317,41 @@ Remarks (7): For single target, the true location is unique. Since all individua
 
 
 \section{Simulation}
-This section presents three scenarios in order to demonstrate the use of the LEO strategy for recursive Bayesian filtering in autonomous target search. In all scenarios, six sensors are utilized for target search. For the purpose of simplicity, a Gaussian binary sensor model is used:
+This section simulates three searching scenarios in order to demonstrate the effectiveness of LEO-BDF. In all scenarios, six robots are utilized and each robot is equipped with a binary sensor. All sensors are modeled with identical Gaussian functions:
  
-where  denotes the sensor position where the observation is made. Figure 1 shows the 1-D illustration of the sensor model.
-
-\section{Simulation}
-This section presents three scenarios in order to demonstrate the use of the LEO strategy for recursive Bayesian filtering in autonomous target search. In all scenarios, six sensors are utilized for target search, each receiving binary observation following the sensor model in xxx. 
-
-The first scenario consists of six static sensors and single static target, which acts as a proof of concept of the LEO strategy for static cases. The second scenario subsequently deals with the six moving sensors for searching the single static target. Finally, a general scenario is presented that contains six moving sensors and one moving target. 
-
-The first scenario consists of six static sensors and single static target, which acts as a proof of concept of the LEO strategy for static target case. The second scenario subsequently deals with the six moving sensors for searching the single static target. Finally, a general scenario is presented that contains six moving sensors and one moving target. 
-
-Add entropy reduction plot to show the convergence rate.
-
-\subsection{Static Sensors, Static Target}
-
-The six static sensors are places at. Each sensor constantly receives binary observations from the target, using the sensor model in xxx. Sensors use LEO strategy to communicate their current and saved observations with their communication neighbors. Recursive Bayesian filtering is conducted for target position estimation.
-
-Figure 1 shows the result of the estimation. After the initial observation, each sensor forms a semicircle of the probability map, centered at the corresponding sensor position. As more observations are received, the posterior probability concentrates on the true location of the target. This demonstrates the effectiveness of the LEO strategy for achieving the consensus on the estimate of the target position. 
+where  denotes the robot position where current observation is executed (find a proper word??). Figure 4 shows the 1-D illustration of Gaussian binary sensor model.
 
 
-\subsection{Moving Sensors, Static Target}
+The first scenario consists of six static robots and single static target, which acts as a proof of concept of the LEO strategy for static target case. The second scenario subsequently deals with six moving robots for searching the single static target. The third scenario is presented that contains six moving sensors and one moving target. moving robots*****; moving target *****. 
 
-The six sensors start moving from the positions respectively to estimate the target position. The motion planning of sensors for effective target search has received much attention in the past decade. In this work, the sensor positions are randomly generated at each time in order to demonstrate the effectiveness of the LEO strategy. Readers interested in sensor motion planning can refer to xxx.
+\subsection{Static Robots, Static Target}
 
-Figure 2 shows the result of the estimation. Similar to sec. 5.1, the posterior probability concentrates to the true target location. Figure 2(b) gives the decrease of the entropy of the posterior distribution, showing the reduction of uncertainty in the estimated target position.
+The positions of 6 static sensors are shown as stars in Figure 5. Each sensor constantly receives binary observations of the target. Distributed Bayesian filters described Eq. (**), Eq. () in section 3.2 are implemented on each robot for target position estimation.
 
-\subsection{Moving Sensors, Moving Target}
+Figure 5 shows the estimation results of the static target. After the initial observation, each sensor forms a circular individual PDF, centered at the corresponding sensor position. As more observations are received, the posterior individual PDF concentrates on the true location of the target. Figure 6 shows the decrease of the entropy of the posterior distribution (add a ref), indicating the uncertainty reduction of the estimated target position.
 
-The target in the scenario moves on a horizontal plane and the model is given by. The sensor positions are randomly generated at each time. LEO given in section 4 is utilized for distributed recursive Bayesian filtering. Figure 3 shows the result of the estimation. As expected, the posterior probability concentrates to the true target location.
+
+
+\subsection{Moving Robots, Static Target}
+The 6 robots move within the field to estimate the target position. The motion planning of robots for effective target search has received much attention in the past years. In this work, the robot positions are randomly generated at each time in order to demonstrate the effectiveness of the LEO-DBF approach. Readers interested in robot motion planning can refer to (J.) (Furukawa).
+
+Figure 7 shows the estimation results over time. Similar to the results in sec. 5.1, the posterior individual PDF concentrates to the true target location. Figure 8 shows the decrease of the entropy of the posterior distribution.
+
+
+\subsection{Moving Robots, Moving Target}
+
+The target in this scenario moves on the horizontal plane and the dynamics is given by a single-integrator model:
+ 
+where   is the constant velocity of the target.
+
+The LEO-DBF described in section 3.3 is used as the distributed Bayesian filters. Figure 9 shows the estimation results of the moving target. It can be noticed that similar to the case of static target, the posterior individual PDFs concentrate to the true target location at each time, even when the target constantly moves.
+
 
 \section{CONCLUSION}
-In this study, we proposed the local-exchange-of-observation (LEO) strategy for distributed Bayesian filter (LEO-DBF) in a multi-robot network. With fixed communication topology, each robot can receive all robots? observations non-intermittently under LEO strategy. Two LEO-DBFs are proposed for estimating the position of the static and the moving target, respectively. For the static target, each robot fuses the latest knowledge of all robots? observations by only considering the updating step of the Bayesian filter. The received observations are then fused locally by each robot using Bayesian filters for state estimation. For the moving target, a triangle matrix of history observations are maintained by each robot. Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. The consistency of LEO-DBF is proved, ensuring the agreement between robots? state estimate and true environmental state. Simulations have demonstrated the effectiveness of the LEO-DBF for position estimation of both static and moving target.
+In this study, we proposed the local-exchange-of-observation (LEO) strategy for distributed Bayesian filters (LEO-DBF) in a multi-robot network with the application of distributed estimation of target position in the environment. With fixed communication topology, each robot can receive all robots? observations non-intermittently under the LEO strategy. Two LEO-DBFs are proposed for estimating the position of the static and the moving target, respectively. (in the above two sentences, explain the two properties of LEO). For the static target, each robot locally fuses the latest knowledge of all robots? observations by only considering the updating step of the Bayesian filter. For the moving target, a triangle matrix of historical observations is maintained by each robot. Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. The consistency of LEO-DBF is proved, ensuring the agreement between robots? state estimate and the true environment state (explain briefly how the consistency is proved, such as via what principle etc.). Simulations demonstrated the effectiveness of LEO-DBF for both static and moving target.
+
+Future work may include several extensions to the proposed LEO-DBF. LEO under switching topology can leads to unpredictable delay and intermittent transmission. Therefore consensus analysis of individual PDFs requires further analysis. In addition, combining LEO-DBF with robot motion planning is promising for more effective estimation of target state in the environment.
+
 
 
 \begin{table}[h]
