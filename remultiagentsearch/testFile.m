@@ -1,5 +1,5 @@
 %% this section is used to tune the mpc solver.
-
+%{
 clear
 close all
 rbt.x = 10;
@@ -33,7 +33,7 @@ for ii = 1:100
     end
     assign(x,init_x);
     assign(u,init_u); 
-    %}
+    %
     
     % obj1
     %{
@@ -90,8 +90,10 @@ for ii = 1:100
     xlim([1,field.x])
     ylim([1,field.y])    
 end
+%}
 
 %% check the formation
+%{
 % desired distance
 desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
     1 0 1 sqrt(3) 0 sqrt(3); 
@@ -116,9 +118,10 @@ for ii = 1:6
 end
 
 dif = tmp_dis - desDist;
-        
+%}
 
 %% debug the POD
+%{
 jjj = 1;
 lam1 = sigmaVal\value(x(:,2)); %lambda for x2
 lam2 = sigmaVal\value(x(:,3));
@@ -129,22 +132,28 @@ Af1
 value(Af(1))
 value(Af(2))
 Af_sum-Af1-value(Af(1))-value(Af(2))
+%}
 
 %% debug the moving target case
+%{
 tmp = 0;
 for ii = 1:length(upd_cell1)
     if sum(sum(upd_cell1{ii}-upd_cell2{ii})) ~= 0
         tmp = tmp+1;
     end
 end
+%}
 
 %% save figures to pdf
 clear
+close all
 % file_name_list = cell(12,1);
 cnt = 1;
 folder_path = ('/Users/changliu/Documents/TortoiseHg/multi-agent_search/remultiagentsearch/Paper/ACC2016/figures');
 a = dir(folder_path);
 
+% process the probability maps
+%{
 % read sta_sen_sta_tar_xxx.fig, mov_sen_sta_tar_xxx.fig, mov_sen_mov_tar_xxx.fig 
 for ii = 1:size(a,1)
     if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar')) && ~isempty(strfind(a(ii).name,'fig'))
@@ -172,5 +181,59 @@ for jj = 1:length(file_name_list)
     file_name2 = strcat(test_id);
     save_pdf(h,fullfile(folder_path,file_name2))
 end
+%}
 
-save(fullfile(folder_path,'bonus_map.mat'),'stim_bonus');
+% process the entropy
+% read xxx_entropy_xxx.fig
+for ii = 1:size(a,1)
+    if ~isempty(strfind(a(ii).name,'entropy')) && ~isempty(strfind(a(ii).name,'fig'))
+        file_name_list{cnt} = a(ii).name;
+        cnt = cnt+1;
+    end
+end
+
+% process the line format
+line_marker = {'o','*','s','d','^','h'};
+addpath(folder_path);
+h_sub = figure; % new figure for subplots
+for jj = 1:length(file_name_list)
+    file_name = file_name_list{jj};
+    
+    % use 'load' for .mat, 'hgload' for .fig
+    h = openfig(file_name);
+    box on
+    legend off
+    hline = findobj(h,'type','line');
+    nLines = length(hline);
+    
+    for iterLine = 1:nLines
+        mInd = nLines-iterLine+1;
+        set(hline(mInd),'LineWidth',2,'Marker',line_marker{iterLine},'MarkerSize',2)
+    end
+    legend show
+
+%     % pile figures into single subplot
+%     h_ax = findobj(h,'type','axes'); % get handle to axes of figure
+%     h_chi = get(h_ax,'children'); % get handle to all the children in the figure   
+%     
+%     figure(h_sub)
+%     s = subplot(1,length(file_name_list),jj); %create and get handle to the subplot axes
+%     copyobj(h_chi{1},s); %copy children to new parent axes i.e. the subplot axes
+%     copyobj(h_chi{2},s); %copy children to new parent axes i.e. the subplot axes
+%     xlim auto
+%     ylim auto
+%     set(s,'Xlim',get(h_ax,'XLim')) 
+%     set(s,'Ylim',get(h_ax,'YLim'))
+
+    % save new figure
+%     sp = 1; % start point for reading the name
+%     ep = strfind(file_name,'entropy')+6; % end point for reading the name
+%     test_id = file_name(sp:ep);
+%     file_name2 = strcat(test_id);
+    
+%     saveas(h,fullfile(folder_path,file_name2),'fig')
+%     save_pdf(h,fullfile(folder_path,file_name2))
+end
+file_name2 = 'entropy';
+saveas(h_sub,fullfile(folder_path,file_name2),'fig')
+save_pdf(h,fullfile(folder_path,file_name2))

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  24 AUG 2015 22:13
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  25 AUG 2015 13:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -875,21 +875,21 @@ ine 575.
 File: figures/sta_sen_sta_tar_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_1.pdf used on input line 616.
+Package pdftex.def Info: figures/sta_sen_sta_tar_1.pdf used on input line 617.
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
 <figures/sta_sen_sta_tar_3.pdf, id=50, 1001.7425pt x 601.24625pt>
 File: figures/sta_sen_sta_tar_3.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_3.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_3.pdf used on input line 620.
+Package pdftex.def Info: figures/sta_sen_sta_tar_3.pdf used on input line 621.
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
 <figures/sta_sen_sta_tar_10.pdf, id=51, 1001.7425pt x 601.24625pt>
 File: figures/sta_sen_sta_tar_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_10.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_10.pdf used on input line 624.
+Package pdftex.def Info: figures/sta_sen_sta_tar_10.pdf used on input line 625.
 
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
@@ -897,7 +897,7 @@ Package pdftex.def Info: figures/sta_sen_sta_tar_10.pdf used on input line 624.
 File: figures/sta_sen_sta_tar_50.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_50.pdf used on input line 628.
+Package pdftex.def Info: figures/sta_sen_sta_tar_50.pdf used on input line 629.
 
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
@@ -905,21 +905,21 @@ Package pdftex.def Info: figures/sta_sen_sta_tar_50.pdf used on input line 628.
 File: figures/mov_sen_sta_tar_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_sta_tar_1.pdf>
-Package pdftex.def Info: figures/mov_sen_sta_tar_1.pdf used on input line 648.
+Package pdftex.def Info: figures/mov_sen_sta_tar_1.pdf used on input line 649.
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
 <figures/mov_sen_sta_tar_3.pdf, id=54, 1001.7425pt x 601.24625pt>
 File: figures/mov_sen_sta_tar_3.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_sta_tar_3.pdf>
-Package pdftex.def Info: figures/mov_sen_sta_tar_3.pdf used on input line 652.
+Package pdftex.def Info: figures/mov_sen_sta_tar_3.pdf used on input line 653.
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
 <figures/mov_sen_sta_tar_10.pdf, id=55, 1001.7425pt x 601.24625pt>
 File: figures/mov_sen_sta_tar_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_sta_tar_10.pdf>
-Package pdftex.def Info: figures/mov_sen_sta_tar_10.pdf used on input line 656.
+Package pdftex.def Info: figures/mov_sen_sta_tar_10.pdf used on input line 657.
 
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
@@ -927,7 +927,7 @@ Package pdftex.def Info: figures/mov_sen_sta_tar_10.pdf used on input line 656.
 File: figures/mov_sen_sta_tar_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_sta_tar_30.pdf>
-Package pdftex.def Info: figures/mov_sen_sta_tar_30.pdf used on input line 660.
+Package pdftex.def Info: figures/mov_sen_sta_tar_30.pdf used on input line 661.
 
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
@@ -935,21 +935,21 @@ Package pdftex.def Info: figures/mov_sen_sta_tar_30.pdf used on input line 660.
 File: figures/mov_sen_mov_tar_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_1.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_1.pdf used on input line 681.
+Package pdftex.def Info: figures/mov_sen_mov_tar_1.pdf used on input line 682.
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
 <figures/mov_sen_mov_tar_3.pdf, id=58, 1001.7425pt x 601.24625pt>
 File: figures/mov_sen_mov_tar_3.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_3.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_3.pdf used on input line 685.
+Package pdftex.def Info: figures/mov_sen_mov_tar_3.pdf used on input line 686.
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
 <figures/mov_sen_mov_tar_10.pdf, id=59, 1001.7425pt x 601.24625pt>
 File: figures/mov_sen_mov_tar_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_10.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_10.pdf used on input line 689.
+Package pdftex.def Info: figures/mov_sen_mov_tar_10.pdf used on input line 690.
 
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
@@ -957,11 +957,11 @@ Package pdftex.def Info: figures/mov_sen_mov_tar_10.pdf used on input line 689.
 File: figures/mov_sen_mov_tar_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_30.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_30.pdf used on input line 693.
+Package pdftex.def Info: figures/mov_sen_mov_tar_30.pdf used on input line 694.
 
 (pdftex.def)             Requested size: 101.17645pt x 60.72447pt.
 
-Underfull \hbox (badness 4699) in paragraph at lines 702--711
+Underfull \hbox (badness 4699) in paragraph at lines 703--712
 []\OT1/ptm/m/n/10 In this study, we pro-posed the local-exchange-of-
  []
 
@@ -990,7 +990,7 @@ LaTeX Warning: There were undefined references.
 Here is how much of TeX's memory you used:
  16451 strings out of 493117
  324158 string characters out of 6135433
- 383479 words of memory out of 5000000
+ 384479 words of memory out of 5000000
  19592 multiletter control sequences out of 15000+600000
  50828 words of font info for 109 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1013,7 +1013,7 @@ ts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1
 /urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times
 /utmbi8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.p
 fb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ACC2016.pdf (8 pages, 910233 bytes).
+Output written on ACC2016.pdf (8 pages, 910710 bytes).
 PDF statistics:
  163 PDF objects out of 1000 (max. 8388607)
  115 compressed objects within 2 object streams

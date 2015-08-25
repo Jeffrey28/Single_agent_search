@@ -525,8 +525,9 @@ end
 %% plot the entropy
 hf2 = figure(2);
 line_clr = ['r','g','b','c','m','k'];
+line_marker = {'o','*','s','d','^','h'};
 for i=1:NumOfRobot
-    plot(1:count-2,rbt(i).entropy(1:count-2),line_clr(i)); hold on;
+    plot(1:count-2,rbt(i).entropy(1:count-2),line_clr(i),'LineWidth',2,'Marker',line_marker{i},'MarkerSize',2); hold on;
     xlim([0,count-1])
 end
 xlabel('Entropy of the Target PDF');
