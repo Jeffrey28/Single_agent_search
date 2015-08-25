@@ -1,0 +1,171 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{#1}
+\csname url@rmstyle\endcsname
+\providecommand{\newblock}{\relax}
+\providecommand{\bibinfo}[2]{#2}
+\providecommand\BIBentrySTDinterwordspacing{\spaceskip=0pt\relax}
+\providecommand\BIBentryALTinterwordstretchfactor{4}
+\providecommand\BIBentryALTinterwordspacing{\spaceskip=\fontdimen2\font plus
+\BIBentryALTinterwordstretchfactor\fontdimen3\font minus
+  \fontdimen4\font\relax}
+\providecommand\BIBforeignlanguage[2]{{%
+\expandafter\ifx\csname l@#1\endcsname\relax
+\typeout{** WARNING: IEEEtran.bst: No hyphenation pattern has been}%
+\typeout{** loaded for the language `#1'. Using the pattern for}%
+\typeout{** the default language instead.}%
+\else
+\language=\csname l@#1\endcsname
+\fi
+#2}}
+
+\bibitem{chamberland2007wireless}
+J.-F. Chamberland and V.~V. Veeravalli, ``Wireless sensors in distributed
+  detection applications,'' \emph{Signal Processing Magazine, IEEE}, vol.~24,
+  no.~3, pp. 16--25, 2007.
+
+\bibitem{beaudeau2012target}
+J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
+  asynchronous measurements by a network of distributed mobile agents,'' in
+  \emph{Acoustics, Speech and Signal Processing (ICASSP), 2012 IEEE
+  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
+  2012, pp. 3857--3860.
+
+\bibitem{cao2008development}
+X.~Cao, J.~Chen, Y.~Zhang, and Y.~Sun, ``Development of an integrated wireless
+  sensor network micro-environmental monitoring system,'' \emph{ISA
+  transactions}, vol.~47, no.~3, pp. 247--255, 2008.
+
+\bibitem{2005distributed}
+R.~Olfati-Saber, ``Distributed kalman filter with embedded consensus filters,''
+  in \emph{Decision and Control, 2005 and 2005 European Control Conference.
+  CDC-ECC'05. 44th IEEE Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax
+  IEEE, 2005, pp. 8179--8184.
+
+\bibitem{gu2007distributed}
+D.~Gu, ``Distributed particle filter for target tracking,'' in \emph{Robotics
+  and Automation, 2007 IEEE International Conference on}.\hskip 1em plus 0.5em
+  minus 0.4em\relax IEEE, 2007, pp. 3856--3861.
+
+\bibitem{zuo2006bandwidth}
+L.~Zuo, K.~Mehrotra, P.~K. Varshney, and C.~K. Mohan, ``Bandwidth-efficient
+  target tracking in distributed sensor networks using particle filters,'' in
+  \emph{Information Fusion, 2006 9th International Conference on}.\hskip 1em
+  plus 0.5em minus 0.4em\relax IEEE, 2006, pp. 1--4.
+
+\bibitem{ribeiro2006bandwidth}
+A.~Ribeiro and G.~B. Giannakis, ``Bandwidth-constrained distributed estimation
+  for wireless sensor networks-part ii: unknown probability density function,''
+  \emph{Signal Processing, IEEE Transactions on}, vol.~54, no.~7, pp.
+  2784--2796, 2006.
+
+\bibitem{sheng2005distributed}
+X.~Sheng, Y.-H. Hu, and P.~Ramanathan, ``Distributed particle filter with gmm
+  approximation for multiple targets localization and tracking in wireless
+  sensor network,'' in \emph{Proceedings of the 4th international symposium on
+  Information processing in sensor networks}.\hskip 1em plus 0.5em minus
+  0.4em\relax IEEE Press, 2005, p.~24.
+
+\bibitem{ram2007stochastic}
+S.~S. Ram, A.~Nedic, and V.~Veeravalli, ``Stochastic incremental gradient
+  descent for estimation in sensor networks,'' in \emph{Signals, Systems and
+  Computers, 2007. ACSSC 2007. Conference Record of the Forty-First Asilomar
+  Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp.
+  582--586.
+
+\bibitem{olfati2007consensus}
+R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
+  networked multi-agent systems,'' \emph{Proceedings of the IEEE}, vol.~95,
+  no.~1, pp. 215--233, 2007.
+
+\bibitem{ren2005consensus}
+W.~Ren, R.~W. Beard, \emph{et~al.}, ``Consensus seeking in multiagent systems
+  under dynamically changing interaction topologies,'' \emph{IEEE Transactions
+  on automatic control}, vol.~50, no.~5, pp. 655--661, 2005.
+
+\bibitem{jadbabaie2003coordination}
+A.~Jadbabaie, J.~Lin, \emph{et~al.}, ``Coordination of groups of mobile
+  autonomous agents using nearest neighbor rules,'' \emph{Automatic Control,
+  IEEE Transactions on}, vol.~48, no.~6, pp. 988--1001, 2003.
+
+\bibitem{bandyopadhyay2014distributed}
+S.~Bandyopadhyay and S.-J. Chung, ``Distributed estimation using bayesian
+  consensus filtering,'' in \emph{American Control Conference (ACC),
+  2014}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2014, pp. 634--641.
+
+\bibitem{julian2012distributed}
+B.~J. Julian, M.~Angermann, M.~Schwager, and D.~Rus, ``Distributed robotic
+  sensor networks: An information-theoretic approach,'' \emph{The International
+  Journal of Robotics Research}, vol.~31, no.~10, pp. 1134--1154, 2012.
+
+\bibitem{coates2004distributed}
+M.~Coates, ``Distributed particle filters for sensor networks,'' in
+  \emph{Proceedings of the 3rd international symposium on Information
+  processing in sensor networks}.\hskip 1em plus 0.5em minus 0.4em\relax ACM,
+  2004, pp. 99--107.
+
+\bibitem{djuric2011non}
+P.~M. Djuri{\'c}, J.~Beaudeau, and M.~F. Bugallo, ``Non-centralized target
+  tracking with mobile agents,'' in \emph{Acoustics, Speech and Signal
+  Processing (ICASSP), 2011 IEEE International Conference on}.\hskip 1em plus
+  0.5em minus 0.4em\relax IEEE, 2011, pp. 5928--5931.
+
+\bibitem{rosencrantz2002decentralized}
+M.~Rosencrantz, G.~Gordon, and S.~Thrun, ``Decentralized sensor fusion with
+  distributed particle filters,'' in \emph{Proceedings of the Nineteenth
+  conference on Uncertainty in Artificial Intelligence}.\hskip 1em plus 0.5em
+  minus 0.4em\relax Morgan Kaufmann Publishers Inc., 2002, pp. 493--500.
+
+\bibitem{bonnie2012modelling}
+D.~Bonnie, S.~Candido, T.~Bretl, and S.~Hutchinson, ``Modelling search with a
+  binary sensor utilizing self-conjugacy of the exponential family,'' in
+  \emph{Robotics and Automation (ICRA), 2012 IEEE International Conference
+  on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2012, pp. 3975--3982.
+
+\bibitem{liu2014framework}
+C.~Liu, S.-Y. Liu, E.~L. Carano, and J.~K. Hedrick, ``A framework for
+  autonomous vehicles with goal inference and task allocation capabilities to
+  support peer collaboration with human agents,'' in \emph{ASME 2014 Dynamic
+  Systems and Control Conference}.\hskip 1em plus 0.5em minus 0.4em\relax
+  American Society of Mechanical Engineers, 2014, pp. V002T30A005--V002T30A005.
+
+\bibitem{djuric2008target}
+P.~M. Djuri{\'c}, M.~Vemula, and M.~F. Bugallo, ``Target tracking by particle
+  filtering in binary sensor networks,'' \emph{Signal Processing, IEEE
+  Transactions on}, vol.~56, no.~6, pp. 2229--2238, 2008.
+
+\bibitem{hahnel2003efficient}
+D.~Hahnel, W.~Burgard, D.~Fox, and S.~Thrun, ``An efficient fastslam algorithm
+  for generating maps of large-scale cyclic environments from raw laser range
+  measurements,'' in \emph{Intelligent Robots and Systems, 2003.(IROS 2003).
+  Proceedings. 2003 IEEE/RSJ International Conference on}, vol.~1.\hskip 1em
+  plus 0.5em minus 0.4em\relax IEEE, 2003, pp. 206--211.
+
+\bibitem{tisdale2009autonomous}
+J.~Tisdale, Z.~Kim, and J.~K. Hedrick, ``Autonomous uav path planning and
+  estimation,'' \emph{Robotics \& Automation Magazine, IEEE}, vol.~16, no.~2,
+  pp. 35--42, 2009.
+
+\bibitem{bahceci2005serial}
+I.~Bahceci, G.~Al-Regib, and Y.~Altunbasak, ``Serial distributed detection for
+  wireless sensor networks,'' in \emph{Information Theory, 2005. ISIT 2005.
+  Proceedings. International Symposium on}.\hskip 1em plus 0.5em minus
+  0.4em\relax IEEE, 2005, pp. 830--834.
+
+\bibitem{hlinka2015distributed}
+O.~Hlinka, F.~Hlawatsch, and P.~Djuric, ``Distributed sequential estimation in
+  asynchronous wireless sensor networks,'' 2015.
+
+\bibitem{furukawa2006recursive}
+T.~Furukawa, F.~Bourgault, B.~Lavis, and H.~F. Durrant-Whyte, ``Recursive
+  bayesian search-and-tracking using coordinated uavs for lost targets,'' in
+  \emph{Robotics and Automation, 2006. ICRA 2006. Proceedings 2006 IEEE
+  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
+  2006, pp. 2521--2526.
+
+\bibitem{kulich2014single}
+M.~Kulich, L.~Preucil, and J.~J. Miranda~Bront, ``Single robot search for a
+  stationary object in an unknown environment,'' in \emph{Robotics and
+  Automation (ICRA), 2014 IEEE International Conference on}.\hskip 1em plus
+  0.5em minus 0.4em\relax IEEE, 2014, pp. 5830--5835.
+
+\end{thebibliography}

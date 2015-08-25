@@ -137,3 +137,40 @@ for ii = 1:length(upd_cell1)
         tmp = tmp+1;
     end
 end
+
+%% save figures to pdf
+clear
+% file_name_list = cell(12,1);
+cnt = 1;
+folder_path = ('/Users/changliu/Documents/TortoiseHg/multi-agent_search/remultiagentsearch/Paper/ACC2016/figures');
+a = dir(folder_path);
+
+% read sta_sen_sta_tar_xxx.fig, mov_sen_sta_tar_xxx.fig, mov_sen_mov_tar_xxx.fig 
+for ii = 1:size(a,1)
+    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar')) && ~isempty(strfind(a(ii).name,'fig'))
+        file_name_list{cnt} = a(ii).name;
+        cnt = cnt+1;
+    elseif ~isempty(strfind(a(ii).name,'mov_sen_sta_tar')) && ~isempty(strfind(a(ii).name,'fig'))
+        file_name_list{cnt} = a(ii).name;
+        cnt = cnt+1;
+    elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar')) && ~isempty(strfind(a(ii).name,'fig'))
+        file_name_list{cnt} = a(ii).name;
+        cnt = cnt+1;
+    end
+end
+
+% process the data
+addpath(folder_path);
+for jj = 1:length(file_name_list)
+    file_name = file_name_list{jj};
+    % use 'load' for .mat, 'hgload' for .fig
+    h = hgload(file_name);
+    
+    sp = 1; % start point for reading the name
+    ep = strfind(file_name,'.fig')-1; % end point for reading the name
+    test_id = file_name(sp:ep);
+    file_name2 = strcat(test_id);
+    save_pdf(h,fullfile(folder_path,file_name2))
+end
+
+save(fullfile(folder_path,'bonus_map.mat'),'stim_bonus');
