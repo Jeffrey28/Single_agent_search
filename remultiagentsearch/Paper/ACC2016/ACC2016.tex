@@ -40,8 +40,8 @@
 \Crefname{equation}{Eqn.}{Eqn.}
 \crefname{thm}{theorem}{theorems}
 \Crefname{thm}{Theorem}{Theorems}
-\crefname{lemma}{lemma}{lemmas}
-\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{lem}{lemma}{lemmas}
+\Crefname{lem}{Lemma}{Lemmas}
 \crefname{cor}{corollary}{corollaries}
 \Crefname{cor}{Corollary}{Corollaries}
 \crefname{prop}{proposition}{propositions}
@@ -208,12 +208,12 @@ In addition, LEO also works for other types of sensors, including imaging sensor
 \subsection{Graphical model of communication topology}
 Consider an undirected and connected graph $G=(V,E)$, where $V=\left\lbrace 1,\dots,N\right\rbrace $ is the set of robots and $E=V\times V$ denotes the edge set. 
 The adjacency matrix $M=(m_{i,j})$ describes the communication topology of $G$:
-\begin{equation}
+\begin{equation*}
 m_{ij}=\begin{cases}
 1& \text{if}\;\left(i,j\right)\in E\\
 0& \text{if}\;\left(i,j\right)\notin E
 \end{cases},
-\end{equation} 
+\end{equation*} 
 where $m_{ij}$ denotes the entity of adjacency matrix. 
 The notation $m_{ij}=1$ indicates that a communication link exists between $i^\text{th}$ and $j^\text{th}$ robot and $m_{ij}=0$ indicates no communication.
 
@@ -226,7 +226,7 @@ All of them are undirected and connected topologies.
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.5\textwidth]{figures/com_topo}
+	\includegraphics[width=0.45\textwidth]{figures/com_topo}
 	\caption{Three types of topologies: (a)circular topology; (b)serial topology; (c)star topology}
 	\label{fig:com_topo}
 \end{figure}
@@ -234,48 +234,48 @@ All of them are undirected and connected topologies.
 \subsection{Distributed Bayesian Filter for Multiple Robots}\label{subsec:dbf}
 The generic Distributed Bayesian Filter (DBF) is introduced in this section, which was also stated in \cite{hlinka2015distributed} and \cite{furukawa2006recursive}. 
 Each robot has its individual estimation of the probability density function (PDF) of target position, called \textit{individual PDF}. 
-The $i^\text{th}$ individual PDF at time $k$ is defined as $P^i_{PDF}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$. 
-Before starting DBF, the individual PDF is initialized by the prior function $P^i_{PDF}(x^T_0|z^i_0,z^{\mathcal{Q}_i}_0)=P(x^T_0)$, given all available prior information including past experience and environmental knowledge. Then the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of the robots in $\mathcal{Q}_i$.
+The $i^\text{th}$ individual PDF at time $k$ is defined as $P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$. 
+Before starting DBF, the individual PDF is initialized by the prior function $P^i_{pdf}(x^T_0|z^i_0,z^{\mathcal{Q}_i}_0)=P(x^T_0)$, given all available prior information including past experience and environmental knowledge. Then the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of the robots in $\mathcal{Q}_i$.
  
 \subsubsection{Prediction}
-The $i^\text{th}$ individual PDF at time $k-1$ is known, denoted as $P^i_{PDF}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$. 
+The $i^\text{th}$ individual PDF at time $k-1$ is known, denoted as $P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$. 
 At time $k$, the prior individual PDF is first predicted forward by using the Chapman-Kolmogorov equation:
 \begin{align}\label{eqn:bayes_pred}
-&P^i_{PDF}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})\notag\\
-&=\int P(x^T_k|x^T_{k-1})P^i_{PDF}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})dx^T_{k-1}
+&P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})\notag\\
+&=\int P(x^T_k|x^T_{k-1})P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})dx^T_{k-1}
 \end{align}
 where $P(x^T_k|x^T_{k-1})$ is a Markov motion model of the target, independent of robot states. 
 This model describes the state transition probability of the target from a prior state $x^T_{k-1}$ to posterior state $x^T_k$. 
 Note that the target can be static in many search applications, such as the indoor search for stationary objects\cite{kulich2014single}. 
 For a static target, its Markov motion model is simplified to be
-\begin{equation}
+\begin{equation*}
 P(x^T_k|x^T_{k-1})=\begin{cases}
 1 & \text{if}\; x^T_k=x^T_{k-1}\\
 0 & \text{if}\; x^T_k\neq x^T_{k-1}
 \end{cases}
-\end{equation}
-and \cref{eqn:bayes_pred} can be reduced to $P^i_{PDF}(x^T_{k}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})=P^i_{PDF}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$.
+\end{equation*}
+and \cref{eqn:bayes_pred} can be reduced to $P^i_{pdf}(x^T_{k}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})=P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$.
 
 \subsubsection{Updating}
 At time step $k$, the $i^\text{th}$ individual PDF is then updated by Bayes' formula using the latest available observations at time $k$: 
-\begin{align}\label{eqn:bayes_upd}
-&P^i_{PDF}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})\notag\\
-&=K_iP^i_{PDF}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)
-\end{align}
+\small\begin{align}\label{eqn:bayes_upd}
+&P^i_{pdf}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})\notag\\
+&=K_iP^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)
+\end{align}\normalsize
 where $K_i$ is a normalization factor, given by:
 \small\begin{align*}
-K_i=1/\int P^i_{PDF}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
+K_i=1/\int P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
 \end{align*}\normalsize
-where $P^i_{PDF}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$ is called posterior individual PDF; $P(z^i_k|x^T_k)$ is the likelihood function of observation $z^i_k$, described in \cref{eqn:bin_sensor1} and \cref{eqn:bin_sensor0}.
+where $P^i_{pdf}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$ is called posterior individual PDF; $P(z^i_k|x^T_k)$ is the likelihood function of observation $z^i_k$, described in \cref{eqn:bin_sensor1} and \cref{eqn:bin_sensor0}.
 
 \section{Distributed Bayesian Filter via Local Exchange of Observation}\label{sec:leo-dbf}
 This study proposes a Distributed Bayesian Filtering (DBF) algorithm based on LEO strategy, shorted as LEO-DBF. The LEO only uses the local communication within the neighborhood of each robot, but allows to broadcast observations of each robot to any other nodes by multi-hopping along the shortest path in the undirected and connected network. The theoretical analysis show that LEO-DBF can ensure the consistency and consensus of individual PDF  while requiring much less communication burden than any statistics dissemination-based DBFs. 
 
 \subsection{Algorithm for Local Exchange of observations (LEO)}\label{subsec:leo}
 Under the LEO, each robot contains a communication buffer (CB) to store its latest knowledge of the observations of all robots: 
-\begin{equation}
+\begin{equation*}
 \mathbf{z}^i_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
-\end{equation}
+\end{equation*}
 where $z^j_{k^i_j}$ represents the observation made by ${j^\text{th}}$ robot at time $k^i_j$. Note that under LEO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace $. At time k, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest available observation time of ${j^\text{th}}$ robot known by ${i^\text{th}}$ robot. Due to the communication delay of multi-hopping, $k^i_j<k$ always holds in practice.\\
 
 The \textbf{LEO algorithm} is stated as follows:
@@ -286,11 +286,11 @@ The \textbf{LEO algorithm} is stated as follows:
 %\midrule
 \textbf{(1) Initialization:} 
 The buffer of $i^\text{th}$ robot is initialized when $k=0$: 
-\begin{equation}
+\begin{equation*}
 %$\begin{array}{c}
 	z^j_{k^i_j}=\emptyset,\; k^i_j=0,\;j=1:N
 %\end{array}$\\
-\end{equation}
+\end{equation*}
 
 \textbf{(2) Repeat the following steps for i-th robot until stop:}
 
@@ -299,16 +299,16 @@ The buffer of $i^\text{th}$ robot is initialized when $k=0$:
 The $i^\text{th}$ robot receives all CBs of its neighboring robots. 
 The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponding to the (k-1)-step CB of a robot in  . 
 The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
-\begin{equation}
+\begin{equation*}
 \mathbf{z}^l_{k-1}=\left[ z^1_{{k-1}^l_1},\dots,z^N_{{k-1}^l_N}\right],\; l\in\mathcal{N}_i
-\end{equation}
+\end{equation*}
 
 (2.2) Observation Step: 
 
 The $i^\text{th}$ robot updates $z^j_{k^i_j}$ by its own observation at current step:
-\begin{equation}
+\begin{equation*}
 z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
-\end{equation}
+\end{equation*}
 
 (2.3) Comparison Step:
 
@@ -326,7 +326,7 @@ The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors define
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.5\textwidth]{figures/data_exchange}
+	\includegraphics[width=0.45\textwidth]{figures/data_exchange}
 	\caption{Example of LEO with three robots using linear communication topology}
 	\label{fig:LEO}
 \end{figure}
@@ -378,11 +378,11 @@ For a network with fixed topology, the shortest path between any nodes is fixed.
 
 This section gives the LEO-DBF for a static target. Each robot stores last-step individual PDF, i.e., $(k-1)^\text{th}$ step. The assumption of static target can simplify the Bayesian filter, in which the prediction step is unnecessary. Therefore, the $i^\text{th}$ individual PDF is only updated by 
 \begin{equation}\label{eqn:leo-dbf-sta-tar}
-P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})=K_iP^i_{PDF}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
+P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})=K_iP^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
 \end{equation}
 where
 \begin{equation*}
-K_i=1/\int P^i_{PDF}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)dx^T
+K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)dx^T
 \end{equation*}
 
 
@@ -394,7 +394,7 @@ The $i^\text{th}$ individual PDF is then alternatively predicted and updated by 
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.5\textwidth]{figures/DBF_demo}
+	\includegraphics[width=0.45\textwidth]{figures/DBF_demo}
 	\caption{Example of LEO-DBF for $1^\text{st}$ robot at time $k$. The current individual PDF is $ P^1_{PDF}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})$, denoted as $ P^1_{PDF}(k-N)$ in the figure. The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{PDF}(k-N+1)$. Repeating DBF until obtaining $ P^1_{PDF}(k)$, which is then used as the target PDF estimation of i-th robot}
 	\label{fig:LEO-DBF}
 \end{figure}
@@ -404,12 +404,12 @@ For the $i^\text{th}$ robot at $k^\text{th}$ step, the \textbf{LEO-DBF algorithm
 
 	\textbf{(1)} The stored individual PDF for $(k-N)^\text{th}$ step is:
 	\small\begin{equation*}
-		P^i_{PDF}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+		P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
 	\end{equation*}\normalsize
 	
 	\textbf{(2)} Initialize a virtual PDF by assigning the individual PDF to it:
 	\small\begin{equation*}
-		P_{virt}(x^T_{k-N})=P^i_{PDF}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+		P_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
 	\end{equation*}\normalsize
 		
 	\textbf{(3)} From $\xi=1$ to N, repeat two steps of Bayesian filtering:
@@ -431,16 +431,16 @@ For the $i^\text{th}$ robot at $k^\text{th}$ step, the \textbf{LEO-DBF algorithm
 	
 	\textbf{(4)} Store the first-step virtual PDF as the $(k-N+1)^\text{th}$ individual PDF:
 	\begin{equation*}
-		P^i_{PDF}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P_{virt}(x^T_{k-N+1}).
+		P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P_{virt}(x^T_{k-N+1}).
 	\end{equation*}
 	$\hfill\blacksquare$
 	
 %\end{enumerate}
 
-%1)	The stored individual PDF for $(k-N)^\text{th}$ step is $ P^i_{PDF}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})$.
+%1)	The stored individual PDF for $(k-N)^\text{th}$ step is $ P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})$.
 %
 %2)	Initialize a virtual PDF by assigning the individual PDF to it:
-%$P_{virt}(x^T_{k-N})=P^i_{PDF}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})$
+%$P_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})$
 %
 %3)	From $\xi=1$ to N, repeat two steps of Bayesian filtering
 %(a)	Prediction 
@@ -453,7 +453,7 @@ For the $i^\text{th}$ robot at $k^\text{th}$ step, the \textbf{LEO-DBF algorithm
 %K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{k-N+\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
 %\end{gather*} 
 %  
-%4)	Store the first-step virtual PDF as the $(k-N+1)^\text{th}$ individual PDF: $P^i_{PDF}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P_{virt}(x^T_{k-N+1}).$
+%4)	Store the first-step virtual PDF as the $(k-N+1)^\text{th}$ individual PDF: $P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P_{virt}(x^T_{k-N+1}).$
 
 Note that $\Omega^i_{\xi}$ denotes the index set of robots whose observation at time $k-N+\xi$ is stored in $i^\text{th}$ robot's CB. 
 The target PDF estimation of $i^\text{th}$ robot at current step is $P_{virt}(x^T_k)$.\\
@@ -468,9 +468,9 @@ The target PDF estimation of $i^\text{th}$ robot at current step is $P_{virt}(x^
 This section presents a consistency and consensus proof of LEO- DBF. Only the scenarios for the static target are presented, including both static robots and moving robots. The proof for LEO- DBF for moving target is similar to that of static target by assuming that the dynamic model of the target is accurately known, but with more complicated algebraic manipulation. 
 
 Assume that $X^T$ is finite. Define an \textit{equi-parameter} set $X^T_{eq}\subseteq X^T$ such that 
-\small\begin{equation}
+\small\begin{equation*}
 P(z_k|x^T_1)=P(z_k|x^T_2),\; \forall x^T_1,x^T_2\in X^T_{eq},\; \forall z_k\in \left\lbrace 0,1\right\rbrace,
-\end{equation}\normalsize
+\end{equation*}\normalsize
 i.e., the probability for generating the same observation $z_k$ is equivalent among sensor models with different parameters in $X^T_{eq}$.
 %for any two parameters in $X^T_{eq}$, the sensor model with one of these two parameters generates equivalent probability value for the same observation $z_k$
 Since $X^T$ is finite, $X^T_{eq}$ is also finite. 
@@ -491,14 +491,14 @@ Without loss of generality, assume $x^{T^*}\in X^T_{eq,u}$, where $x^{T^*}$ deno
 The consistency of LEO-DBF for static robots is stated as follows: 
 \begin{thm}\label{thm:leo-dbf-sta-tar}
 	For static robots, each individual PDF by LEO-DBF converges to $ X^T_{eq,1}$ when the number of observations goes to infinity, i.e.
-	\begin{equation}
-	P^i_{PDF}(x^T\in X^T_{eq,i}|\mathbf{z}^i_{1:k})\longrightarrow
+	\begin{equation*}
+	P^i_{pdf}(x^T\in X^T_{eq,i}|\mathbf{z}^i_{1:k})\longrightarrow
 	\begin{cases}
 	1 & \text{if}\; i=1\\
 	0 & \text{if}\; i\neq 1
 	\end{cases},\;
 	k\rightarrow \infty
-	\end{equation}
+	\end{equation*}
 	where $\mathbf{z}^i_{1:k}=\left(z^1_{1:k_1},\dots,z^N_{1:k_N}\right) $, $\left\lbrace k_1,\dots,k_N\right\rbrace $ are the timestamps of the $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
@@ -506,29 +506,29 @@ The consistency of LEO-DBF for static robots is stated as follows:
 Considering the conditional independence of observations $z^j_k$ for given $x^T\in X^T_{eq,i}$, the batch form of DBF at $k^\text{th}$ step is:
 \small\begin{subequations}
 	\begin{align*}
-		P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})&=P^i_{PDF}(x^T|z^1_{1:k_1},\dots,z^N_{1:k_N})\\
-		&=\frac{P^i_{PDF}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T)}{\sum\limits_{x^T\in X^T}\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T)}
+		P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})&=P^i_{pdf}(x^T|z^1_{1:k_1},\dots,z^N_{1:k_N})\\
+		&=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T)}{\sum\limits_{x^T\in X^T}\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T)}
 	\end{align*}
 \end{subequations}\normalsize
 \addtocounter{equation}{-1}
-where $P^i_{PDF}$ is initial $i^\text{th}$ individual PDF. 
+where $P^i_{pdf}$ is initial $i^\text{th}$ individual PDF. 
 It is known from \Cref{cor1} and \Cref{cor2} that $k-N<k_j\leq k$.\\
 
-Compare $P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})$ with $P^i_{PDF}(x^{T*}|\mathbf{z}^i_{1:k})$:
+Compare $P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})$ with $P^i_{pdf}(x^{T*}|\mathbf{z}^i_{1:k})$:
 \small\begin{equation}\label{eqn:cmp}
-\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T*}|\mathbf{z}^i_{1:k})}=\frac{P^i_{PDF}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T)}{P^i_{PDF}(x^{T*})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^{T*})}
+\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T*}|\mathbf{z}^i_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T)}{P^i_{pdf}(x^{T*})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^{T*})}
 \end{equation}\normalsize
 Take the logarithm of \cref{eqn:cmp} and average it over k steps:
 \small\begin{equation}\label{eqn:cmp_log}
  \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}+\sum\limits_{j=1}^{N}\frac{1}{k}\sum\limits_{l=1}^{k_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}
 \end{equation}\normalsize
-Since $P^i_{PDF}(x^T)$ and $P^i_{PDF}(x^{T^*})$ are bounded,
+Since $P^i_{pdf}(x^T)$ and $P^i_{pdf}(x^{T^*})$ are bounded,
 \begin{equation}\label{eqn:cmp_lim1}
-\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{PDF}(x^T)}{P^i_{PDF}(x^{T^*})}\longrightarrow 0
+\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}\longrightarrow 0
 \end{equation}
 The binary observations subject to Bernoulli distribution $B(1,p_j)$, yielding
 \begin{equation*}
-P^i_{PDF}(z^j_k|x^T)=p^{z^j_k}_j(1-p_j)^{1-z^j_k}
+P^i_{pdf}(z^j_k|x^T)=p^{z^j_k}_j(1-p_j)^{1-z^j_k}
 \end{equation*}
 where $p_j=P(z^j_k=1|x^T)$. Utilizing the fact that (1) $z^j_l$ are conditionally independent samples from $B(1,p_j^*)$ , and (2) $k-N<k_j\leq k$, the law of large numbers yields
 \begin{equation*}
@@ -541,28 +541,30 @@ where $p_j^*=P(z^j_k=1|x^{T^*})$. Then,
 Note that the right-hand side of \cref{eqn:cmp_lim2} achieves maximum if and only if $p_j=p_j^*$. 
 Considering \cref{eqn:cmp_lim1} and \cref{eqn:cmp_lim2}, the limit of \cref{eqn:cmp_log} can be obtained:
 \small \begin{equation}\label{eqn:lim}
- \lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T^*}|\mathbf{z}^i_{1:k})}=\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
+ \lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
  \end{equation}\normalsize
 It is known from \cref{eqn:lim} that
 \begin{enumerate}
 	\item When $p_j\neq p^*_j$, that is $x^T\notin X^T_{eq,1}$,
 	\begin{align*}
-		\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T^*}|\mathbf{z}^i_{1:k})} & <0,\;\text{thus }\\
-		\lim\limits_{k\rightarrow \infty}\ln\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0
+		\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & <0,\;\text{thus }\\
+		\lim\limits_{k\rightarrow \infty}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0
 	\end{align*}	
 	\item When $p_j= p^*_j$, that is $x^T\in X^T_{eq,1}$, \begin{align*}
-	\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0,\;\text{thus }\\
-	\lim\limits_{k\rightarrow \infty}\ln\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T^*}|\mathbf{z}^i_{1:k})} & =1
+	\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0,\;\text{thus }\\
+	\lim\limits_{k\rightarrow \infty}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =1
 	\end{align*}
 \end{enumerate}
 \end{proof}
 
 
 \subsection{Proof for moving sensors}
+\todohere{complete this sentence}
 The difficulty for moving robots lies on ****. The main idea is to classify the states etc. . Before stating main theorem, the following lemma is introduced:
 \begin{lem}\label{lem1}
 	For a set of robots with a collection of finite possible states $Y^R$, there exists at least one state for each robot that it visits for infinite times as k tends to infinity.
 \end{lem}
+
 \begin{proof}
 Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ state in $Y^R$ up to time $k$. Then, $\sum\limits_{j} n^{i,k}_j=k$. It is straightforward to see that $\exists n^{i,k}_j,$ such that $n^{i,k}_j\rightarrow \infty,$ as $k\rightarrow \infty$.
 \end{proof}
@@ -570,14 +572,14 @@ Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ s
 The consistency of LEO-DBF for moving robots is stated as follows:
 \begin{thm}\label{thm:leo-dbf-mov-tar}
 	Under the condition of moving robots, each individual PDF by LEO-DBF converges to $X^T_{eq,1}$ when the number of observations goes to infinity, i.e.,
-	\begin{equation}
-		P^i_{PDF}(x^T\in X^T_{eq,i}|\mathbf{z}^i_{1:k})\longrightarrow
+	\begin{equation*}
+		P^i_{pdf}(x^T\in X^T_{eq,i}|\mathbf{z}^i_{1:k})\longrightarrow
 		\begin{cases}
 		1 & \text{if}\; i=1\\
 		0 & \text{if}\; i\neq 1
 		\end{cases},\;
 		k\rightarrow \infty
-	\end{equation}
+	\end{equation*}
 	where $\mathbf{z}^i_{1:k}=(z^1_{1:k_1},\dots,z^N_{1:k_N})$, $\left\lbrace k_1,\dots,k_N\right\rbrace$ are the timestamps of $i^\text{th}$ robot?s latest knowledge of all robots? observations.
 \end{thm}
 
@@ -586,7 +588,7 @@ Let $M\subseteq\left\lbrace 1,\dots,k_j\right\rbrace\times Y^R $ denote the set 
 
 Similar to \Cref{thm:leo-dbf-sta-tar}, the batch form of DBF at $k^\text{th}$ step is:
 \small\begin{equation}\label{eqn:cmp2}
-\frac{P^i_{PDF}(x^T|\mathbf{z}^i_{1:k})}{P^i_{PDF}(x^{T^{*}}|\mathbf{z}^i_{1:k})}=\frac{P^i_{PDF}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l\in M^i}P(z^j_l|x^T)}{P^i_{PDF}(x^{T^{*}})\prod\limits_{j=1}^{N}\prod\limits_{l\in M^i}P(z^j_l|x^{T^{*}})}
+\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^{*}}|\mathbf{z}^i_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l\in M^i}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^{*}})\prod\limits_{j=1}^{N}\prod\limits_{l\in M^i}P(z^j_l|x^{T^{*}})}
 \end{equation}\normalsize
 The only difference is that $P(z^j_l|X^T)$ needs to be grouped according to the robot state. 
 For each robot, there exists at least one state from which the robot obtains infinite observations as $k\rightarrow \infty$, according to \Cref{lem1}. 
@@ -607,10 +609,10 @@ Therefore, the proof of \cref{eqn:cmp2} can be reduced to infinite-observation s
 
 \section{Simulation}\label{sec:sim}
 This section simulates three searching scenarios in order to demonstrate the effectiveness of LEO-BDF. In all scenarios, six robots are utilized and each robot is equipped with a binary sensor. All sensors are modeled with identical Gaussian functions:
-\small\begin{align}
+\small\begin{align*}
 P(z=1|x^T;x^s)&=\exp\left\lbrace -\frac{1}{2}(x^T-x^s)^T{\Sigma}^{-1}(x^T-x^s)\right\rbrace \\
 P(z=0|x^T;x^s)&=1-P(z=1|x^T;x^s)
-\end{align}\normalsize
+\end{align*}\normalsize
 where $x^s$ denotes the robot position where current observation is obtained. 
 %Figure 4 shows the 1-D illustration of Gaussian binary sensor model.
 
@@ -628,7 +630,7 @@ LEO-DBF \cref{eqn:leo-dbf-sta-tar} is implemented on each robot for target posit
 \cref{fig:sta_sen_sta_tar} shows the estimation results of the static target. 
 After the initial observation, each sensor forms a circular individual PDF, centered at the corresponding sensor position. 
 As more observations are received, the posterior individual PDF concentrates on the true location of the target. 
-\cref{fig:entropy} (a) shows the decrease of the entropy of the posterior distribution \todohere{add a ref}, indicating the uncertainty reduction of the estimated target position.
+\cref{fig:entropy} (a) shows the decrease of the entropy of the posterior distribution, indicating the uncertainty reduction of the estimated target position.
 
 \begin{figure}%[thpb]
 	\centering
@@ -692,9 +694,9 @@ Similar to the results in \cref{subsec:sim1}, the posterior individual PDF conce
 
 \subsection{Moving Robots, Moving Target}
 The target in this scenario moves on the horizontal plane and the dynamics is given by a single-integrator model:
-\begin{equation}
+\begin{equation*}
 x^T(k+1)=x^T(k)+v
-\end{equation}
+\end{equation*}
 where $v$ is the constant velocity of the target.
 
 The LEO-DBF described in \cref{subsec:leo-dbf-mov-tar} is used as the distributed Bayesian filters.
