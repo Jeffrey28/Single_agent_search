@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="61.068966in"
-   height="20.878187in"
-   viewBox="0 0 5496.2073 1879.0367"
+   width="58.925934in"
+   height="19.310324in"
+   viewBox="0 0 5303.3344 1737.929"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
@@ -409,17 +409,17 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.0625"
-     inkscape:cx="-657.1867"
-     inkscape:cy="1920.7943"
+     inkscape:cx="-3174.3508"
+     inkscape:cy="1815.1473"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      showguides="false"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1440"
-     inkscape:window-height="801"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-width="1680"
+     inkscape:window-height="988"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      units="in"
      fit-margin-top="0.2"
@@ -443,7 +443,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(606.12435,195.2011)">
+     transform="translate(528.05579,143.50782)">
     <flowRoot
        xml:space="preserve"
        id="flowRoot8611"
@@ -605,8 +605,8 @@
        id="rect8207"
        width="5452.5059"
        height="1835.3356"
-       x="-584.27362"
-       y="-173.35049" />
+       x="-7416.2744"
+       y="-653.35059" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot8209"
@@ -619,7 +619,7 @@
            x="-504.159"
            y="1002.0904" /></flowRegion><flowPara
          id="flowPara8215"
-         style="-inkscape-font-specification:'Times New Roman, ';font-family:'Times New Roman';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal">(a)</flowPara></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">(a)</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot8209-5"
        style="font-style:normal;font-weight:normal;font-size:294.43423462px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -631,7 +631,7 @@
            x="-504.159"
            y="1002.0904" /></flowRegion><flowPara
          id="flowPara8215-8"
-         style="-inkscape-font-specification:'Times New Roman, ';font-family:'Times New Roman';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal">(b)</flowPara></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">(b)</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot8209-0"
        style="font-style:normal;font-weight:normal;font-size:294.43423462px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -643,5 +643,5 @@
            x="-504.159"
            y="1002.0904" /></flowRegion><flowPara
          id="flowPara8215-6"
-         style="-inkscape-font-specification:'Times New Roman, ';font-family:'Times New Roman';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal">(c)</flowPara></flowRoot>  </g>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">(c)</flowPara></flowRoot>  </g>
 </svg>

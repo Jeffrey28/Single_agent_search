@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="29.944302in"
-   height="19.048553in"
-   viewBox="0 0 2694.9873 1714.3697"
+   width="28.750013in"
+   height="18.51478in"
+   viewBox="0 0 2587.5013 1666.3301"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="DBF_demo_3.svg"
+   sodipodi:docname="DBF_demo.svg"
    inkscape:export-filename="D:\Chang Liu\DBF_demo_3.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -51,28 +51,12 @@
          transform="matrix(-0.8,0,0,-0.8,-10,0)"
          inkscape:connector-curvature="0" />
     </marker>
-    <marker
-       inkscape:isstock="true"
-       style="overflow:visible"
-       id="marker7394"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="Arrow1Lend"
-       inkscape:collect="always">
-      <path
-         inkscape:connector-curvature="0"
-         transform="matrix(-0.8,0,0,-0.8,-10,0)"
-         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
-         d="M 0,0 5,-5 -12.5,0 5,5 0,0 Z"
-         id="path7396" />
-    </marker>
     <inkscape:perspective
        sodipodi:type="inkscape:persp3d"
-       inkscape:vp_x="0 : 743.98344 : 1"
-       inkscape:vp_y="0 : 999.9999 : 0"
-       inkscape:vp_z="2432.4999 : 743.98344 : 1"
-       inkscape:persp3d-origin="1216.2499 : 495.98895 : 1"
+       inkscape:vp_x="0 : 743.98347 : 1"
+       inkscape:vp_y="0 : 999.99994 : 0"
+       inkscape:vp_z="2432.4998 : 743.98347 : 1"
+       inkscape:persp3d-origin="1216.2498 : 495.98897 : 1"
        id="perspective4838" />
     <marker
        inkscape:stockid="Arrow1Lstart"
@@ -212,22 +196,6 @@
     <marker
        inkscape:isstock="true"
        style="overflow:visible"
-       id="marker7394-3"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="Arrow1Lend"
-       inkscape:collect="always">
-      <path
-         inkscape:connector-curvature="0"
-         transform="matrix(-0.8,0,0,-0.8,-10,0)"
-         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
-         d="M 0,0 5,-5 -12.5,0 5,5 0,0 Z"
-         id="path7396-0" />
-    </marker>
-    <marker
-       inkscape:isstock="true"
-       style="overflow:visible"
        id="marker7394-4"
        refX="0"
        refY="0"
@@ -296,9 +264,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.25"
-     inkscape:cx="713.37344"
-     inkscape:cy="939.89892"
+     inkscape:zoom="0.1767767"
+     inkscape:cx="291.39718"
+     inkscape:cy="223.80161"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -316,41 +284,41 @@
      fit-margin-bottom="0.2"
      showborder="true">
     <sodipodi:guide
-       position="-119.21295,2617.9527"
+       position="-159.64313,2590.8287"
        orientation="1,0"
        id="guide4959"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="80.787056,2547.4365"
+       position="40.356867,2520.3125"
        orientation="1,0"
        id="guide4961"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="480.78713,2384.4365"
+       position="440.35696,2357.3125"
        orientation="1,0"
        id="guide4965"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="-562.64444,1517.4366"
+       position="-603.07453,1490.3126"
        orientation="0,1"
        id="guide4967"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="-704.06581,1517.4366"
+       position="-744.49593,1490.3126"
        orientation="0,1"
        id="guide4969" />
     <sodipodi:guide
-       position="-573.95798,1667.4366"
+       position="-614.38813,1640.3126"
        orientation="0,1"
        id="guide4971"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
     <sodipodi:guide
-       position="680.78705,3104.442"
+       position="640.35686,3077.318"
        orientation="1,0"
        id="guide4973"
        inkscape:label=""
@@ -372,7 +340,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(158.84289,-68.657382)">
+     transform="translate(118.4131,-89.572888)">
     <flowRoot
        xml:space="preserve"
        id="flowRoot8611"
@@ -950,8 +918,8 @@
        id="rect7241"
        width="2647.3391"
        height="1666.7217"
-       x="-135.01877"
-       y="92.481316" />
+       x="-3543.019"
+       y="12.481304" />
     <rect
        y="1417.949"
        x="833.88654"
@@ -1699,7 +1667,7 @@
        inkscape:connector-curvature="0"
        id="path7392-5"
        d="m 1761.7898,1676.9652 c 169.0138,-164.0988 -9.0355,-298.5845 -9.0355,-298.5845"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.92032528;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker7394-3)"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.92032528;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        sodipodi:nodetypes="cc" />
     <flowRoot
        xml:space="preserve"
@@ -1728,7 +1696,7 @@
        inkscape:connector-curvature="0"
        id="path7392"
        d="m 1762.8104,1353.2458 c 153.6273,-109.4119 0,-214.6155 0,-214.6155"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.94183946;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker7394)" />
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.94183946;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot6812-6-44"
@@ -1801,12 +1769,12 @@
          inkscape:connector-curvature="0" />
     </g>
     <path
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:10.5, 10.5;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
-       d="m 1755.338,1365.2725 316.6963,0"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.10156727;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:9.30470183, 9.30470183;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 1769.338,1365.2725 248.6963,0"
        id="path8652-9-0-0"
        inkscape:connector-curvature="0" />
     <g
-       transform="matrix(1.161111,0,0,1.161111,2895.3742,1279.8115)"
+       transform="matrix(1.161111,0,0,1.161111,2851.3742,1279.8115)"
        style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-opacity:1"
        id="g6916-4-6-9">
       <flowRoot
@@ -1861,7 +1829,7 @@
            id="flowPara3342-1-6-8-2-4-8-5"
            style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-opacity:1">(k-N+1)</flowPara></flowRoot>    </g>
     <path
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.87536311;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:8.62608967, 8.62608967;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend-2)"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.87536311;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:8.62608967, 8.62608967;stroke-dashoffset:0;stroke-opacity:1"
        d="m 1677.338,163.44628 364.1927,0"
        id="path8652-9-0-0-4"
        inkscape:connector-curvature="0" />
