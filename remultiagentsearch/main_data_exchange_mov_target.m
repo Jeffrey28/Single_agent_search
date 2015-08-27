@@ -36,7 +36,15 @@ fld.map = ones(fld.x,fld.y)/(fld.x*fld.y);
 [xpt,ypt] = meshgrid(1:fld.x,1:fld.y);
 
 %% Target Steup
-fld.tx = 25; fld.ty = 25;% Target position, but unknown to estimator
+switch Selection2
+    case 1, 
+        fld.tx = 50; 
+        fld.ty = 35;% Target position, but unknown to estimator
+    case {2,3,4} 
+        fld.tx = 25; 
+        fld.ty = 25;% Target position, but unknown to estimator
+end
+
 fld.target.speed = 1;
 fld.target.cov = 0.0001*eye(2);% covariance of the target motion model
 if tar_move == 0
@@ -61,20 +69,8 @@ ConsenFigure=0; % if 1, draw the concensus steps
         if (pt(ii,1)+fld.target.speed*fld.target.dx <= fld.x) && (pt(ii,2)+fld.target.speed*fld.target.dy <= fld.y)
             upd_cell1{ii}(pt(ii,1)+fld.target.speed*fld.target.dx,pt(ii,2)+fld.target.speed*fld.target.dy) = 1;
         end
-%         upd_cell1{ii} = mvnpdf(pt,pt(ii,:)+[fld.target.speed*fld.target.dx,fld.target.speed*fld.target.dy],fld.target.cov);
-%         upd_cell1{ii} = reshape(upd_cell1{ii}',fld.x,fld.y);
     end
     
-%     upd_cell2 = cell(size(pt,1),1);
-%     for ii = 1:size(pt,1)
-%         upd_cell2{ii} = zeros(fld.x,fld.y);
-%         if (pt(ii,1)-fld.target.speed*fld.target.dx >= 1) && (pt(ii,2)-fld.target.speed*fld.target.dy >= 1)
-%             upd_cell2{ii}(pt(ii,1)-fld.target.speed*fld.target.dx,pt(ii,2)-fld.target.speed*fld.target.dy) = 1;
-%         end    
-% %         upd_cell2{ii} = mvnpdf(pt,pt(ii,:)-[fld.target.speed*fld.target.dx,fld.target.speed*fld.target.dy],fld.target.cov);
-% %         upd_cell2{ii} = reshape(upd_cell2{ii}',fld.x,fld.y);
-%     end
-% end
 
 %% Path Planning setup
 hor = 3; % planning horizon
@@ -106,11 +102,19 @@ end
 %% Multi-Robot Setup
 NumOfRobot = 6;
 hf1=figure(1); set(hf1,'Position',[50,50,1000,600]); % for filtering cycle
+hf3 = figure(3);
 if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end % for consensus cycle
 % x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
 % y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
-x_set = linspace(5,fld.x-5,6);
-y_set = 10*ones(1,NumOfRobot);
+switch Selection2
+    case {1,2}
+        x_set = [20,40,60,80,60,40];
+        y_set = [50,20,20,50,80,80];
+    case {3,3}
+        x_set = linspace(5,fld.x-5,6);
+        y_set = 10*ones(1,NumOfRobot);
+end
+
 for i=1:NumOfRobot
     rbt(i).x = x_set(i)+0.1*rand(1,1); % sensor position.x
     rbt(i).y = y_set(i)+0.1*rand(1,1); % sensor position.x
@@ -171,6 +175,7 @@ err.time = [];
 err.rbt = [];
 while (1) %% Filtering Time Step
     figure(1); clf(hf1);
+    figure(3); clf(hf3);
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Target Movement
 %     if rem(count,2) == 1
@@ -432,21 +437,36 @@ while (1) %% Filtering Time Step
     end
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Plot Local PDFs for Each Sensor After Including Observations
-    hf1 = figure (1); 
-%     clf(hf1)
+    hf1 = figure (1); % handle for subplots 
     for i=1:NumOfRobot 
         subplot(2,3,i); contourf((rbt(i).map)'); hold on;
-        title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)]);
+        title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)],'FontSize',14);
         for j=1:NumOfRobot
             if i==j
-                plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',8,'LineWidth',3);
+                plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
             else
-                plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',8,'LineWidth',1.5);
+                plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
             end
-            plot(fld.tx, fld.ty, 'c+','MarkerSize',8,'LineWidth',3);
+            plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
+            set(gca,'fontsize',14)
         end
     end
-    subplot(2,3,5); xlabel(['Step=',num2str(count)]);
+    subplot(2,3,5); xlabel(['Step=',num2str(count)],'FontSize',14);
+    
+    % plot single figure for the first robot
+    hf3 = figure (3); % handle for plot of a single robot's target PDF
+    contourf((rbt(1).map)'); hold on;
+    title(['Sensor ',1, ' Observ.= ',num2str(rbt(1).z)],'FontSize',16);
+    for j=1:NumOfRobot
+        if j==1
+            plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
+        else
+            plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
+        end
+        plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
+        set(gca,'fontsize',16)
+    end  
+    xlabel(['Step=',num2str(count)],'FontSize',16);
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Probability Map Consensus
@@ -495,7 +515,7 @@ while (1) %% Filtering Time Step
     
     % save plots
     %
-    if (count == 1) || (count == 3) || (count == 5) || (count == 7) || (count == 10) || (count == 20) || (count == 30) || (count == 40)
+    if (count == 1) || (count == 3) || (count == 5) || (count == 7) || (count == 10) || (count == 20) || (count == 30) || (count == 40) || (count == 50)
         switch Selection2
             case 1,  tag = 'sta_sen_sta_tar';
             case 2,  tag = 'sta_sen_mov_tar';
@@ -505,6 +525,9 @@ while (1) %% Filtering Time Step
         file_name1 = sprintf('./figures/data_exchange/%s_%d_%s',tag,count,datestr(now,1));
         saveas(hf1,file_name1,'fig')
         saveas(hf1,file_name1,'jpg')
+        file_name2 = sprintf('./figures/data_exchange/%s_single_%d_%s',tag,count,datestr(now,1));
+        saveas(hf3,file_name2,'fig')
+        saveas(hf3,file_name2,'jpg')
     end
 %     file_name2 = sprintf('./figures/data_exchange/sim_0.3_0.1_1_1_actual_peak/fig3_%d',count);
 %     saveas(hf3,file_name2,'jpg')
@@ -530,8 +553,13 @@ for i=1:NumOfRobot
     plot(1:count-2,rbt(i).entropy(1:count-2),line_clr(i),'LineWidth',2,'Marker',line_marker{i},'MarkerSize',2); hold on;
     xlim([0,count-1])
 end
-xlabel('Entropy of the Target PDF');
-legend('Robot 1','Robot 2','Robot 3','Robot 4','Robot 5','Robot 6');
+title('Entropy of the Target PDF','FontSize',16);
+xlabel('Time','FontSize',16);
+ylabel('Entropy','FontSize',16);
+
+[hleg1, hobj1] = legend('Robot 1','Robot 2','Robot 3','Robot 4','Robot 5','Robot 6');
+textobj = findobj(hobj1, 'type', 'text');
+set(textobj, 'fontsize', 15);
 
 switch Selection2
     case 1,  tag = 'sta_sen_sta_tar';

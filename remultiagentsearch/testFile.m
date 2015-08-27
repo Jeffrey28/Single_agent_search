@@ -184,6 +184,7 @@ end
 %}
 
 % process the entropy
+%
 % read xxx_entropy_xxx.fig
 for ii = 1:size(a,1)
     if ~isempty(strfind(a(ii).name,'entropy')) && ~isempty(strfind(a(ii).name,'fig'))
@@ -226,14 +227,15 @@ for jj = 1:length(file_name_list)
 %     set(s,'Ylim',get(h_ax,'YLim'))
 
     % save new figure
-%     sp = 1; % start point for reading the name
-%     ep = strfind(file_name,'entropy')+6; % end point for reading the name
-%     test_id = file_name(sp:ep);
-%     file_name2 = strcat(test_id);
+    sp = 1; % start point for reading the name
+    ep = strfind(file_name,'entropy')+6; % end point for reading the name
+    test_id = file_name(sp:ep);
+    file_name2 = strcat(test_id);
     
-%     saveas(h,fullfile(folder_path,file_name2),'fig')
-%     save_pdf(h,fullfile(folder_path,file_name2))
+    saveas(h,fullfile(folder_path,file_name2),'fig')
+    save_pdf(h,fullfile(folder_path,file_name2))
 end
-file_name2 = 'entropy';
-saveas(h_sub,fullfile(folder_path,file_name2),'fig')
-save_pdf(h,fullfile(folder_path,file_name2))
+% file_name2 = 'entropy';
+% saveas(h_sub,fullfile(folder_path,file_name2),'fig')
+% save_pdf(h,fullfile(folder_path,file_name2))
+%}

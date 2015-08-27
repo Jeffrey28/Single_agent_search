@@ -65,13 +65,6 @@ X.~Sheng, Y.-H. Hu, and P.~Ramanathan, ``Distributed particle filter with gmm
   Information processing in sensor networks}.\hskip 1em plus 0.5em minus
   0.4em\relax IEEE Press, 2005, p.~24.
 
-\bibitem{ram2007stochastic}
-S.~S. Ram, A.~Nedic, and V.~Veeravalli, ``Stochastic incremental gradient
-  descent for estimation in sensor networks,'' in \emph{Signals, Systems and
-  Computers, 2007. ACSSC 2007. Conference Record of the Forty-First Asilomar
-  Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp.
-  582--586.
-
 \bibitem{olfati2007consensus}
 R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
   networked multi-agent systems,'' \emph{Proceedings of the IEEE}, vol.~95,
@@ -144,6 +137,13 @@ D.~Hahnel, W.~Burgard, D.~Fox, and S.~Thrun, ``An efficient fastslam algorithm
 J.~Tisdale, Z.~Kim, and J.~K. Hedrick, ``Autonomous uav path planning and
   estimation,'' \emph{Robotics \& Automation Magazine, IEEE}, vol.~16, no.~2,
   pp. 35--42, 2009.
+
+\bibitem{ram2007stochastic}
+S.~S. Ram, A.~Nedic, and V.~Veeravalli, ``Stochastic incremental gradient
+  descent for estimation in sensor networks,'' in \emph{Signals, Systems and
+  Computers, 2007. ACSSC 2007. Conference Record of the Forty-First Asilomar
+  Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp.
+  582--586.
 
 \bibitem{bahceci2005serial}
 I.~Bahceci, G.~Al-Regib, and Y.~Altunbasak, ``Serial distributed detection for
