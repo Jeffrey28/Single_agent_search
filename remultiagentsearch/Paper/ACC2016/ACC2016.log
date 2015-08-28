@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  27 AUG 2015 13:01
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  27 AUG 2015 21:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -596,18 +596,18 @@ Package: soul 2003/11/17 v2.4 letterspacing/underlining (mf)
 ) (./ACC2016.aux)
 \openout1 = `ACC2016.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 90.
-LaTeX Font Info:    ... okay on input line 90.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 90.
-LaTeX Font Info:    ... okay on input line 90.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 90.
-LaTeX Font Info:    ... okay on input line 90.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 90.
-LaTeX Font Info:    ... okay on input line 90.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 90.
-LaTeX Font Info:    ... okay on input line 90.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 90.
-LaTeX Font Info:    ... okay on input line 90.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 88.
+LaTeX Font Info:    ... okay on input line 88.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 88.
+LaTeX Font Info:    ... okay on input line 88.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 88.
+LaTeX Font Info:    ... okay on input line 88.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 88.
+LaTeX Font Info:    ... okay on input line 88.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 88.
+LaTeX Font Info:    ... okay on input line 88.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 88.
+LaTeX Font Info:    ... okay on input line 88.
 
 (/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -674,91 +674,74 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
 
 ABD: EveryShipout initializing macros
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 94.
-LaTeX Font Info:    Try loading font information for U+msa on input line 94.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 92.
+LaTeX Font Info:    Try loading font information for U+msa on input line 92.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 94.
+LaTeX Font Info:    Try loading font information for U+msb on input line 92.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 94.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 92.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-Underfull \hbox (badness 10000) in paragraph at lines 100--111
-[]\OT1/ptm/b/it/9 Abstract\OT1/ptm/b/n/9 ---This pa-per pro-poses a local-excha
-nge-of-
- []
 
-
-Underfull \hbox (badness 4036) in paragraph at lines 100--111
-\OT1/ptm/b/n/9 (DBF) in a multi-robot net-work with the ap-pli-ca-tion
- []
-
-
-Underfull \hbox (badness 2237) in paragraph at lines 100--111
-\OT1/ptm/b/n/9 of tar-get search and track-ing. Dif-fer-ent from statis-tics
- []
-
-
-Underfull \hbox (badness 2884) in paragraph at lines 131--135
-[]\OT1/ptm/m/n/10 Neighborhood(NB)-based DBF is an-other com-monly
- []
+LaTeX Warning: Citation `keylist' on page 1 undefined on input line 125.
 
 [1{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
-Underfull \hbox (badness 3679) in paragraph at lines 161--171
+Underfull \hbox (badness 3679) in paragraph at lines 166--176
 []\OT1/ptm/m/n/10 This pa-per pro-poses a local-exchange-of-observation
  []
 
-[2] <figures/com_topo.pdf, id=25, 4413.45395pt x 1508.86661pt>
+[2] <figures/com_topo.pdf, id=24, 4413.45395pt x 1508.86661pt>
 File: figures/com_topo.pdf Graphic file (type pdf)
 
 <use figures/com_topo.pdf>
-Package pdftex.def Info: figures/com_topo.pdf used on input line 232.
+Package pdftex.def Info: figures/com_topo.pdf used on input line 238.
 (pdftex.def)             Requested size: 227.64894pt x 77.81915pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 281--285
+Underfull \hbox (badness 10000) in paragraph at lines 291--295
 
  []
 
 [3 <./figures/com_topo.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 328--331
-
- []
-
-<figures/data_exchange.pdf, id=48, 2100.45984pt x 1437.04874pt>
+<figures/data_exchange.pdf, id=47, 2100.45984pt x 1437.04874pt>
 File: figures/data_exchange.pdf Graphic file (type pdf)
 
 <use figures/data_exchange.pdf>
-Package pdftex.def Info: figures/data_exchange.pdf used on input line 334.
+Package pdftex.def Info: figures/data_exchange.pdf used on input line 344.
 (pdftex.def)             Requested size: 242.82503pt x 166.12326pt.
 
-<figures/DBF_demo.pdf, id=49, 2077.76347pt x 1338.0632pt>
+Underfull \hbox (badness 10000) in paragraph at lines 348--349
+
+ []
+
+<figures/DBF_demo.pdf, id=48, 2077.76347pt x 1338.0632pt>
 File: figures/DBF_demo.pdf Graphic file (type pdf)
 
 <use figures/DBF_demo.pdf>
-Package pdftex.def Info: figures/DBF_demo.pdf used on input line 402.
+Package pdftex.def Info: figures/DBF_demo.pdf used on input line 417.
 (pdftex.def)             Requested size: 237.7689pt x 153.10838pt.
  [4 <./figures/data_exchange.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 463--465
+Underfull \hbox (badness 10000) in paragraph at lines 479--481
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 519--524
+Underfull \hbox (badness 10000) in paragraph at lines 544--549
 
  []
 
 [5 <./figures/DBF_demo.pdf>]
-Overfull \hbox (3.58029pt too wide) detected at line 532
+Overfull \hbox (3.58029pt too wide) detected at line 558
 [] [] [] \OT1/cmr/m/n/9 = [] [] [] + [] [] [] [] []
  []
 
@@ -767,7 +750,7 @@ File: figures/sta_sen_sta_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1.pdf used on input lin
-e 623.
+e 654.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/sta_sen_sta_tar_single_5.pdf, id=75, 489.1769pt x 416.43553pt>
@@ -775,7 +758,7 @@ File: figures/sta_sen_sta_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5.pdf used on input lin
-e 627.
+e 658.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/sta_sen_sta_tar_single_10.pdf, id=76, 489.1769pt x 416.43553pt>
@@ -783,7 +766,7 @@ File: figures/sta_sen_sta_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_10.pdf used on input li
-ne 631.
+ne 662.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/sta_sen_sta_tar_single_30.pdf, id=77, 489.1769pt x 416.43553pt>
@@ -791,14 +774,14 @@ File: figures/sta_sen_sta_tar_single_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_30.pdf used on input li
-ne 635.
+ne 666.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/sta_sen_sta_tar_30.pdf, id=78, 759.49211pt x 557.13321pt>
 File: figures/sta_sen_sta_tar_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_30.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 639.
+Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 670.
 
 (pdftex.def)             Requested size: 242.82503pt x 178.12474pt.
 
@@ -807,7 +790,7 @@ File: figures/mov_sen_mov_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_1.pdf used on input lin
-e 649.
+e 680.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/mov_sen_mov_tar_single_5.pdf, id=80, 489.1769pt x 416.43553pt>
@@ -815,7 +798,7 @@ File: figures/mov_sen_mov_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_5.pdf used on input lin
-e 653.
+e 684.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/mov_sen_mov_tar_single_10.pdf, id=81, 489.1769pt x 416.43553pt>
@@ -823,7 +806,7 @@ File: figures/mov_sen_mov_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_10.pdf used on input li
-ne 657.
+ne 688.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/mov_sen_mov_tar_single_30.pdf, id=82, 489.1769pt x 416.43553pt>
@@ -831,14 +814,14 @@ File: figures/mov_sen_mov_tar_single_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_30.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_30.pdf used on input li
-ne 661.
+ne 692.
 (pdftex.def)             Requested size: 111.29642pt x 94.7424pt.
 
 <figures/mov_sen_mov_tar_30.pdf, id=83, 759.49211pt x 557.13321pt>
 File: figures/mov_sen_mov_tar_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_30.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_30.pdf used on input line 665.
+Package pdftex.def Info: figures/mov_sen_mov_tar_30.pdf used on input line 696.
 
 (pdftex.def)             Requested size: 242.82503pt x 178.12474pt.
  [6] [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_sin
@@ -878,23 +861,7 @@ pdf): PDF inclusion: multiple pdfs with page group included in a single page
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/mov_sen_mov_tar_30.pdf): P
 DF inclusion: multiple pdfs with page group included in a single page
->] <figures/entropy_all.pdf, id=259, 989.92662pt x 403.52348pt>
-File: figures/entropy_all.pdf Graphic file (type pdf)
-
-<use figures/entropy_all.pdf>
-Package pdftex.def Info: figures/entropy_all.pdf used on input line 760.
-(pdftex.def)             Requested size: 252.94499pt x 103.1034pt.
-
-Overfull \hbox (7.22688pt too wide) in paragraph at lines 760--761
- [][] 
- []
-
-
-Underfull \hbox (badness 4699) in paragraph at lines 766--774
-[]\OT1/ptm/m/n/10 In this study, we pro-posed the local-exchange-of-
- []
-
-(./ACC2016.bbl [8 <./figures/entropy_all.pdf>])
+>] (./ACC2016.bbl)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -906,48 +873,49 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-[9
+[8] (./ACC2016.aux)
 
-] (./ACC2016.aux) ) 
+LaTeX Warning: There were undefined references.
+
+ ) 
 Here is how much of TeX's memory you used:
- 16521 strings out of 493117
- 326297 string characters out of 6135433
- 385969 words of memory out of 5000000
- 19662 multiletter control sequences out of 15000+600000
+ 16515 strings out of 493117
+ 326167 string characters out of 6135433
+ 387965 words of memory out of 5000000
+ 19657 multiletter control sequences out of 15000+600000
  51886 words of font info for 116 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 62i,13n,75p,555b,525s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.
-enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.p
-fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb
-></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.p
-fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pf
-b></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb>
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></
-usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></us
-r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/lo
-cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local
-/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/te
-xlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texli
-ve/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/
-2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/201
-4/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2014/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2014/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2014/texmf
--dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2014/texmf-d
-ist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2014/tex
-mf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/
-fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type
-1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/tim
-es/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a
-.pfb>
-Output written on ACC2016.pdf (9 pages, 691127 bytes).
+ 62i,13n,75p,537b,525s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
+exlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texl
+ive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texli
+ve/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/tex
+live/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local/texli
+ve/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive
+/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2
+014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/201
+4/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2014/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2014/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2014/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2014/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2014/texmf-dist/font
+s/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2014/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/p
+ublic/amsfonts/symbols/msam10.pfb></usr/local/texlive/2014/texmf-dist/fonts/typ
+e1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/t
+imes/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi
+8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on ACC2016.pdf (8 pages, 631808 bytes).
 PDF statistics:
- 535 PDF objects out of 1000 (max. 8388607)
- 361 compressed objects within 4 object streams
+ 345 PDF objects out of 1000 (max. 8388607)
+ 235 compressed objects within 3 object streams
  0 named destinations out of 1000 (max. 500000)
- 83 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 78 words of extra memory for PDF output out of 10000 (max. 10000000)
 

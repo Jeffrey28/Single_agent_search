@@ -4,6 +4,7 @@
 \citation{cao2008development}
 \citation{2005distributed}
 \citation{gu2007distributed}
+\citation{keylist}
 \citation{zuo2006bandwidth}
 \citation{ribeiro2006bandwidth}
 \citation{sheng2005distributed}
@@ -12,10 +13,10 @@
 \citation{jadbabaie2003coordination}
 \citation{bandyopadhyay2014distributed}
 \citation{julian2012distributed}
+\@writefile{toc}{\contentsline {section}{\numberline {I}INTRODUCTION}{1}}
 \citation{coates2004distributed}
 \citation{djuric2011non}
 \citation{rosencrantz2002decentralized}
-\@writefile{toc}{\contentsline {section}{\numberline {I}INTRODUCTION}{1}}
 \citation{bonnie2012modelling}
 \citation{liu2014framework}
 \citation{djuric2008target}
@@ -50,37 +51,37 @@
 \newlabel{eqn:bayes_upd}{{4}{3}}
 \newlabel{eqn:bayes_upd@cref}{{[equation][4][]4}{3}}
 \@writefile{toc}{\contentsline {section}{\numberline {III}Distributed Bayesian Filter via Local Exchange of Observations}{3}}
-\newlabel{sec:leo-dbf}{{III}{3}}
-\newlabel{sec:leo-dbf@cref}{{[section][3][]III}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {III-A}Algorithm for Local Exchange of Observations (LEO)}{3}}
-\newlabel{subsec:leo}{{III-A}{3}}
-\newlabel{subsec:leo@cref}{{[subsection][1][3]III-A}{3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of LEO with three robots using serial communication topology\relax }}{4}}
-\newlabel{fig:LEO}{{2}{4}}
-\newlabel{fig:LEO@cref}{{[figure][2][]2}{4}}
+\newlabel{sec:LIFO-dbf}{{III}{3}}
+\newlabel{sec:LIFO-dbf@cref}{{[section][3][]III}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-A}Strategy for Latest-In-and-Full-Out (LIFO)}{3}}
+\newlabel{subsec:LIFO}{{III-A}{3}}
+\newlabel{subsec:LIFO@cref}{{[subsection][1][3]III-A}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of LIFO with three robots using serial communication topology\relax }}{4}}
+\newlabel{fig:LIFO}{{2}{4}}
+\newlabel{fig:LIFO@cref}{{[figure][2][]2}{4}}
 \newlabel{prop1}{{1}{4}}
 \newlabel{prop1@cref}{{[prop][1][]1}{4}}
 \newlabel{cor1}{{1}{4}}
 \newlabel{cor1@cref}{{[cor][1][]1}{4}}
 \newlabel{cor2}{{2}{4}}
 \newlabel{cor2@cref}{{[cor][2][]2}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {III-B}Algorithm of LEO-DBF for Static Target}{4}}
-\newlabel{subsec:leo-dbf-sta-tar}{{III-B}{4}}
-\newlabel{subsec:leo-dbf-sta-tar@cref}{{[subsection][2][3]III-B}{4}}
-\newlabel{eqn:leo-dbf-sta-tar}{{5}{4}}
-\newlabel{eqn:leo-dbf-sta-tar@cref}{{[equation][5][]5}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {III-C}Algorithm of LEO-DBF for Moving target}{4}}
-\newlabel{subsec:leo-dbf-mov-tar}{{III-C}{4}}
-\newlabel{subsec:leo-dbf-mov-tar@cref}{{[subsection][3][3]III-C}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Example of LEO-DBF for $1^\text  {st}$ robot at time $k$. The current individual PDF is $ P^1_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots  ,z^N_{1:k-N})$, denoted as $ P^1_{pdf}(k-N)$ in the figure. The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of i-th robot at time $k$.\relax }}{5}}
-\newlabel{fig:LEO-DBF}{{3}{5}}
-\newlabel{fig:LEO-DBF@cref}{{[figure][3][]3}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-B}Algorithm of LIFO-DBF for Static Target}{4}}
+\newlabel{subsec:LIFO-dbf-sta-tar}{{III-B}{4}}
+\newlabel{subsec:LIFO-dbf-sta-tar@cref}{{[subsection][2][3]III-B}{4}}
+\newlabel{eqn:LIFO-dbf-sta-tar}{{5}{4}}
+\newlabel{eqn:LIFO-dbf-sta-tar@cref}{{[equation][5][]5}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Example of LIFO-DBF for $1^\text  {st}$ robot at time $k$. The current individual PDF is $ P^1_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots  ,z^N_{1:k-N})$, denoted as $ P^1_{pdf}(k-N)$ in the figure. The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of $1^\text  {st}$ robot at time $k$.\relax }}{5}}
+\newlabel{fig:LIFO-DBF}{{3}{5}}
+\newlabel{fig:LIFO-DBF@cref}{{[figure][3][]3}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-C}Algorithm of LIFO-DBF for Moving target}{5}}
+\newlabel{subsec:LIFO-dbf-mov-tar}{{III-C}{5}}
+\newlabel{subsec:LIFO-dbf-mov-tar@cref}{{[subsection][3][3]III-C}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}Proof of Consistency and Consensus}{5}}
 \newlabel{sec:consist_proof}{{IV}{5}}
 \newlabel{sec:consist_proof@cref}{{[section][4][]IV}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {IV-A}Proof for static robots}{5}}
-\newlabel{thm:leo-dbf-sta-tar}{{1}{5}}
-\newlabel{thm:leo-dbf-sta-tar@cref}{{[thm][1][]1}{5}}
+\newlabel{thm:LIFO-dbf-sta-tar}{{1}{5}}
+\newlabel{thm:LIFO-dbf-sta-tar@cref}{{[thm][1][]1}{5}}
 \newlabel{eqn:cmp}{{6}{6}}
 \newlabel{eqn:cmp@cref}{{[equation][6][]6}{6}}
 \newlabel{eqn:cmp_log}{{7}{6}}
@@ -94,10 +95,15 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {IV-B}Proof for moving robots}{6}}
 \newlabel{lem1}{{1}{6}}
 \newlabel{lem1@cref}{{[lem][1][]1}{6}}
-\newlabel{thm:leo-dbf-mov-tar}{{2}{6}}
-\newlabel{thm:leo-dbf-mov-tar@cref}{{[thm][2][]2}{6}}
+\newlabel{thm:LIFO-dbf-mov-tar}{{2}{6}}
+\newlabel{thm:LIFO-dbf-mov-tar@cref}{{[thm][2][]2}{6}}
 \newlabel{eqn:cmp2}{{11}{6}}
 \newlabel{eqn:cmp2@cref}{{[equation][11][]11}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Simulation}{6}}
+\newlabel{sec:sim}{{V}{6}}
+\newlabel{sec:sim@cref}{{[section][5][]V}{6}}
+\newlabel{eqn:gauss_sensor}{{12}{6}}
+\newlabel{eqn:gauss_sensor@cref}{{[subequation][12][]12}{6}}
 \newlabel{fig:sta_sen_sta_tar_sing1}{{4a}{7}}
 \newlabel{fig:sta_sen_sta_tar_sing1@cref}{{[subfigure][1][4]4a}{7}}
 \newlabel{sub@fig:sta_sen_sta_tar_sing1}{{a}{7}}
@@ -118,14 +124,12 @@
 \newlabel{fig:sta_sen_sta_tar_all@cref}{{[subfigure][5][4]4e}{7}}
 \newlabel{sub@fig:sta_sen_sta_tar_all}{{e}{7}}
 \newlabel{sub@fig:sta_sen_sta_tar_all@cref}{{[subfigure][5][4]4e}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces (a)-(d): The $1^\text  {st}$ robot's individual PDFs at different time; (e) All robots' individual PDFs at time $30$.\relax }}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces (a)-(d): The $1^\text  {st}$ robot's individual PDFs at different time; (e) All robots' individual PDFs at time $30$.\texthl  {(\textbf  {TODO:} revise symbols)} $\square $ denotes the current robot and $\star $ represent other robots. + stands for the target.\relax }}{7}}
 \newlabel{fig:sta_sen_sta_tar}{{4}{7}}
 \newlabel{fig:sta_sen_sta_tar@cref}{{[figure][4][]4}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Simulation}{7}}
-\newlabel{sec:sim}{{V}{7}}
-\newlabel{sec:sim@cref}{{[section][5][]V}{7}}
-\newlabel{eqn:gauss_sensor}{{12}{7}}
-\newlabel{eqn:gauss_sensor@cref}{{[subequation][12][]12}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {V-A}Static Robots, Static Target}{7}}
+\newlabel{subsec:sim1}{{V-A}{7}}
+\newlabel{subsec:sim1@cref}{{[subsection][1][5]V-A}{7}}
 \newlabel{fig:mov_sen_mov_tar_sing1}{{5a}{7}}
 \newlabel{fig:mov_sen_mov_tar_sing1@cref}{{[subfigure][1][5]5a}{7}}
 \newlabel{sub@fig:mov_sen_mov_tar_sing1}{{a}{7}}
@@ -149,11 +153,7 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces (a)-(d): The $1^\text  {st}$ robot's individual PDFs at different time; (e) All robots' individual PDFs at time $30$.\relax }}{7}}
 \newlabel{fig:mov_sen_mov_tar}{{5}{7}}
 \newlabel{fig:mov_sen_mov_tar@cref}{{[figure][5][]5}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {V-A}Static Robots, Static Target}{7}}
-\newlabel{subsec:sim1}{{V-A}{7}}
-\newlabel{subsec:sim1@cref}{{[subsection][1][5]V-A}{7}}
-\citation{tisdale2009autonomous}
-\citation{furukawa2006recursive}
+\@writefile{toc}{\contentsline {subsection}{\numberline {V-B}Moving Robots, Moving Target}{7}}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{chamberland2007wireless}{1}
@@ -174,14 +174,6 @@
 \bibcite{rosencrantz2002decentralized}{16}
 \bibcite{bonnie2012modelling}{17}
 \bibcite{liu2014framework}{18}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Entropy of individual PDFs over time: (a) static robots and static target; (b) moving robots and moving target.\relax }}{8}}
-\newlabel{fig:entropy}{{6}{8}}
-\newlabel{fig:entropy@cref}{{[figure][6][]6}{8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {V-B}Moving Robots, Moving Target}{8}}
-\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{8}}
-\newlabel{sec:conclu}{{VI}{8}}
-\newlabel{sec:conclu@cref}{{[section][6][]VI}{8}}
-\@writefile{toc}{\contentsline {section}{References}{8}}
 \bibcite{djuric2008target}{19}
 \bibcite{hahnel2003efficient}{20}
 \bibcite{tisdale2009autonomous}{21}
@@ -190,3 +182,7 @@
 \bibcite{hlinka2015distributed}{24}
 \bibcite{furukawa2006recursive}{25}
 \bibcite{kulich2014single}{26}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{8}}
+\newlabel{sec:conclu}{{VI}{8}}
+\newlabel{sec:conclu@cref}{{[section][6][]VI}{8}}
+\@writefile{toc}{\contentsline {section}{References}{8}}
