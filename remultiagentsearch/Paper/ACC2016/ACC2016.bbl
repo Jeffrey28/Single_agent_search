@@ -23,12 +23,11 @@ J.-F. Chamberland and V.~V. Veeravalli, ``Wireless sensors in distributed
   detection applications,'' \emph{Signal Processing Magazine, IEEE}, vol.~24,
   no.~3, pp. 16--25, 2007.
 
-\bibitem{beaudeau2012target}
-J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
-  asynchronous measurements by a network of distributed mobile agents,'' in
-  \emph{Acoustics, Speech and Signal Processing (ICASSP), 2012 IEEE
-  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
-  2012, pp. 3857--3860.
+\bibitem{wang2007wlan}
+H.~Wang, H.~Lenz, A.~Szabo, J.~Bamberger, and U.~D. Hanebeck, ``Wlan-based
+  pedestrian tracking using particle filters and low-cost mems sensors,'' in
+  \emph{Positioning, Navigation and Communication, 2007. WPNC'07. 4th Workshop
+  on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp. 1--7.
 
 \bibitem{cao2008development}
 X.~Cao, J.~Chen, Y.~Zhang, and Y.~Sun, ``Development of an integrated wireless
@@ -46,17 +45,28 @@ D.~Gu, ``Distributed particle filter for target tracking,'' in \emph{Robotics
   and Automation, 2007 IEEE International Conference on}.\hskip 1em plus 0.5em
   minus 0.4em\relax IEEE, 2007, pp. 3856--3861.
 
+\bibitem{bandyopadhyay2014distributed}
+S.~Bandyopadhyay and S.-J. Chung, ``Distributed estimation using bayesian
+  consensus filtering,'' in \emph{American Control Conference (ACC),
+  2014}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2014, pp. 634--641.
+
+\bibitem{hlinka2013distributed}
+O.~Hlinka, F.~Hlawatsch, and P.~M. Djuric, ``Distributed particle filtering in
+  agent networks: A survey, classification, and comparison,'' \emph{Signal
+  Processing Magazine, IEEE}, vol.~30, no.~1, pp. 61--81, 2013.
+
 \bibitem{zuo2006bandwidth}
 L.~Zuo, K.~Mehrotra, P.~K. Varshney, and C.~K. Mohan, ``Bandwidth-efficient
   target tracking in distributed sensor networks using particle filters,'' in
   \emph{Information Fusion, 2006 9th International Conference on}.\hskip 1em
   plus 0.5em minus 0.4em\relax IEEE, 2006, pp. 1--4.
 
-\bibitem{ribeiro2006bandwidth}
-A.~Ribeiro and G.~B. Giannakis, ``Bandwidth-constrained distributed estimation
-  for wireless sensor networks-part ii: unknown probability density function,''
-  \emph{Signal Processing, IEEE Transactions on}, vol.~54, no.~7, pp.
-  2784--2796, 2006.
+\bibitem{vemula2006target}
+M.~Vemula, M.~F. Bugallo, and P.~M. Djuri{\'c}, ``Target tracking in a
+  two-tiered hierarchical sensor network,'' in \emph{Acoustics, Speech and
+  Signal Processing, 2006. ICASSP 2006 Proceedings. 2006 IEEE International
+  Conference on}, vol.~4.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2006,
+  pp. IV--IV.
 
 \bibitem{sheng2005distributed}
 X.~Sheng, Y.-H. Hu, and P.~Ramanathan, ``Distributed particle filter with gmm
@@ -80,11 +90,6 @@ A.~Jadbabaie, J.~Lin, \emph{et~al.}, ``Coordination of groups of mobile
   autonomous agents using nearest neighbor rules,'' \emph{Automatic Control,
   IEEE Transactions on}, vol.~48, no.~6, pp. 988--1001, 2003.
 
-\bibitem{bandyopadhyay2014distributed}
-S.~Bandyopadhyay and S.-J. Chung, ``Distributed estimation using bayesian
-  consensus filtering,'' in \emph{American Control Conference (ACC),
-  2014}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2014, pp. 634--641.
-
 \bibitem{julian2012distributed}
 B.~J. Julian, M.~Angermann, M.~Schwager, and D.~Rus, ``Distributed robotic
   sensor networks: An information-theoretic approach,'' \emph{The International
@@ -101,6 +106,12 @@ P.~M. Djuri{\'c}, J.~Beaudeau, and M.~F. Bugallo, ``Non-centralized target
   tracking with mobile agents,'' in \emph{Acoustics, Speech and Signal
   Processing (ICASSP), 2011 IEEE International Conference on}.\hskip 1em plus
   0.5em minus 0.4em\relax IEEE, 2011, pp. 5928--5931.
+
+\bibitem{ribeiro2006bandwidth}
+A.~Ribeiro and G.~B. Giannakis, ``Bandwidth-constrained distributed estimation
+  for wireless sensor networks-part ii: unknown probability density function,''
+  \emph{Signal Processing, IEEE Transactions on}, vol.~54, no.~7, pp.
+  2784--2796, 2006.
 
 \bibitem{rosencrantz2002decentralized}
 M.~Rosencrantz, G.~Gordon, and S.~Thrun, ``Decentralized sensor fusion with

@@ -14,45 +14,45 @@ Database file #1: references.bib
 Warning--empty journal in hlinka2015distributed
 
 Done.
-You've used 26 entries,
+You've used 28 entries,
             3975 wiz_defined-function locations,
-            950 strings with 12905 characters,
-and the built_in function-call counts, 24317 in all, are:
-= -- 1926
-> -- 547
-< -- 264
-+ -- 318
-- -- 76
-* -- 1172
-:= -- 3381
-add.period$ -- 68
-call.type$ -- 26
-change.case$ -- 26
-chr.to.int$ -- 660
-cite$ -- 27
-duplicate$ -- 1659
-empty$ -- 1987
-format.name$ -- 99
-if$ -- 5716
+            961 strings with 13326 characters,
+and the built_in function-call counts, 25837 in all, are:
+= -- 2049
+> -- 587
+< -- 275
++ -- 332
+- -- 84
+* -- 1250
+:= -- 3626
+add.period$ -- 73
+call.type$ -- 28
+change.case$ -- 28
+chr.to.int$ -- 678
+cite$ -- 29
+duplicate$ -- 1773
+empty$ -- 2114
+format.name$ -- 109
+if$ -- 6065
 int.to.chr$ -- 0
-int.to.str$ -- 26
-missing$ -- 256
-newline$ -- 98
-num.names$ -- 26
-pop$ -- 595
+int.to.str$ -- 28
+missing$ -- 279
+newline$ -- 104
+num.names$ -- 28
+pop$ -- 648
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1872
+skip$ -- 1985
 stack$ -- 0
-substring$ -- 1568
-swap$ -- 1450
-text.length$ -- 44
+substring$ -- 1612
+swap$ -- 1541
+text.length$ -- 49
 text.prefix$ -- 0
 top$ -- 5
 type$ -- 0
 warning$ -- 1
-while$ -- 123
-width$ -- 28
-write$ -- 270
+while$ -- 133
+width$ -- 30
+write$ -- 291
 (There was 1 warning)

@@ -1,24 +1,19 @@
 \relax 
 \citation{chamberland2007wireless}
-\citation{beaudeau2012target}
+\citation{wang2007wlan}
 \citation{cao2008development}
 \citation{2005distributed}
 \citation{gu2007distributed}
-\citation{keylist}
-\citation{zuo2006bandwidth}
-\citation{ribeiro2006bandwidth}
+\citation{bandyopadhyay2014distributed,hlinka2013distributed}
+\citation{zuo2006bandwidth,vemula2006target}
 \citation{sheng2005distributed}
-\citation{olfati2007consensus}
-\citation{ren2005consensus}
-\citation{jadbabaie2003coordination}
+\citation{olfati2007consensus,ren2005consensus,jadbabaie2003coordination}
 \citation{bandyopadhyay2014distributed}
 \citation{julian2012distributed}
 \@writefile{toc}{\contentsline {section}{\numberline {I}INTRODUCTION}{1}}
 \citation{coates2004distributed}
 \citation{djuric2011non}
-\citation{rosencrantz2002decentralized}
-\citation{bonnie2012modelling}
-\citation{liu2014framework}
+\citation{bonnie2012modelling,liu2014framework}
 \citation{djuric2008target}
 \citation{hahnel2003efficient}
 \citation{tisdale2009autonomous}
@@ -70,20 +65,20 @@
 \newlabel{subsec:LIFO-dbf-sta-tar@cref}{{[subsection][2][3]III-B}{4}}
 \newlabel{eqn:LIFO-dbf-sta-tar}{{5}{4}}
 \newlabel{eqn:LIFO-dbf-sta-tar@cref}{{[equation][5][]5}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-C}Algorithm of LIFO-DBF for Moving target}{4}}
+\newlabel{subsec:LIFO-dbf-mov-tar}{{III-C}{4}}
+\newlabel{subsec:LIFO-dbf-mov-tar@cref}{{[subsection][3][3]III-C}{4}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Example of LIFO-DBF for $1^\text  {st}$ robot at time $k$. The current individual PDF is $ P^1_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots  ,z^N_{1:k-N})$, denoted as $ P^1_{pdf}(k-N)$ in the figure. The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of $1^\text  {st}$ robot at time $k$.\relax }}{5}}
 \newlabel{fig:LIFO-DBF}{{3}{5}}
 \newlabel{fig:LIFO-DBF@cref}{{[figure][3][]3}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {III-C}Algorithm of LIFO-DBF for Moving target}{5}}
-\newlabel{subsec:LIFO-dbf-mov-tar}{{III-C}{5}}
-\newlabel{subsec:LIFO-dbf-mov-tar@cref}{{[subsection][3][3]III-C}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}Proof of Consistency and Consensus}{5}}
 \newlabel{sec:consist_proof}{{IV}{5}}
 \newlabel{sec:consist_proof@cref}{{[section][4][]IV}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {IV-A}Proof for static robots}{5}}
 \newlabel{thm:LIFO-dbf-sta-tar}{{1}{5}}
 \newlabel{thm:LIFO-dbf-sta-tar@cref}{{[thm][1][]1}{5}}
-\newlabel{eqn:cmp}{{6}{6}}
-\newlabel{eqn:cmp@cref}{{[equation][6][]6}{6}}
+\newlabel{eqn:cmp}{{6}{5}}
+\newlabel{eqn:cmp@cref}{{[equation][6][]6}{5}}
 \newlabel{eqn:cmp_log}{{7}{6}}
 \newlabel{eqn:cmp_log@cref}{{[equation][7][]7}{6}}
 \newlabel{eqn:cmp_lim1}{{8}{6}}
@@ -124,12 +119,13 @@
 \newlabel{fig:sta_sen_sta_tar_all@cref}{{[subfigure][5][4]4e}{7}}
 \newlabel{sub@fig:sta_sen_sta_tar_all}{{e}{7}}
 \newlabel{sub@fig:sta_sen_sta_tar_all@cref}{{[subfigure][5][4]4e}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces (a)-(d): The $1^\text  {st}$ robot's individual PDFs at different time; (e) All robots' individual PDFs at time $30$.\texthl  {(\textbf  {TODO:} revise symbols)} $\square $ denotes the current robot and $\star $ represent other robots. + stands for the target.\relax }}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces (a)-(d): The $1^\text  {st}$ robot's individual PDFs at different time; (e) All robots' individual PDFs at time $30$. The square denotes the current robot and stars represent other robots. The cross stands for the target.\relax }}{7}}
 \newlabel{fig:sta_sen_sta_tar}{{4}{7}}
 \newlabel{fig:sta_sen_sta_tar@cref}{{[figure][4][]4}{7}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {V-A}Static Robots, Static Target}{7}}
 \newlabel{subsec:sim1}{{V-A}{7}}
 \newlabel{subsec:sim1@cref}{{[subsection][1][5]V-A}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {V-B}Moving Robots, Moving Target}{7}}
 \newlabel{fig:mov_sen_mov_tar_sing1}{{5a}{7}}
 \newlabel{fig:mov_sen_mov_tar_sing1@cref}{{[subfigure][1][5]5a}{7}}
 \newlabel{sub@fig:mov_sen_mov_tar_sing1}{{a}{7}}
@@ -153,36 +149,37 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces (a)-(d): The $1^\text  {st}$ robot's individual PDFs at different time; (e) All robots' individual PDFs at time $30$.\relax }}{7}}
 \newlabel{fig:mov_sen_mov_tar}{{5}{7}}
 \newlabel{fig:mov_sen_mov_tar@cref}{{[figure][5][]5}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {V-B}Moving Robots, Moving Target}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{7}}
+\newlabel{sec:conclu}{{VI}{7}}
+\newlabel{sec:conclu@cref}{{[section][6][]VI}{7}}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{chamberland2007wireless}{1}
-\bibcite{beaudeau2012target}{2}
+\bibcite{wang2007wlan}{2}
 \bibcite{cao2008development}{3}
 \bibcite{2005distributed}{4}
 \bibcite{gu2007distributed}{5}
-\bibcite{zuo2006bandwidth}{6}
-\bibcite{ribeiro2006bandwidth}{7}
-\bibcite{sheng2005distributed}{8}
-\bibcite{olfati2007consensus}{9}
-\bibcite{ren2005consensus}{10}
-\bibcite{jadbabaie2003coordination}{11}
-\bibcite{bandyopadhyay2014distributed}{12}
-\bibcite{julian2012distributed}{13}
-\bibcite{coates2004distributed}{14}
-\bibcite{djuric2011non}{15}
-\bibcite{rosencrantz2002decentralized}{16}
-\bibcite{bonnie2012modelling}{17}
-\bibcite{liu2014framework}{18}
-\bibcite{djuric2008target}{19}
-\bibcite{hahnel2003efficient}{20}
-\bibcite{tisdale2009autonomous}{21}
-\bibcite{ram2007stochastic}{22}
-\bibcite{bahceci2005serial}{23}
-\bibcite{hlinka2015distributed}{24}
-\bibcite{furukawa2006recursive}{25}
-\bibcite{kulich2014single}{26}
-\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{8}}
-\newlabel{sec:conclu}{{VI}{8}}
-\newlabel{sec:conclu@cref}{{[section][6][]VI}{8}}
+\bibcite{bandyopadhyay2014distributed}{6}
+\bibcite{hlinka2013distributed}{7}
+\bibcite{zuo2006bandwidth}{8}
+\bibcite{vemula2006target}{9}
+\bibcite{sheng2005distributed}{10}
+\bibcite{olfati2007consensus}{11}
+\bibcite{ren2005consensus}{12}
+\bibcite{jadbabaie2003coordination}{13}
+\bibcite{julian2012distributed}{14}
+\bibcite{coates2004distributed}{15}
+\bibcite{djuric2011non}{16}
+\bibcite{ribeiro2006bandwidth}{17}
+\bibcite{rosencrantz2002decentralized}{18}
+\bibcite{bonnie2012modelling}{19}
+\bibcite{liu2014framework}{20}
+\bibcite{djuric2008target}{21}
+\bibcite{hahnel2003efficient}{22}
+\bibcite{tisdale2009autonomous}{23}
+\bibcite{ram2007stochastic}{24}
+\bibcite{bahceci2005serial}{25}
+\bibcite{hlinka2015distributed}{26}
+\bibcite{furukawa2006recursive}{27}
+\bibcite{kulich2014single}{28}
 \@writefile{toc}{\contentsline {section}{References}{8}}
