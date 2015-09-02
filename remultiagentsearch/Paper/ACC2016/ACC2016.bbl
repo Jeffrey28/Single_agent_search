@@ -40,6 +40,11 @@ R.~Olfati-Saber, ``Distributed kalman filter with embedded consensus filters,''
   CDC-ECC'05. 44th IEEE Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax
   IEEE, 2005, pp. 8179--8184.
 
+\bibitem{madhavan2004distributed}
+R.~Madhavan, K.~Fregene, and L.~E. Parker, ``Distributed cooperative outdoor
+  multirobot localization and mapping,'' \emph{Autonomous Robots}, vol.~17,
+  no.~1, pp. 23--39, 2004.
+
 \bibitem{gu2007distributed}
 D.~Gu, ``Distributed particle filter for target tracking,'' in \emph{Robotics
   and Automation, 2007 IEEE International Conference on}.\hskip 1em plus 0.5em
@@ -54,6 +59,11 @@ S.~Bandyopadhyay and S.-J. Chung, ``Distributed estimation using bayesian
 O.~Hlinka, F.~Hlawatsch, and P.~M. Djuric, ``Distributed particle filtering in
   agent networks: A survey, classification, and comparison,'' \emph{Signal
   Processing Magazine, IEEE}, vol.~30, no.~1, pp. 61--81, 2013.
+
+\bibitem{olfati2007consensus}
+R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
+  networked multi-agent systems,'' \emph{Proceedings of the IEEE}, vol.~95,
+  no.~1, pp. 215--233, 2007.
 
 \bibitem{zuo2006bandwidth}
 L.~Zuo, K.~Mehrotra, P.~K. Varshney, and C.~K. Mohan, ``Bandwidth-efficient
@@ -75,11 +85,6 @@ X.~Sheng, Y.-H. Hu, and P.~Ramanathan, ``Distributed particle filter with gmm
   Information processing in sensor networks}.\hskip 1em plus 0.5em minus
   0.4em\relax IEEE Press, 2005, p.~24.
 
-\bibitem{olfati2007consensus}
-R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
-  networked multi-agent systems,'' \emph{Proceedings of the IEEE}, vol.~95,
-  no.~1, pp. 215--233, 2007.
-
 \bibitem{ren2005consensus}
 W.~Ren, R.~W. Beard, \emph{et~al.}, ``Consensus seeking in multiagent systems
   under dynamically changing interaction topologies,'' \emph{IEEE Transactions
@@ -90,10 +95,23 @@ A.~Jadbabaie, J.~Lin, \emph{et~al.}, ``Coordination of groups of mobile
   autonomous agents using nearest neighbor rules,'' \emph{Automatic Control,
   IEEE Transactions on}, vol.~48, no.~6, pp. 988--1001, 2003.
 
+\bibitem{hlinka2012likelihood}
+O.~Hlinka, O.~Slu{\v{c}}iak, F.~Hlawatsch, P.~M. Djuri{\'c}, and M.~Rupp,
+  ``Likelihood consensus and its application to distributed particle
+  filtering,'' \emph{Signal Processing, IEEE Transactions on}, vol.~60, no.~8,
+  pp. 4334--4349, 2012.
+
 \bibitem{julian2012distributed}
 B.~J. Julian, M.~Angermann, M.~Schwager, and D.~Rus, ``Distributed robotic
   sensor networks: An information-theoretic approach,'' \emph{The International
   Journal of Robotics Research}, vol.~31, no.~10, pp. 1134--1154, 2012.
+
+\bibitem{beaudeau2012target}
+J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
+  asynchronous measurements by a network of distributed mobile agents,'' in
+  \emph{Acoustics, Speech and Signal Processing (ICASSP), 2012 IEEE
+  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
+  2012, pp. 3857--3860.
 
 \bibitem{coates2004distributed}
 M.~Coates, ``Distributed particle filters for sensor networks,'' in
@@ -101,23 +119,17 @@ M.~Coates, ``Distributed particle filters for sensor networks,'' in
   processing in sensor networks}.\hskip 1em plus 0.5em minus 0.4em\relax ACM,
   2004, pp. 99--107.
 
-\bibitem{djuric2011non}
-P.~M. Djuri{\'c}, J.~Beaudeau, and M.~F. Bugallo, ``Non-centralized target
-  tracking with mobile agents,'' in \emph{Acoustics, Speech and Signal
-  Processing (ICASSP), 2011 IEEE International Conference on}.\hskip 1em plus
-  0.5em minus 0.4em\relax IEEE, 2011, pp. 5928--5931.
-
 \bibitem{ribeiro2006bandwidth}
 A.~Ribeiro and G.~B. Giannakis, ``Bandwidth-constrained distributed estimation
   for wireless sensor networks-part ii: unknown probability density function,''
   \emph{Signal Processing, IEEE Transactions on}, vol.~54, no.~7, pp.
   2784--2796, 2006.
 
-\bibitem{rosencrantz2002decentralized}
-M.~Rosencrantz, G.~Gordon, and S.~Thrun, ``Decentralized sensor fusion with
-  distributed particle filters,'' in \emph{Proceedings of the Nineteenth
-  conference on Uncertainty in Artificial Intelligence}.\hskip 1em plus 0.5em
-  minus 0.4em\relax Morgan Kaufmann Publishers Inc., 2002, pp. 493--500.
+\bibitem{djuric2011non}
+P.~M. Djuri{\'c}, J.~Beaudeau, and M.~F. Bugallo, ``Non-centralized target
+  tracking with mobile agents,'' in \emph{Acoustics, Speech and Signal
+  Processing (ICASSP), 2011 IEEE International Conference on}.\hskip 1em plus
+  0.5em minus 0.4em\relax IEEE, 2011, pp. 5928--5931.
 
 \bibitem{bonnie2012modelling}
 D.~Bonnie, S.~Candido, T.~Bretl, and S.~Hutchinson, ``Modelling search with a
