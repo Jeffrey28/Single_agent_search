@@ -23,6 +23,7 @@
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
 \usepackage{amsmath,amssymb,amsfonts} % assumes amsmath package installed
+\usepackage{algorithm,algpseudocode}
 %\usepackage{booktabs}
 
 % format for theorems etc.
@@ -71,7 +72,8 @@
 	\renewcommand{\todopara}[1]{}
 	\renewcommand{\todonote}[1]{}
 	\renewcommand{\todoQ}[1]{}
-	\renewcommand{\todohere}[1]{}}
+	\renewcommand{\todohere}[1]{}
+	}
 
 
 \title{\LARGE \bf
@@ -79,7 +81,7 @@ Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full
 
 
 \author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
-\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research. This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.}% <-this % stops a space
+\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}% <-this % stops a space
 \thanks{$^{1}$Chang Liu is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu}}%
 \thanks{$^{2}$Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He is currently working at Department of Mechanical Engineering, University of California, Berkeley as a visiting scholar. Email: {\tt\small lisb04@gmail.com}}%
 \thanks{$^{3}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
@@ -88,7 +90,7 @@ Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full
 
 \begin{document}
 
-
+%\hidetodos % hide all todos 
 
 \maketitle
 \thispagestyle{empty}
@@ -223,7 +225,7 @@ P(z^i_k=0|x^T_k;x^R_k)=1-P(z^i_k=1|x^T_k;x^R_k)
 The combination of \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0} becomes a binary sensor model parameterized by $x^T_k$ and $x^R_k$. 
 For the purpose of simplicity, we will not explicitly write $x^R_k$ for the rest of the paper.
 %, with which all observations are generated. 
-The commonly used likelihood functions for binary sensor include Gaussian function \cite{bonnie2012modelling,liu2014framework} and step function \cite{djuric2008target}.
+The commonly used likelihood functions for binary sensor include Gaussian function \cite{bonnie2012modelling} and step function \cite{djuric2008target}.
 
 \begin{rem}
 	Given the knowledge of current target position, current observation of each robot is conditionally independent from both its own past observations and those of other robots.
@@ -312,53 +314,107 @@ Under LIFO, each robot contains a communication buffer (CB) to store its latest 
 \end{equation*}
 where $z^j_{k^i_j}$ represents the observation made by ${j^\text{th}}$ robot at time $k^i_j$. 
 Note that under LIFO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace $, which will be proved in \Cref{cor1}.
-At time k, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest observation time of ${j^\text{th}}$ robot available to ${i^\text{th}}$ robot. Due to the communication delay, $k^i_j<k, \forall j\neq i$ always holds in practice.\\
+At time k, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest observation time of ${j^\text{th}}$ robot available to ${i^\text{th}}$ robot. Due to the communication delay, $k^i_j<k, \forall j\neq i$ always holds in practice.
+The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 
-The \textbf{LIFO protocol} is stated as follows:
+\begin{algorithm}
+	\caption{LIFO Protocol}
+	\label{alg:lifo}
+	\begin{algorithmic}
+		\State \textbf{(1)} Initialization:
+		The buffer of $i^\text{th}$ robot is initialized when $k=0$: 
+		\begin{equation*}
+		%$\begin{array}{c}
+		z^j_{k^i_j}=\emptyset,\; k^i_j=0,\;j=1,\dots,N
+		%\end{array}$\\
+		\end{equation*}
+		
+		\State \textbf{(2)} At $k^\text{th}$ step for $i^\text{th}$ robot :		
+		\State (2.1) Receiving Step:
+		
+		The $i^\text{th}$ robot receives all CBs of its direct neighborhood $\mathcal{N}_i$.
+		The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponding to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
+		The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
+		\begin{equation*}
+		\mathbf{z}^l_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
+		\end{equation*}
+		
+		\State (2.2) Observation Step: 
+		
+		The $i^\text{th}$ robot updates $z^j_{k^i_j}\,(j=i)$ by its own observation at current step:
+		\begin{equation*}
+		z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
+		\end{equation*}
+		
+		\State (2.3) Comparison Step:
+		
+		The $i^\text{th}$ robot updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i$. For all $j\neq i$,
+		\begin{align*}
+		l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
+		z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_\text{latest}}_j},\; k^i_j=\left(k-1\right)^{l_\text{latest}}_j
+		\end{align*} 
+		
+		\State (2.4) Sending Step:
+		
+		The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors defined in $\mathcal{N}_i$.
+		%\bottomrule
+		%\end{tabular}
+				
+		\State \textbf{(3)} $k\leftarrow k+1$ until stop %$\hfill\blacksquare$
+	\end{algorithmic}
+\end{algorithm}
 
-%\begin{tabular}{l}
-%\toprule
-%LIFO Algorithm\\
-%\midrule
-(1) Initialization:
-The buffer of $i^\text{th}$ robot is initialized when $k=0$: 
-\begin{equation*}
-%$\begin{array}{c}
-	z^j_{k^i_j}=\emptyset,\; k^i_j=0,\;j=1:N
-%\end{array}$\\
-\end{equation*}
 
-(2) At $k^\text{th}$ step for $i^\text{th}$ robot :
 
-(2.1) Receiving Step:
 
-The $i^\text{th}$ robot receives all CBs of its direct neighborhood $\mathcal{N}_i$.
-The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponding to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
-The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
-\begin{equation*}
-\mathbf{z}^l_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
-\end{equation*}
 
-(2.2) Observation Step: 
-
-The $i^\text{th}$ robot updates $z^j_{k^i_j}\,(j=i)$ by its own observation at current step:
-\begin{equation*}
-z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
-\end{equation*}
-
-(2.3) Comparison Step:
-
-The $i^\text{th}$ robot updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i$. For all $j\neq i$,
-\begin{align*}
-l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
-z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_\text{latest}}_j},\; k^i_j=\left(k-1\right)^{l_\text{latest}}_j
-\end{align*} 
-
-(2.4) Sending Step:
-
-The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors defined in $\mathcal{N}_i$.
-%\bottomrule
-%\end{tabular}
+%The \textbf{LIFO protocol} is stated as follows:
+%
+%%\begin{tabular}{l}
+%%\toprule
+%%LIFO Algorithm\\
+%%\midrule
+%(1) Initialization:
+%The buffer of $i^\text{th}$ robot is initialized when $k=0$: 
+%\begin{equation*}
+%%$\begin{array}{c}
+%	z^j_{k^i_j}=\emptyset,\; k^i_j=0,\;j=1:N
+%%\end{array}$\\
+%\end{equation*}
+%
+%(2) At $k^\text{th}$ step for $i^\text{th}$ robot :
+%
+%(2.1) Receiving Step:
+%
+%The $i^\text{th}$ robot receives all CBs of its direct neighborhood $\mathcal{N}_i$.
+%The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponding to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
+%The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
+%\begin{equation*}
+%\mathbf{z}^l_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
+%\end{equation*}
+%
+%(2.2) Observation Step: 
+%
+%The $i^\text{th}$ robot updates $z^j_{k^i_j}\,(j=i)$ by its own observation at current step:
+%\begin{equation*}
+%z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
+%\end{equation*}
+%
+%(2.3) Comparison Step:
+%
+%The $i^\text{th}$ robot updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i$. For all $j\neq i$,
+%\begin{align*}
+%l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
+%z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_\text{latest}}_j},\; k^i_j=\left(k-1\right)^{l_\text{latest}}_j
+%\end{align*} 
+%
+%(2.4) Sending Step:
+%
+%The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors defined in $\mathcal{N}_i$.
+%%\bottomrule
+%%\end{tabular}
+%
+%(3) $k\leftarrow k+1$ until stop $\hfill\blacksquare$\\
 
 \begin{figure}%[thpb]
 	\centering
@@ -366,7 +422,7 @@ The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors define
 	\caption{Example of LIFO with three robots using serial communication topology}
 	\label{fig:LIFO}
 \end{figure}
-(3) $k\leftarrow k+1$ until stop $\hfill\blacksquare$\\
+
 
 \cref{fig:LIFO} illustrates the LIFO cycles with 3 robots using a serial topology. 
 Two facts can be noticed in \cref{fig:LIFO}: (1) all robot CBs are filled within 3 steps, which means under LIFO each robot has a maximum delay of 2 steps for receiving observations from other robots; (2) after filled, the updating of CBs are non-intermittent, which means each robot continuously receives new observations of other robots. Extending the two facts to a network of $N$ robots, we have the following proposition:
@@ -440,42 +496,44 @@ The $i^\text{th}$ individual PDF is then alternatively predicted and updated by 
 	\label{fig:LIFO-DBF}
 \end{figure}
 
-The \textbf{LIFO-DBF algorithm} for moving target is stated as follows.
+The \textbf{LIFO-DBF algorithm} for moving target is stated in \cref{alg:lifo-dbf}.
 %\begin{enumerate}
-For $i^\text{th}$ robot at $k^\text{th}$ step:
 
-	\textbf{(1)} The stored individual PDF for time $(k-N)$ is:
-	\small\begin{equation*}
-		P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
-	\end{equation*}\normalsize
-	
-	\textbf{(2)} Initialize a virtual PDF by assigning the individual PDF to it:
-	\small\begin{equation*}
-		P^i_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
-	\end{equation*}\normalsize
-		
-	\textbf{(3)} From $\xi=1$ to $N$, repeat two steps of Bayesian filtering:
-%	\begin{enumerate}
-%		\item 
 
-		(3.1) Prediction 
-		\small\begin{align*}
-		&P_{virt}^{pre}(x^T_{k-N+\xi})\\=&\int P(x^T_{k-N+\xi}|x^T_{k-N+\xi-1})P^i_{virt}(x^T_{k-N+\xi-1})dx^T_{k-N+\xi-1}
-		\end{align*} \normalsize
-				
-%		\item 
-		(3.2) Updating
-		\small\begin{gather*}
-		P^i_{virt}(x^T_{k-N+\xi})=K_\xi P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})\\
-		K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
-		\end{gather*} \normalsize
-%	\end{enumerate}
-	
-	\textbf{(4)} Store the first-step virtual PDF as the individual PDF for time $(k-N+1)$
-	\begin{equation*}
-		P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P^i_{virt}(x^T_{k-N+1}).
-	\end{equation*}
-	$\hfill\blacksquare$
+%For $i^\text{th}$ robot at $k^\text{th}$ step:
+%
+%	\textbf{(1)} The stored individual PDF for time $(k-N)$ is:
+%	\small\begin{equation*}
+%		P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+%	\end{equation*}\normalsize
+%	
+%	\textbf{(2)} Initialize a virtual PDF by assigning the individual PDF to it:
+%	\small\begin{equation*}
+%		P^i_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+%	\end{equation*}\normalsize
+%		
+%	\textbf{(3)} From $\xi=1$ to $N$, repeat two steps of Bayesian filtering:
+%%	\begin{enumerate}
+%%		\item 
+%
+%		(3.1) Prediction 
+%		\small\begin{align*}
+%		&P_{virt}^{pre}(x^T_{k-N+\xi})\\=&\int P(x^T_{k-N+\xi}|x^T_{k-N+\xi-1})P^i_{virt}(x^T_{k-N+\xi-1})dx^T_{k-N+\xi-1}
+%		\end{align*} \normalsize
+%				
+%%		\item 
+%		(3.2) Updating
+%		\small\begin{gather*}
+%		P^i_{virt}(x^T_{k-N+\xi})=K_\xi P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})\\
+%		K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
+%		\end{gather*} \normalsize
+%%	\end{enumerate}
+%	
+%	\textbf{(4)} Store the first-step virtual PDF as the individual PDF for time $(k-N+1)$
+%	\begin{equation*}
+%		P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P^i_{virt}(x^T_{k-N+1}).
+%	\end{equation*}
+%	$\hfill\blacksquare$
 	
 %\end{enumerate}
 
@@ -505,6 +563,42 @@ The individual PDF of $i^\text{th}$ robot at time $k$ is $P^i_{virt}(x^T_k)$.
 	Therefore, except storing individual PDFs, all historical CBs can be discarded and only current-step CB is stored in robot memory, which means that the size of occupied memory is $O(N)$. 
 	On the contrary, for the moving target, each robot needs to store a triangular matrix of history observation (except current step CB) with size of $O(N^2)$ and an individual PDF with size $O(M^2)$, which means that the size of occupied memory in each robot is $O(M^2+N^2)$.
 \end{rem}
+
+\begin{algorithm}
+	\caption{LIFO-DBF Algorithm}\label{alg:lifo-dbf}
+	\begin{algorithmic}
+		\State For $i^\text{th}$ robot at $k^\text{th}$ step:		
+		\State \textbf{(1)} The stored individual PDF for time $(k-N)$ is:
+		\small\begin{equation*}
+		P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+		\end{equation*}\normalsize		
+		\State\textbf{(2)} Initialize a virtual PDF by assigning the individual PDF to it:
+		\small\begin{equation*}
+		P^i_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+		\end{equation*}\normalsize		
+		\State\textbf{(3)} From $\xi=1$ to $N$, repeat two steps of Bayesian filtering:
+		%	\begin{enumerate}
+		%		\item 
+		
+		\State(3.1) Prediction 
+		\small\begin{align*}
+		&P_{virt}^{pre}(x^T_{k-N+\xi})\\=&\int P(x^T_{k-N+\xi}|x^T_{k-N+\xi-1})P^i_{virt}(x^T_{k-N+\xi-1})dx^T_{k-N+\xi-1}
+		\end{align*} \normalsize
+		
+		%		\item 
+		\State(3.2) Updating
+		\small\begin{gather*}
+		P^i_{virt}(x^T_{k-N+\xi})=K_\xi P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})\\
+		K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
+		\end{gather*} \normalsize
+		%	\end{enumerate}
+		
+		\State\textbf{(4)} Store the first-step virtual PDF as the individual PDF for time $(k-N+1)$
+		\begin{equation*}
+		P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P^i_{virt}(x^T_{k-N+1}).
+		\end{equation*}
+	\end{algorithmic}
+\end{algorithm}
 
 \section{Proof of Consistency and Consensus}\label{sec:consist_proof}
 
@@ -867,8 +961,11 @@ The switching topology, including package loss, can lead to unpredictable delay 
 %
 %Appendixes should appear before the acknowledgment.
 
-%\section*{ACKNOWLEDGMENT}
-%
+\section*{ACKNOWLEDGMENT}
+%This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.
+The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
+They would also like to thank Yuting Wei in Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
+
 %The preferred spelling of the word ÒacknowledgmentÓ in America is without an ÒeÓ after the ÒgÓ. Avoid the stilted expression, ÒOne of us (R. B. G.) thanks . . .Ó  Instead, try ÒR. B. G. thanksÓ. Put sponsor acknowledgments in the unnumbered footnote on the first page.
 
 

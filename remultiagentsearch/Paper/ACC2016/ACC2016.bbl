@@ -55,10 +55,10 @@ S.~Bandyopadhyay and S.-J. Chung, ``Distributed estimation using bayesian
   consensus filtering,'' in \emph{American Control Conference (ACC),
   2014}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2014, pp. 634--641.
 
-\bibitem{hlinka2013distributed}
-O.~Hlinka, F.~Hlawatsch, and P.~M. Djuric, ``Distributed particle filtering in
-  agent networks: A survey, classification, and comparison,'' \emph{Signal
-  Processing Magazine, IEEE}, vol.~30, no.~1, pp. 61--81, 2013.
+\bibitem{julian2012distributed}
+B.~J. Julian, M.~Angermann, M.~Schwager, and D.~Rus, ``Distributed robotic
+  sensor networks: An information-theoretic approach,'' \emph{The International
+  Journal of Robotics Research}, vol.~31, no.~10, pp. 1134--1154, 2012.
 
 \bibitem{olfati2007consensus}
 R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
@@ -77,6 +77,11 @@ M.~Vemula, M.~F. Bugallo, and P.~M. Djuri{\'c}, ``Target tracking in a
   Signal Processing, 2006. ICASSP 2006 Proceedings. 2006 IEEE International
   Conference on}, vol.~4.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2006,
   pp. IV--IV.
+
+\bibitem{hlinka2013distributed}
+O.~Hlinka, F.~Hlawatsch, and P.~M. Djuric, ``Distributed particle filtering in
+  agent networks: A survey, classification, and comparison,'' \emph{Signal
+  Processing Magazine, IEEE}, vol.~30, no.~1, pp. 61--81, 2013.
 
 \bibitem{sheng2005distributed}
 X.~Sheng, Y.-H. Hu, and P.~Ramanathan, ``Distributed particle filter with gmm
@@ -100,11 +105,6 @@ O.~Hlinka, O.~Slu{\v{c}}iak, F.~Hlawatsch, P.~M. Djuri{\'c}, and M.~Rupp,
   ``Likelihood consensus and its application to distributed particle
   filtering,'' \emph{Signal Processing, IEEE Transactions on}, vol.~60, no.~8,
   pp. 4334--4349, 2012.
-
-\bibitem{julian2012distributed}
-B.~J. Julian, M.~Angermann, M.~Schwager, and D.~Rus, ``Distributed robotic
-  sensor networks: An information-theoretic approach,'' \emph{The International
-  Journal of Robotics Research}, vol.~31, no.~10, pp. 1134--1154, 2012.
 
 \bibitem{beaudeau2012target}
 J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
@@ -136,13 +136,6 @@ D.~Bonnie, S.~Candido, T.~Bretl, and S.~Hutchinson, ``Modelling search with a
   binary sensor utilizing self-conjugacy of the exponential family,'' in
   \emph{Robotics and Automation (ICRA), 2012 IEEE International Conference
   on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2012, pp. 3975--3982.
-
-\bibitem{liu2014framework}
-C.~Liu, S.-Y. Liu, E.~L. Carano, and J.~K. Hedrick, ``A framework for
-  autonomous vehicles with goal inference and task allocation capabilities to
-  support peer collaboration with human agents,'' in \emph{ASME 2014 Dynamic
-  Systems and Control Conference}.\hskip 1em plus 0.5em minus 0.4em\relax
-  American Society of Mechanical Engineers, 2014, pp. V002T30A005--V002T30A005.
 
 \bibitem{djuric2008target}
 P.~M. Djuri{\'c}, M.~Vemula, and M.~F. Bugallo, ``Target tracking by particle

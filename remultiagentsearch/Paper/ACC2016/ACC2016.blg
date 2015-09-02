@@ -18,45 +18,45 @@ I'm skipping whatever remains of this entry
 Warning--empty journal in hlinka2015distributed
 
 Done.
-You've used 30 entries,
+You've used 29 entries,
             3975 wiz_defined-function locations,
-            971 strings with 13706 characters,
-and the built_in function-call counts, 27857 in all, are:
-= -- 2220
-> -- 639
-< -- 299
-+ -- 362
-- -- 92
-* -- 1352
-:= -- 3915
-add.period$ -- 77
-call.type$ -- 30
-change.case$ -- 30
-chr.to.int$ -- 732
-cite$ -- 31
-duplicate$ -- 1909
-empty$ -- 2251
-format.name$ -- 119
-if$ -- 6533
+            965 strings with 13373 characters,
+and the built_in function-call counts, 26205 in all, are:
+= -- 2094
+> -- 598
+< -- 274
++ -- 338
+- -- 88
+* -- 1275
+:= -- 3727
+add.period$ -- 74
+call.type$ -- 29
+change.case$ -- 29
+chr.to.int$ -- 660
+cite$ -- 30
+duplicate$ -- 1812
+empty$ -- 2126
+format.name$ -- 114
+if$ -- 6131
 int.to.chr$ -- 0
-int.to.str$ -- 30
-missing$ -- 301
-newline$ -- 110
-num.names$ -- 30
-pop$ -- 690
+int.to.str$ -- 29
+missing$ -- 290
+newline$ -- 107
+num.names$ -- 29
+pop$ -- 655
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 2142
+skip$ -- 2020
 stack$ -- 0
-substring$ -- 1740
-swap$ -- 1671
-text.length$ -- 55
+substring$ -- 1571
+swap$ -- 1569
+text.length$ -- 54
 text.prefix$ -- 0
 top$ -- 5
 type$ -- 0
 warning$ -- 1
-while$ -- 143
-width$ -- 32
-write$ -- 313
+while$ -- 138
+width$ -- 31
+write$ -- 304
 (There was 1 error message)
