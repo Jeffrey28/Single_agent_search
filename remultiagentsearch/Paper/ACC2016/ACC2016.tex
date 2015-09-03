@@ -90,7 +90,7 @@ Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full
 
 \begin{document}
 
-%\hidetodos % hide all todos 
+\hidetodos % hide all todos 
 
 \maketitle
 \thispagestyle{empty}
@@ -108,10 +108,9 @@ Under the condition of fixed and undirected topology, LIFO can guarantee non-int
 Two types of LIFO-based DBF algorithms are then derived to estimate individual posterior density function (PDF) for static and moving target, respectively. 
 For the static target, each robot locally fuses the newly received observations while for the moving target, a triangular matrix of historical observations is stored and updated. 
 %Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
-The consistency of LIFO-based DBF is proved that individual PDF of each robot converges to the true target position when the number of observations tends to infinity.
+The consistency of LIFO-based DBF is proved that individual PDF of each robot converges in probability to the true target position when the number of observations tends to infinity.
 %the agreement between robots' estimated target position and the actual position.
 The effectiveness of this method is demonstrated by simulations.
-\todohere{find out what convergence is}
 \end{abstract}
 
 
@@ -192,7 +191,7 @@ The main benefit of LIFO is on the reduction of communication burden, with the t
 The proposed LIFO-based DBF has following properties:
 (1)	For a fixed and undirected network, LIFO guarantees the global dissemination of observations over the network in a non-intermittent manner.
 %, with each robot non-intermittently receiving (delayed) observations of all other robots via local communication.
-(2)	The corresponding DBF ensures consistency of individual posterior distributions \todohere{in what convergence}, which also implies the consensus of target PDFs.
+(2)	The corresponding DBF ensures consistency of individual posterior distributions, which also implies the consensus of target PDFs.
 %which refers to the agreement between robots' estimates of target position and the true position of the target. 
 %Moreover, consistency implies the consensus of robots' target PDFs.
 %In this study, the consistency and consensus using LIFO-DBF is formally proved.
@@ -465,7 +464,7 @@ Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of e
 \medskip
 \begin{rem}
 	Compared to statistics dissemination, LIFO is more communication-efficient for distributed filtering. 
-	To be specific, consider an $M\times M$ grid environment with a network of $N$ robots, the transmitted data of LIFO between each pair of robots are only the CB of each robot \todohere{ and the corresponding robot positions where observations were made}, the length of which is $O(N)$. 
+	To be specific, consider an $M\times M$ grid environment with a network of $N$ robots, the transmitted data of LIFO between each pair of robots are only the CB of each robot and the corresponding robot positions where observations were made, the length of which is $O(N)$. 
 	On the contrary, the length of transmitted data for a statistics dissemination approach is $O(M^2)$, which is in the order of environment size. 
 	Since $M$ is generally much larger than $N$ in target search and tracking, LIFO requires much less communication resources.
 \end{rem}
@@ -635,18 +634,19 @@ Since $X^T$ is finite, $X^T_{eq}$ is also finite.
 
 \subsection{Proof for static robots}
 The consistency of LIFO-DBF for static robots is stated as follows: 
+\todohere{converge to a set or treat the PDF as a r.v.?}
 \begin{thm}\label{thm:LIFO-dbf-sta-tar}
-	If robots are static, each individual PDF converges to $ X^T_{eq}$ using LIFO-DBF when the number of observations tends to infinity, i.e.
+	If robots are static, each individual PDF converges to $ X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.
 	\begin{equation*}
-	P^i_{pdf}(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})\longrightarrow
+	\lim\limits_{k\rightarrow \infty}
+	P^i_{pdf}(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=
 %	\begin{cases}
 %	1 & \text{if}\; i=1\\
 %	0 & \text{if}\; i\neq 1
 %	\end{cases},\;
-	1,\;
-	k\rightarrow \infty
+	1,
 	\end{equation*}
-	where $\mathbf{z}^i_{1:k}=\left(z^1_{1:k_1},\dots,z^N_{1:k_N}\right) $.
+	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k_1},\dots,z^N_{1:k_N}\right] $.
 %	, $\left\lbrace k_1,\dots,k_N\right\rbrace $ are the timestamps of the $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
@@ -674,7 +674,7 @@ Take the logarithm of \Cref{eqn:cmp} and average it over $k$ steps:
 
 Since $P^i_{pdf}(x^T)$ and $P^i_{pdf}(x^{T^*})$ are bounded, then
 \begin{equation}\label{eqn:cmp_lim1}
-\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}\longrightarrow 0
+\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}= 0
 \end{equation}
 
 The binary observations subject to Bernoulli distribution $B(1,p_j)$, yielding
@@ -683,28 +683,38 @@ P^i_{pdf}(z^j_k|x^T)=p^{z^j_k}_j(1-p_j)^{1-z^j_k}
 \end{equation*}
 where $p_j=P(z^j_k=1|x^T)$. Utilizing the facts: (1) $z^j_l$ are conditionally independent samples from $B(1,p_j^*)$ and (2) $k-N<k_j\leq k$, the law of large numbers yields
 \begin{equation*}
-\lim\limits_{k\rightarrow \infty}\frac{1}{k}\sum\limits_{l=1}^{k_j}z^j_l=p^*_j,\quad \lim\limits_{k\rightarrow \infty}\frac{1}{k}(k_j-\sum\limits_{l=1}^{k_j}z^j_l)=1-p^*_j
+%\lim\limits_{k\rightarrow \infty}
+\frac{1}{k}\sum\limits_{l=1}^{k_j}z^j_l\overset{P}{\longrightarrow}p^*_j,\quad 
+%\lim\limits_{k\rightarrow\infty}
+\frac{1}{k}(k_j-\sum\limits_{l=1}^{k_j}z^j_l)\overset{P}{\longrightarrow}1-p^*_j
 \end{equation*}
-where $p_j^*=P(z^j_k=1|x^{T^*})$. Then, 
+where $p_j^*=P(z^j_k=1|x^{T^*})$ and "$\overset{P}{\longrightarrow}$" denotes ``convergence in probability''.
+Then, 
 \small\begin{equation}\label{eqn:cmp_lim2}
-\lim\limits_{k\rightarrow \infty}\frac{1}{k}\sum\limits_{l=1}^{k_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}=p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
+%\lim\limits_{k\rightarrow \infty}
+\frac{1}{k}\sum\limits_{l=1}^{k_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}\overset{P}{\longrightarrow}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
 \end{equation}\normalsize
 
 Note that the right-hand side of \Cref{eqn:cmp_lim2} achieves maximum if and only if $p_j=p_j^*$. 
 Considering \Cref{eqn:cmp_lim1} and \Cref{eqn:cmp_lim2}, the limit of \Cref{eqn:cmp_log} is
 \small \begin{equation}\label{eqn:lim}
- \lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
+% \lim\limits_{k\rightarrow \infty}
+ \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}\overset{P}{\longrightarrow}\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
  \end{equation}\normalsize
  
 It is known from \Cref{eqn:lim} that
 \begin{enumerate}
-	\item When $p_j\neq p^*_j$, that is $x^T\notin X^T_{eq}$,
+	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,
 	\begin{align*}
-		\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & <0,\;\text{thus }\\
+%		\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & <0,
+		\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j} & <0,
+		\;\text{thus }\\
 		\lim\limits_{k\rightarrow \infty}\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0
 	\end{align*}	
-	\item When $p_j= p^*_j$, that is $x^T\in X^T_{eq}$, \begin{align*}
-	\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0,\;\text{thus }\\
+	\item When $p_j= p^*_j$, i.e., $x^T\in X^T_{eq}$, \begin{align*}
+%	\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0,
+	\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j} & = 0,
+	\;\text{thus }\\
 	\lim\limits_{k\rightarrow \infty}\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =1
 	\end{align*}
 \end{enumerate}
@@ -726,17 +736,16 @@ Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ p
 \medskip
 %The main theory of consistency of LIFO-DBF for moving robots is stated as follows:
 \begin{thm}\label{thm:LIFO-dbf-mov-tar}
-	If robots move within a collection of finite positions, each individual PDF by LIFO-DBF converges to $X^T_{eq}$ when the number of observations tends to infinity, i.e.,
+	If robots move within a collection of finite positions, each individual PDF by LIFO-DBF converges to $X^T_{eq}$ in probability when the number of observations tends to infinity, i.e.,
 	\begin{equation*}
-		P^i_{pdf}(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})\longrightarrow
+		\lim\limits_{k\rightarrow \infty}P^i_{pdf}(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})\longrightarrow
 %		\begin{cases}
 %		1 & \text{if}\; i=1\\
 %		0 & \text{if}\; i\neq 1
 %		\end{cases},\;
-		1,\;
-		k\rightarrow \infty
+		1,
 	\end{equation*}
-	where $\mathbf{z}^i_{1:k}=(z^1_{1:k_1},\dots,z^N_{1:k_N})$.
+	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k_1},\dots,z^N_{1:k_N}\right]$.
 %	, $\left\lbrace k_1,\dots,k_N\right\rbrace$ are the timestamps of $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
@@ -756,8 +765,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \end{proof}
 \medskip
 \begin{rem}
-	\todohere{what convergence is?}
-	The consistency means that all individual PDFs converge to the same $X^T_{eq}$, thus the consensus is also guaranteed.
+	The consistency means that all individual PDFs converge in probability to the same $X^T_{eq}$, thus the consensus is also guaranteed.
 	It must be noted that traditional statistics dissemination-based methods only ensure consensus of individual PDFs \cite{bandyopadhyay2014distributed,julian2012distributed}. 
 	To the best knowledge of authors, there is no proof of consistency of individual PDFs.
 %	In fact, the statistics dissemination-based methods can ensure the convergence of the state estimate among robots. 
@@ -767,23 +775,23 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \section{Simulation}\label{sec:sim}
 \begin{figure}%[thpb]
 	\centering
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1}
 		\caption{Step 1}\label{fig:sta_sen_sta_tar_sing1}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5}
 		\caption{Step 5}\label{fig:sta_sen_sta_tar_sing2}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_10}
 		\caption{Step 10}\label{fig:sta_sen_sta_tar_sing3}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_30}
 		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing4}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.48\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_30}
 		\caption{Step 30}\label{fig:sta_sen_sta_tar_all}
 	\end{subfigure}
@@ -793,23 +801,23 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 
 \begin{figure}%[thpb]
 	\centering
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_1}
 		\caption{Step 1}\label{fig:mov_sen_mov_tar_sing1}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_5}
 		\caption{Step 5}\label{fig:mov_sen_mov_tar_sing2}
 	\end{subfigure}	
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_10}
 		\caption{Step 10}\label{fig:mov_sen_mov_tar_sing3}
 	\end{subfigure}	
-	\begin{subfigure}[b]{0.22\textwidth}
+	\begin{subfigure}[b]{0.21\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_30}
 		\caption{Step 30}\label{fig:mov_sen_mov_tar_sing4}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.48\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_30}
 		\caption{Step 30}\label{fig:mov_sen_mov_tar_all}
 	\end{subfigure}
@@ -848,7 +856,7 @@ The LIFO-DBF for static target is implemented on each robot for target position 
 After the initial observation, each robot forms a circular individual PDF, centered at its own position.
 %\cref{fig:sta_sen_sta_tar_sing1} shows the individual PDF after initial observation for $1^\text{st}$ robot.
 The circular PDF happens because the Gaussian sensor model (\Cref{eqn:gauss_sensor}) only depends on the distance between robot and target.
-As more observations are received, the posterior individual PDF concentrates \todohere{concentrate or converge?} on the true location of the target (\cref{fig:sta_sen_sta_tar_sing4}), which accords with the consistency of LIFO-DBF.
+As more observations are received, the posterior individual PDF converges to the true location of the target (\cref{fig:sta_sen_sta_tar_sing4}), which accords with the consistency of LIFO-DBF.
 %In fact, with the Guassian sensor model (\Cref{eqn:gauss_sensor}), all positions with equal distance to a robot belong to the same equi-parameter set of the robot.
 %Considering the system of six robots located separately, the equi-parameter set that contains the actual target position only contains one element.
 %\cref{fig:entropy} (a) shows the decrease of the entropy of each robot's individual PDF, indicating the reduction of the uncertainty in PDF estimation.
@@ -920,10 +928,9 @@ Under the condition of fixed and undirected topology, LIFO can guarantee non-int
 Two types of LIFO-based DBF algorithms are proposed to estimate individual PDF for static and moving target, respectively. 
 For the static target, each robot locally fuses the newly received observations while for the moving target, a triangular matrix of historical observations is stored and updated. 
 %Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
-The consistency of LIFO-based DBF is proved utilizing the law of large numbers, which ensures that individual PDF of each robot converges to the true target position when the number of observations tends to infinity.
+The consistency of LIFO-based DBF is proved utilizing the law of large numbers, which ensures that individual PDF of each robot converges in probability to the true target position when the number of observations tends to infinity.
 %the agreement between robots' estimated target position and the actual position.
 %The effectiveness of this method is demonstrated by simulations.
-\todohere{find out what convergence is}
 
 %In this study, we proposed the Latest-In-and-Full-Out (LIFO) strategy for distributed Bayesian filters (LIFO-DBF) in a multi-robot network.
 %% with the application of distributed search and tracking (SAT) of target.

@@ -153,16 +153,16 @@ folder_path = ('/Users/changliu/Documents/TortoiseHg/multi-agent_search/remultia
 a = dir(folder_path);
 
 % process the probability maps
-%{
+%
 % read sta_sen_sta_tar_xxx.fig, mov_sen_sta_tar_xxx.fig, mov_sen_mov_tar_xxx.fig 
 for ii = 1:size(a,1)
-    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar')) && ~isempty(strfind(a(ii).name,'fig'))
+    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
         file_name_list{cnt} = a(ii).name;
         cnt = cnt+1;
-    elseif ~isempty(strfind(a(ii).name,'mov_sen_sta_tar')) && ~isempty(strfind(a(ii).name,'fig'))
+    elseif ~isempty(strfind(a(ii).name,'mov_sen_sta_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
         file_name_list{cnt} = a(ii).name;
         cnt = cnt+1;
-    elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar')) && ~isempty(strfind(a(ii).name,'fig'))
+    elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
         file_name_list{cnt} = a(ii).name;
         cnt = cnt+1;
     end
@@ -175,6 +175,15 @@ for jj = 1:length(file_name_list)
     % use 'load' for .mat, 'hgload' for .fig
     h = hgload(file_name);
     
+    % modify marker size
+    hline = findobj(h,'type','line');
+    nLines = length(hline);
+    
+    for iterLine = 1:nLines
+        mInd = nLines-iterLine+1;
+        set(hline(mInd),'MarkerSize',20)
+    end
+    
     sp = 1; % start point for reading the name
     ep = strfind(file_name,'.fig')-1; % end point for reading the name
     test_id = file_name(sp:ep);
@@ -184,7 +193,7 @@ end
 %}
 
 % process the entropy
-%
+%{
 % read xxx_entropy_xxx.fig
 for ii = 1:size(a,1)
     if ~isempty(strfind(a(ii).name,'entropy')) && ~isempty(strfind(a(ii).name,'fig'))
