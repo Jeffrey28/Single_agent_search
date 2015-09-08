@@ -15,48 +15,47 @@ I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.11 (2003/04/02) by Michael Shell.
 -- http://www.ctan.org/tex-archive/macros/latex/contrib/supported/IEEEtran/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
-Warning--empty journal in hlinka2015distributed
 
 Done.
-You've used 29 entries,
+You've used 27 entries,
             3975 wiz_defined-function locations,
-            965 strings with 13373 characters,
-and the built_in function-call counts, 26205 in all, are:
-= -- 2094
-> -- 598
-< -- 274
-+ -- 338
-- -- 88
-* -- 1275
-:= -- 3727
-add.period$ -- 74
-call.type$ -- 29
-change.case$ -- 29
-chr.to.int$ -- 660
-cite$ -- 30
-duplicate$ -- 1812
-empty$ -- 2126
-format.name$ -- 114
-if$ -- 6131
+            956 strings with 12933 characters,
+and the built_in function-call counts, 24784 in all, are:
+= -- 1991
+> -- 558
+< -- 263
++ -- 316
+- -- 81
+* -- 1208
+:= -- 3528
+add.period$ -- 69
+call.type$ -- 27
+change.case$ -- 27
+chr.to.int$ -- 630
+cite$ -- 27
+duplicate$ -- 1708
+empty$ -- 2001
+format.name$ -- 105
+if$ -- 5801
 int.to.chr$ -- 0
-int.to.str$ -- 29
-missing$ -- 290
-newline$ -- 107
-num.names$ -- 29
-pop$ -- 655
+int.to.str$ -- 27
+missing$ -- 272
+newline$ -- 101
+num.names$ -- 27
+pop$ -- 604
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 2020
+skip$ -- 1913
 stack$ -- 0
-substring$ -- 1571
-swap$ -- 1569
-text.length$ -- 54
+substring$ -- 1499
+swap$ -- 1491
+text.length$ -- 53
 text.prefix$ -- 0
 top$ -- 5
 type$ -- 0
-warning$ -- 1
-while$ -- 138
-width$ -- 31
-write$ -- 304
+warning$ -- 0
+while$ -- 132
+width$ -- 29
+write$ -- 288
 (There was 1 error message)

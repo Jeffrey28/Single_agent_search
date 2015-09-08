@@ -90,7 +90,7 @@ Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full
 
 \begin{document}
 
-\hidetodos % hide all todos 
+%\hidetodos % hide all todos 
 
 \maketitle
 \thispagestyle{empty}
@@ -165,12 +165,14 @@ Hlinka et al. (2012) proposed a distributed method for computing an approximatio
 Saptarshi et al. (2014) presented a Bayesian consensus filter that uses logarithmic opinion pool for fusing posterior distributions of the tracked target \cite{bandyopadhyay2014distributed}. 
 %The proposed BCF can incorporate non-Gaussian uncertainties and nonlinearity in target dynamic models and measurement models.  
 %The DPF can work even when the network diameter, the maximum in/out degree, and the number of robots are unknown.
-Other examples can be found in \cite{julian2012distributed,beaudeau2012target}
+Other examples can be found in \cite{julian2012distributed,beaudeau2012target}.
 %There are other types of variants, for example, in \cite{ram2007stochastic}, a circular topology that each sensor can only communicate with a fixed neighboring sensor is deployed for parameter estimation of a spatial field. 
 %Each sensor generates state estimate based on that of the previous sensor and its own observation and sequentially passes the estimate to its neighbor.
 %who using the incremental Robbins-Monro gradient algorithm locally at each sensor.
 
-Despite the popularity of statistics dissemination strategy, exchanging statistics can consume high communication resources, which can be infeasible in vast area or complex environment.
+Despite the popularity of statistics dissemination strategy, exchanging statistics can consume high communication resources.
+\todoQ{Though approximating statistics with parametric models, such as Gaussian Mixture Models \cite{sheng2005distributed}, can significantly reduce communication burden, such manipulation sacrifices accuracy of filtering due to the approximation.}
+%which can be infeasible in vast area or complex environment.
 % such as marine search, seismological rescue, etc. 
 One promising remedy is to disseminate measurement instead of statistics among neighbors, which, however, has not been fully exploited.
 % strategy has been developed for NB-based DBFs, by which raw or quantized observations are exchanged among robots.
@@ -263,7 +265,7 @@ All of them are undirected and connected topologies.
 \end{figure}
 
 \subsection{Distributed Bayesian Filter for Multiple Robots}\label{subsec:dbf}
-The generic distributed Bayesian filter (DBF) is introduced in this section, which was also stated in \cite{hlinka2015distributed} and \cite{furukawa2006recursive}. 
+The generic distributed Bayesian filter (DBF) is introduced in this section, which was also stated in \cite{bandyopadhyay2014distributed} and \cite{julian2012distributed}. 
 Each robot has its individual estimation of posterior density function (PDF) of target position, called \textit{individual PDF}. 
 The $i^\text{th}$ individual PDF at time $k$ is defined as $P^i_{pdf}(x^T_{k}|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$. 
 The individual PDF is initialized by the prior function $P^i_{pdf}(x^T_0|z^i_0,z^{\mathcal{Q}_i}_0)=P(x^T_0)$, given all available prior information including past experience and environmental knowledge. Under the framework of DBF, the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of $i^\text{th}$ robot and robots in $\mathcal{Q}_i$.
@@ -463,9 +465,9 @@ Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of e
 \end{proof}
 \medskip
 \begin{rem}
-	Compared to statistics dissemination, LIFO is more communication-efficient for distributed filtering. 
+	Compared to statistics dissemination, LIFO is generally more communication-efficient for distributed filtering. 
 	To be specific, consider an $M\times M$ grid environment with a network of $N$ robots, the transmitted data of LIFO between each pair of robots are only the CB of each robot and the corresponding robot positions where observations were made, the length of which is $O(N)$. 
-	On the contrary, the length of transmitted data for a statistics dissemination approach is $O(M^2)$, which is in the order of environment size. 
+	On the contrary, the length of transmitted data for a statistics dissemination approach \todoQ{that transmits unparameterized posterior distributions of likelihood functions} is $O(M^2)$, which is in the order of environment size. 
 	Since $M$ is generally much larger than $N$ in target search and tracking, LIFO requires much less communication resources.
 \end{rem}
 
@@ -634,7 +636,7 @@ Since $X^T$ is finite, $X^T_{eq}$ is also finite.
 
 \subsection{Proof for static robots}
 The consistency of LIFO-DBF for static robots is stated as follows: 
-\todohere{converge to a set or treat the PDF as a r.v.?}
+%\todohere{converge to a set or treat the PDF as a r.v.?}
 \begin{thm}\label{thm:LIFO-dbf-sta-tar}
 	If robots are static, each individual PDF converges to $ X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.
 	\begin{equation*}
@@ -679,7 +681,7 @@ Since $P^i_{pdf}(x^T)$ and $P^i_{pdf}(x^{T^*})$ are bounded, then
 
 The binary observations subject to Bernoulli distribution $B(1,p_j)$, yielding
 \begin{equation*}
-P^i_{pdf}(z^j_k|x^T)=p^{z^j_k}_j(1-p_j)^{1-z^j_k}
+P(z^j_k|x^T)=p^{z^j_k}_j(1-p_j)^{1-z^j_k}
 \end{equation*}
 where $p_j=P(z^j_k=1|x^T)$. Utilizing the facts: (1) $z^j_l$ are conditionally independent samples from $B(1,p_j^*)$ and (2) $k-N<k_j\leq k$, the law of large numbers yields
 \begin{equation*}
@@ -688,36 +690,68 @@ where $p_j=P(z^j_k=1|x^T)$. Utilizing the facts: (1) $z^j_l$ are conditionally i
 %\lim\limits_{k\rightarrow\infty}
 \frac{1}{k}(k_j-\sum\limits_{l=1}^{k_j}z^j_l)\overset{P}{\longrightarrow}1-p^*_j
 \end{equation*}
-where $p_j^*=P(z^j_k=1|x^{T^*})$ and "$\overset{P}{\longrightarrow}$" denotes ``convergence in probability''.
+where $p_j^*=P(z^j_k=1|x^{T^*})$ and ``$\overset{P}{\longrightarrow}$" denotes ``convergence in probability''.
 Then, 
 \small\begin{equation}\label{eqn:cmp_lim2}
 %\lim\limits_{k\rightarrow \infty}
 \frac{1}{k}\sum\limits_{l=1}^{k_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}\overset{P}{\longrightarrow}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
 \end{equation}\normalsize
 
-Note that the right-hand side of \Cref{eqn:cmp_lim2} achieves maximum if and only if $p_j=p_j^*$. 
+Note that the right-hand side of \Cref{eqn:cmp_lim2} achieves maximum value 0 if and only if $p_j=p_j^*$. 
+Define 
+\begin{equation*}
+c(x^T)=\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln\frac{1-p_j}{1-p^*_j}.
+\end{equation*}
+
 Considering \Cref{eqn:cmp_lim1} and \Cref{eqn:cmp_lim2}, the limit of \Cref{eqn:cmp_log} is
 \small \begin{equation}\label{eqn:lim}
 % \lim\limits_{k\rightarrow \infty}
- \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}\overset{P}{\longrightarrow}\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
- \end{equation}\normalsize
+ \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}\overset{P}{\longrightarrow}c(x^T)
+% \sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
+\end{equation}\normalsize
  
-It is known from \Cref{eqn:lim} that
-\begin{enumerate}
-	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,
-	\begin{align*}
-%		\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & <0,
-		\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j} & <0,
-		\;\text{thus }\\
-		\lim\limits_{k\rightarrow \infty}\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0
-	\end{align*}	
-	\item When $p_j= p^*_j$, i.e., $x^T\in X^T_{eq}$, \begin{align*}
-%	\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0,
-	\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j} & = 0,
-	\;\text{thus }\\
-	\lim\limits_{k\rightarrow \infty}\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =1
-	\end{align*}
-\end{enumerate}
+It follows from \Cref{eqn:lim} that
+\begin{equation}\label{eqn:lim2}
+\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
+\end{equation}
+
+Define the set $\bar{X}_{eq}^T=X^T\setminus X^T_{eq}$ and $c_M=\max\limits_{x^T\in\bar{X}^T_{eq}}c(x^T)$.
+Then $c_M<0$.
+Summing \Cref{eqn:lim2} over $\bar{X}_{eq}^T$ yields
+\begin{equation}\label{eqn:lim3}
+\frac{\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}_{eq}^T|
+\end{equation}
+where $|\bar{X}_{eq}^T|$ denotes the cardinality of $\bar{X}_{eq}^T$.
+
+Since ${P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
+\begin{equation}\label{eqn:lim4}
+\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
+\end{equation}
+
+Utilizing the relation 
+\begin{equation*}
+0\leq P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})\leq P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k},
+\end{equation*}
+it can be derived from \Cref{eqn:lim4} that
+\begin{equation*}
+\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})\overset{P}{\longrightarrow} 0
+\end{equation*}
+
+%\begin{enumerate}
+%	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,
+%	\begin{align*}
+%%		\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & <0,
+%		\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j} & <0,
+%		\;\text{thus }\\
+%		\lim\limits_{k\rightarrow \infty}\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0
+%	\end{align*}	
+%	\item When $p_j= p^*_j$, i.e., $x^T\in X^T_{eq}$, \begin{align*}
+%%	\lim\limits_{k\rightarrow \infty}\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =0,
+%	\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j} & = 0,
+%	\;\text{thus }\\
+%	\lim\limits_{k\rightarrow \infty}\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})} & =1
+%	\end{align*}
+%\end{enumerate}
 \end{proof}
 
 
@@ -971,7 +1005,7 @@ The switching topology, including package loss, can lead to unpredictable delay 
 \section*{ACKNOWLEDGMENT}
 %This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.
 The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
-They would also like to thank Yuting Wei in Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
+They would also like to thank Yuting Wei in the Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
 
 %The preferred spelling of the word ÒacknowledgmentÓ in America is without an ÒeÓ after the ÒgÓ. Avoid the stilted expression, ÒOne of us (R. B. G.) thanks . . .Ó  Instead, try ÒR. B. G. thanksÓ. Put sponsor acknowledgments in the unnumbered footnote on the first page.
 

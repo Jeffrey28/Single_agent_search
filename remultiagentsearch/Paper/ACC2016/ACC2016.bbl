@@ -167,17 +167,6 @@ I.~Bahceci, G.~Al-Regib, and Y.~Altunbasak, ``Serial distributed detection for
   Proceedings. International Symposium on}.\hskip 1em plus 0.5em minus
   0.4em\relax IEEE, 2005, pp. 830--834.
 
-\bibitem{hlinka2015distributed}
-O.~Hlinka, F.~Hlawatsch, and P.~Djuric, ``Distributed sequential estimation in
-  asynchronous wireless sensor networks,'' 2015.
-
-\bibitem{furukawa2006recursive}
-T.~Furukawa, F.~Bourgault, B.~Lavis, and H.~F. Durrant-Whyte, ``Recursive
-  bayesian search-and-tracking using coordinated uavs for lost targets,'' in
-  \emph{Robotics and Automation, 2006. ICRA 2006. Proceedings 2006 IEEE
-  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
-  2006, pp. 2521--2526.
-
 \bibitem{kulich2014single}
 M.~Kulich, L.~Preucil, and J.~J. Miranda~Bront, ``Single robot search for a
   stationary object in an unknown environment,'' in \emph{Robotics and
