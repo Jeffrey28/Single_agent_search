@@ -9,7 +9,7 @@
 
 clear; clc; close all
 Selection1 = 5;    % select observaition exchange and fusion strategies
-max_EstStep = 60; % max step
+max_EstStep = 100; % max step
 switch Selection1
     case 1,  ObservExch='off'; ConsenStep=0;
     case 2,  ObservExch='off'; ConsenStep=10;
@@ -20,7 +20,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 1; % select the motion of agents and target
+Selection2 = 4; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -37,12 +37,12 @@ fld.map = ones(fld.x,fld.y)/(fld.x*fld.y);
 
 %% Target Steup
 switch Selection2
-    case 1, 
+    case {1,3} 
         fld.tx = 50; 
-        fld.ty = 35;% Target position, but unknown to estimator
-    case {2,3,4} 
-        fld.tx = 25; 
-        fld.ty = 25;% Target position, but unknown to estimator
+        fld.ty = 50;% Target position, but unknown to estimator
+    case {2,4} 
+        fld.tx = 50; 
+        fld.ty = 15;% Target position, but unknown to estimator
 end
 
 fld.target.speed = 1;
@@ -51,7 +51,7 @@ if tar_move == 0
     fld.target.dx= 0;
     fld.target.dy= 0;
 elseif tar_move == 1
-    fld.target.dx= 1;
+    fld.target.dx= 0;
     fld.target.dy= 1;
 end
 
@@ -107,12 +107,12 @@ if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end 
 % x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
 % y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
 switch Selection2
-    case {1,2}
+    case {1,2,3,4}
         x_set = [20,40,60,80,60,40];
         y_set = [50,20,20,50,80,80];
-    case {3,3}
-        x_set = linspace(5,fld.x-5,6);
-        y_set = 10*ones(1,NumOfRobot);
+%     case {3,4}
+%         x_set = linspace(5,fld.x-5,6);
+%         y_set = 10*ones(1,NumOfRobot);
 end
 
 for i=1:NumOfRobot
@@ -120,6 +120,8 @@ for i=1:NumOfRobot
     rbt(i).y = y_set(i)+0.1*rand(1,1); % sensor position.x
     rbt(i).speedLimit = 0;
     rbt(i).map = ones(fld.x,fld.y);
+%     rbt(i).map = zeros(fld.x,fld.y);
+%     rbt(i).map(fld.tx-5:fld.tx+5,fld.ty-5:fld.ty+5) = 1;
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
 %     if tar_move == 1
         rbt(i).talign_map = rbt(i).map; % store the prob_map for observations with same tiem index, i.e. P(x|z^1_1:k,...,z^N_1:k)
@@ -131,7 +133,7 @@ for i=1:NumOfRobot
 end
 
 % binary sensor model
-sigmaVal=(fld.x/5)^2+(fld.y/5)^2; % covariance matrix for the sensor
+sigmaVal=(fld.x/10)^2+(fld.y/10)^2; % covariance matrix for the sensor
 k_s = 2*pi*sqrt(det(sigmaVal)); % normalizing factor
 s_psi = 1/2*eye(2)/sigmaVal; % psi for the sensor
 % robot colors
@@ -162,6 +164,7 @@ for i=1:NumOfRobot
         rbtBuffer{i}.rbt(j).y=[];
         rbtBuffer{i}.rbt(j).z=[];
         rbtBuffer{i}.rbt(j).k=[];
+        rbtBuffer{i}.rbt(j).prob=[];
         rbtBuffer{i}.rbt(j).map = {};% record the previously calculated map to reduce computation
     end
 end
@@ -247,6 +250,7 @@ while (1) %% Filtering Time Step
                                 tempRbtBuffer{i}.rbt(j).y = rbtBuffer{t}.rbt(j).y;
                                 tempRbtBuffer{i}.rbt(j).z = rbtBuffer{t}.rbt(j).z;
                                 tempRbtBuffer{i}.rbt(j).k = rbtBuffer{t}.rbt(j).k;
+                                tempRbtBuffer{i}.rbt(j).prob = rbtBuffer{t}.rbt(j).prob;
                             end
                         end
                     end
@@ -259,24 +263,23 @@ while (1) %% Filtering Time Step
                         rbtBuffer{i}.rbt(j).y = tempRbtBuffer{i}.rbt(j).y;
                         rbtBuffer{i}.rbt(j).z = tempRbtBuffer{i}.rbt(j).z;
                         rbtBuffer{i}.rbt(j).k = tempRbtBuffer{i}.rbt(j).k;
+                        rbtBuffer{i}.rbt(j).prob = tempRbtBuffer{i}.rbt(j).prob;
                     end
                 end
                 
                 % (2) observation
                 % Observation of each robot
                 for i=1:NumOfRobot
-                    if count == 1
                         % initialize the buffer
                         rbtBuffer{i}.rbt(i).x=rbt(i).x;
                         rbtBuffer{i}.rbt(i).y=rbt(i).y;
                         rbtBuffer{i}.rbt(i).z=rbt(i).z;
                         rbtBuffer{i}.rbt(i).k=count;
-                    elseif count > 1
-                        rbtBuffer{i}.rbt(i).x=rbt(i).x;
-                        rbtBuffer{i}.rbt(i).y=rbt(i).y;
-                        rbtBuffer{i}.rbt(i).z=rbt(i).z;
-                        rbtBuffer{i}.rbt(i).k=count;
-                    end
+                        if (~isempty(rbtBuffer{i}.rbt(i).k)) && (rbtBuffer{i}.rbt(i).z == 1)
+                            rbtBuffer{i}.rbt(i).prob = sensorProb(rbtBuffer{i}.rbt(i).x,rbtBuffer{i}.rbt(i).y,fld.x,fld.y,sigmaVal);
+                        elseif ~isempty(rbtBuffer{i}.rbt(i).k) && (rbtBuffer{i}.rbt(i).z == 0)
+                            rbtBuffer{i}.rbt(i).prob = 1 - sensorProb(rbtBuffer{i}.rbt(i).x,rbtBuffer{i}.rbt(i).y,fld.x,fld.y,sigmaVal);
+                        end
                 end
                 display(rbtBuffer{1}.rbt(1)),display(rbtBuffer{1}.rbt(2)),display(rbtBuffer{1}.rbt(3))
                 display(rbtBuffer{1}.rbt(4)),display(rbtBuffer{1}.rbt(5)),display(rbtBuffer{1}.rbt(6))
@@ -285,12 +288,13 @@ while (1) %% Filtering Time Step
                 % calculate probility of latest z
                 for i=1:NumOfRobot % Robot Iteration
                     for j=1:NumOfRobot
-                        if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).z == 1)
-                            rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
+                        if (~isempty(rbtBuffer{i}.rbt(j).k))
+%                         if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).z == 1)
+%                             rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
                             rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
-                        elseif ~isempty(rbtBuffer{i}.rbt(j).k) && rbtBuffer{i}.rbt(j).z == 0
-                            rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
-                            rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
+%                         elseif ~isempty(rbtBuffer{i}.rbt(j).k) && (rbtBuffer{i}.rbt(j).z == 0)
+%                             rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
+%                             rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
                         end
                     end
                     rbt(i).map=rbt(i).map/sum(sum(rbt(i).map));
@@ -372,17 +376,9 @@ while (1) %% Filtering Time Step
                     for t = (rbt(i).talign_t+1):count
                         %% prediction step
                         tmp_map2 = zeros(size(tmp_map));
-                        
-                        % dynamic model
-                        %                     if rem(t,2) == 1
                         for k = 1:size(pt,1)
                             tmp_map2 = tmp_map2+upd_cell1{k}*tmp_map(pt(k,1),pt(k,2));
                         end
-                        %                     else
-                        %                         for k = 1:size(pt,1)
-                        %                             tmp_map2 = tmp_map2+upd_cell2{k}*tmp_map(pt(k,1),pt(k,2));
-                        %                         end
-                        %                     end
                         tmp_map = tmp_map2;
                         
                         %% updating step
@@ -515,7 +511,10 @@ while (1) %% Filtering Time Step
     
     % save plots
     %
-    if (count == 1) || (count == 3) || (count == 5) || (count == 7) || (count == 10) || (count == 20) || (count == 30) || (count == 40) || (count == 50)
+    if (count == 1) || (count == 3) || (count == 5) || (count == 7) ||...
+            (count == 10) || (count == 20) || (count == 30) || (count == 40)...
+            || (count == 50) || (count == 60) || (count == 70) || (count == 80)...
+            || (count == 90) || (count == 100)
         switch Selection2
             case 1,  tag = 'sta_sen_sta_tar';
             case 2,  tag = 'sta_sen_mov_tar';
@@ -529,8 +528,6 @@ while (1) %% Filtering Time Step
         saveas(hf3,file_name2,'fig')
         saveas(hf3,file_name2,'jpg')
     end
-%     file_name2 = sprintf('./figures/data_exchange/sim_0.3_0.1_1_1_actual_peak/fig3_%d',count);
-%     saveas(hf3,file_name2,'jpg')
     %}
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -568,8 +565,8 @@ switch Selection2
     case 4,  tag = 'mov_sen_mov_tar';
 end
 file_name2 = sprintf('./figures/data_exchange/%s_entropy_%s',tag,datestr(now,1));
-saveas(hf2,file_name2,'fig')
-saveas(hf2,file_name2,'jpg')
+% saveas(hf2,file_name2,'fig')
+% saveas(hf2,file_name2,'jpg')
 
 %% save robot structure
 file_name3 = sprintf('./figures/data_exchange/%s_robot.mat_%s',tag,datestr(now,1));

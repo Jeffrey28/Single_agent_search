@@ -154,18 +154,20 @@ J.~Tisdale, Z.~Kim, and J.~K. Hedrick, ``Autonomous uav path planning and
   estimation,'' \emph{Robotics \& Automation Magazine, IEEE}, vol.~16, no.~2,
   pp. 35--42, 2009.
 
-\bibitem{ram2007stochastic}
-S.~S. Ram, A.~Nedic, and V.~Veeravalli, ``Stochastic incremental gradient
-  descent for estimation in sensor networks,'' in \emph{Signals, Systems and
-  Computers, 2007. ACSSC 2007. Conference Record of the Forty-First Asilomar
-  Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp.
-  582--586.
+\bibitem{lawton2003decentralized}
+J.~R. Lawton, R.~W. Beard, and B.~J. Young, ``A decentralized approach to
+  formation maneuvers,'' \emph{Robotics and Automation, IEEE Transactions on},
+  vol.~19, no.~6, pp. 933--941, 2003.
 
-\bibitem{bahceci2005serial}
-I.~Bahceci, G.~Al-Regib, and Y.~Altunbasak, ``Serial distributed detection for
-  wireless sensor networks,'' in \emph{Information Theory, 2005. ISIT 2005.
-  Proceedings. International Symposium on}.\hskip 1em plus 0.5em minus
-  0.4em\relax IEEE, 2005, pp. 830--834.
+\bibitem{liu2010simple}
+H.~Liu, X.~Chu, Y.-W. Leung, and R.~Du, ``Simple movement control algorithm for
+  bi-connectivity in robotic sensor networks,'' \emph{Selected Areas in
+  Communications, IEEE Journal on}, vol.~28, no.~7, pp. 994--1005, 2010.
+
+\bibitem{thatte2008sensor}
+G.~Thatte and U.~Mitra, ``Sensor selection and power allocation for distributed
+  estimation in sensor networks: Beyond the star topology,'' \emph{Signal
+  Processing, IEEE Transactions on}, vol.~56, no.~7, pp. 2649--2661, 2008.
 
 \bibitem{kulich2014single}
 M.~Kulich, L.~Preucil, and J.~J. Miranda~Bront, ``Single robot search for a
