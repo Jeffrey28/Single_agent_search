@@ -175,4 +175,11 @@ M.~Kulich, L.~Preucil, and J.~J. Miranda~Bront, ``Single robot search for a
   Automation (ICRA), 2014 IEEE International Conference on}.\hskip 1em plus
   0.5em minus 0.4em\relax IEEE, 2014, pp. 5830--5835.
 
+\bibitem{furukawa2006recursive}
+T.~Furukawa, F.~Bourgault, B.~Lavis, and H.~F. Durrant-Whyte, ``Recursive
+  bayesian search-and-tracking using coordinated uavs for lost targets,'' in
+  \emph{Robotics and Automation, 2006. ICRA 2006. Proceedings 2006 IEEE
+  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
+  2006, pp. 2521--2526.
+
 \end{thebibliography}

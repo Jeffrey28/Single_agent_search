@@ -101,7 +101,7 @@ Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-This paper presents measurement dissemination-based distributed Bayesian filtering (DBF) approach for a multi-robot network, utilizing the proposed Latest-In-and-Full-Out (LIFO) local exchange protocol of observations.
+This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-robot network, utilizing the Latest-In-and-Full-Out (LIFO) local exchange protocol of observations.
 % for target search and tracking.
 Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only receives the latest available measurements and then broadcasts full communication buffer to its neighborhood, which significantly reduces the transmission burden between each pair of robots from the order of environmental size to that of robot number.
 Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time.
@@ -187,9 +187,9 @@ A recent work was conducted by Djuric et al. (2011), who proposed to broadcast r
 %Another example can be found in \cite{rosencrantz2002decentralized}, in which both observations and statistics were exchanged among sensors for distributed surveillance of the environment.
 A shortcoming of aforementioned works is that their communication topologies are assumed to be a complete graph that every pair of distinct robots is directly connected by a unique edge, which is not always feasible in reality.
 
-This paper extends existing works by introducing a Latest-In-and-Full-Out (LIFO) protocol for distributed Bayesian filters (DBF) of networked robots. 
+This paper extends existing works by introducing a Latest-In-and-Full-Out (LIFO) protocol into distributed Bayesian filters (DBF) for networked robots. 
 Each robot is only allowed to broadcast observations to its neighbors by using single-hopping and then implements individual Bayesian filter locally after receiving transmitted observations.
-The main benefit of LIFO is on the reduction of communication burden, with the transmission data volume scaling linearly with the robot number, while a statistics dissemination-based strategy can suffer from the order of environmental size.
+The main benefit of using LIFO is on the reduction of communication burden, with the transmission data volume scaling linearly with the robot number, while a statistics dissemination-based strategy can suffer from the order of environmental size.
 %In addition, LIFO spreads all robots' observations among the network via multi-hopping, ensuring each robot's access to all others' historical observations.
 %After receiving observations from neighbors, each robot runs Bayesian filter locally for environment state estimation. 
 The proposed LIFO-based DBF has following properties:
@@ -949,7 +949,9 @@ As more observations are used, the posterior individual PDF concentrates to the 
 The six robots move within the field to estimate the target position. 
 %The motion planning of robots for effective target search has received much attention in the past years. 
 %Readers interested in this topic can refer to \cite{tisdale2009autonomous,furukawa2006recursive}.
-In this work, the robot positions are randomly generated at each time in order to demonstrate the effectiveness of LIFO-DBF.
+In this work, the robot positions are randomly generated at each time.
+% in order to demonstrate the effectiveness of LIFO-DBF.
+Readers interested in the motion planning of robots for effective target localization can refer to \cite{tisdale2009autonomous,furukawa2006recursive}.
 The target dynamics is given by a single-integrator model:
 \small\begin{equation*}
 x^T(k+1)=x^T(k)+v\Delta T
@@ -969,7 +971,7 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 %\end{figure}
 
 \section{CONCLUSION}\label{sec:conclu}
-This paper presents measurement dissemination-based distributed Bayesian filters (DBF) for a multi-robot network, utilizing the Latest-In-and-Full-Out (LIFO) protocol for observation exchange.
+This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-robot network, utilizing the Latest-In-and-Full-Out (LIFO) protocol for observation exchange.
 % for target search and tracking.
 Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only receives the latest available measurements and then broadcasts full communication buffer to its direct neighborhood by single-hopping, which significantly reduces the transmission burden between each pair of robots from the order of environmental size to that of robot number.
 Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time via local communication among direct neighborhood.
