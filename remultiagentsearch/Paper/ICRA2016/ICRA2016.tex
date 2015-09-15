@@ -279,7 +279,8 @@ All of them are undirected and connected topologies.
 The generic distributed Bayesian filter (DBF) is introduced in this section.
 %, which is also stated in \cite{bandyopadhyay2014distributed} and \cite{julian2012distributed}. 
 Each robot has its individual estimation of posterior density function (PDF) of target position, called \textit{individual PDF}. 
-The individual PDF of $i^\text{th}$ robot at time $k$ is defined as $P^i_{pdf}(x^T_{k}|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$, where $z^i_{1:k}$ denotes the set of observations by $i^\text{th}$ robot from time $1$ through $k$ and $z^{\mathcal{Q}_i}_{1:k}$ means observations by robots in $\mathcal{Q}_i$.
+The individual PDF of $i^\text{th}$ robot at time $k$ is defined as $P^i_{pdf}(x^T_{k}|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$, where $z^i_{1:k}$ denotes the set of observations made by $i^\text{th}$ robot from time $1$ through $k$ and $z^{\mathcal{Q}_i}_{1:k}$ means the set of observations by robots in $\mathcal{Q}_i$ that are transmitted to $i^\text{th}$ robot.
+Note that if the observation by $j^\text{th}(j\in \mathcal{Q}_i)$ robot at time $k'(k'\leq k)$ is not received by $i^\text{th}$ robot, the corresponding element $z^j_{k'}$ in $z^{\mathcal{Q}_i}_{1:k}$ is empty and thus not utilized for computing $i^\text{th}$ individual PDF.
 The individual PDF is initialized as $P^i_{pdf}(x^T_0|z^i_0,z^{\mathcal{Q}_i}_0)=P(x^T_0)$, given all available prior information including past experience and environmental knowledge. Under the framework of DBF, the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of $i^\text{th}$ robot and robots in $\mathcal{Q}_i$.
  
 \subsubsection{Prediction}
@@ -323,7 +324,7 @@ The theoretical analysis show that LIFO-DBF can ensure the consistency and conse
 \subsection{Latest-In-and-Full-Out (LIFO) Protocol}\label{subsec:LIFO}
 Under LIFO, each robot contains a communication buffer (CB) to store its latest knowledge of observations of all robots: 
 \begin{equation*}
-\mathbf{z}^i_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
+\mathbf{z}^{CB,i}_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
 \end{equation*}
 where $z^j_{k^i_j}$ represents the observation made by ${j^\text{th}}$ robot at time $k^i_j$. 
 Note that under LIFO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace \setminus \left\lbrace i\right\rbrace$, which will be proved in \Cref{cor1}.
@@ -349,7 +350,7 @@ The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 		The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponds to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
 		The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
 		\begin{equation*}
-		\mathbf{z}^l_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
+		\mathbf{z}^{CB,l}_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
 		\end{equation*}
 		
 		\State (2.2) Observation Step: 
@@ -462,18 +463,18 @@ This proves the \Cref{prop1} for $d(j,i)=s+1$.
 %\vspace{\baselineskip}
 \medskip
 \begin{cor}\label{cor1}
-For the same topology in \Cref{prop1}, all elements in $\mathbf{z}^i_k$ under LIFO become filled when $k\geq N$, i.e., $\mathcal{Q}_i = \left\lbrace1,\dots,N \right\rbrace \setminus \left\lbrace i\right\rbrace $.	
+For the same topology in \Cref{prop1}, all elements in $\mathbf{z}^{CB,i}_k$ under LIFO become filled when $k\geq N$, i.e., $\mathcal{Q}_i = \left\lbrace1,\dots,N \right\rbrace \setminus \left\lbrace i\right\rbrace $.	
 \end{cor}
 \begin{proof}
-In a network of $N$ robots, the maximal length of shortest paths is no greater than $N-1$. Based on \Cref{prop1}, $\tau_{i,j}\leq N-1$ and thus all elements of $\mathbf{z}^i_k$ become filled when $k\geq N$.
+In a network of $N$ robots, the maximal length of shortest paths is no greater than $N-1$. Based on \Cref{prop1}, $\tau_{i,j}\leq N-1$ and thus all elements of $\mathbf{z}^{CB,i}_k$ become filled when $k\geq N$.
 \end{proof}
 \medskip
 \begin{cor}\label{cor2}
-For the same topology in \Cref{prop1}, once all elements in $\mathbf{z}^i_k$ are filled, the updating of each element is non-intermittent. 	
+For the same topology in \Cref{prop1}, once all elements in $\mathbf{z}^{CB,i}_k$ are filled, the updating of each element is non-intermittent. 	
 \end{cor}
 \begin{proof}
 For a network with fixed topology, shortest path(s) between any pair of nodes are fixed. 
-Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of each element in $\mathbf{z}^i_k$ is non-intermittent.
+Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of each element in $\mathbf{z}^{CB,i}_k$ is non-intermittent.
 \end{proof}
 \medskip
 \begin{rem}
@@ -486,20 +487,20 @@ Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of e
 \subsection{Algorithm of LIFO-DBF for Static Target}\label{subsec:LIFO-dbf-sta-tar} 
 
 This section derives the LIFO-DBF algorithm for localizing a static target. 
-Each robot stores last-step individual PDF, i.e., $P^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})$. 
+Each robot stores last-step individual PDF, i.e., $P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k-1})$. 
 The assumption of static target can simplify the Bayesian filter as the prediction step becomes unnecessary. 
 Therefore, the $i^\text{th}$ individual PDF is only updated by 
 \small\begin{equation}\label{eqn:LIFO-dbf-sta-tar}
-P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})=K_iP^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
+P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})=K_iP^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
 \end{equation}\normalsize
 where
 \small\begin{equation*}
-K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)dx^T
+K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)dx^T
 \end{equation*}\normalsize
 
 \subsection{Algorithm of LIFO-DBF for Moving Target}\label{subsec:LIFO-dbf-mov-tar}
 This section derives the LIFO-DBF for localizing a moving target. 
-Instead of storing last-step PDF, at $k$ each robot maintains an individual PDF of time $(k-N)$ and a triangular matrix of historical observations from time $(k-N+1)$ to current time $k$. 
+Instead of storing last-step PDF, at time $k$ each robot maintains an individual PDF of time $(k-N)$ and a matrix of historical observations from time $(k-N+1)$ to $k$. 
 The $i^\text{th}$ individual PDF is then alternatively predicted and updated by using aforementioned Bayesian filter (\Cref{eqn:bayes_pred} and \Cref{eqn:bayes_upd}) from $(k-N)$ to $k$.
 \cref{fig:LIFO-DBF} illustrates the LIFO-DBF procedure for the $1^\text{st}$ robot as an example.
 \begin{figure}%[thpb]
@@ -647,7 +648,7 @@ Since $S$ is finite, $X^T_{eq}$ is also finite.
 		\end{equation*}
 		
 		\State\textbf{(4)} Individual PDF of $i^\text{th}$ robot at time $k$ is
-		$P^i_{pdf}(x^T_{k}|\mathbf{z}^i_{1:k})=P^i_{virt}(x^T_k)$.		
+		$P^i_{pdf}(x^T_{k}|\mathbf{z}^{CB,i}_{1:k})=P^i_{virt}(x^T_k)$.		
 	\end{algorithmic}
 \end{algorithm}
 
@@ -659,14 +660,14 @@ The consistency of LIFO-DBF for static robots is stated as follows:
 %	the set of estimated target position of each robot converges to $ X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.,
 	\small\begin{equation*}
 	\lim\limits_{k\rightarrow \infty}
-	P(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=
+	P(x^T\in X^T_{eq}|\mathbf{z}^{CB,i}_{1:k})=
 %	\begin{cases}
 %	1 & \text{if}\; i=1\\
 %	0 & \text{if}\; i\neq 1
 %	\end{cases},\;
 	1,\;i=1,\dots,N
 	\end{equation*}\normalsize
-	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right] $.
+	where $\mathbf{z}^{CB,i}_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right] $.
 %	, $\left\lbrace k_1,\dots,k_N\right\rbrace $ are the timestamps of the $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
@@ -674,7 +675,7 @@ The consistency of LIFO-DBF for static robots is stated as follows:
 Considering the conditional independence of observations for given $x^T\in S$, the batch form of DBF at $k^\text{th}$ step is:
 \small\begin{subequations}
 	\begin{align*}
-		P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})&=P^i_{pdf}(x^T|z^1_{1:k^i_1},\dots,z^N_{1:k^i_N})\\
+		P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})&=P^i_{pdf}(x^T|z^1_{1:k^i_1},\dots,z^N_{1:k^i_N})\\
 		&=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)}{\sum\limits_{x^T\in S}P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)},
 	\end{align*}
 \end{subequations}\normalsize
@@ -682,14 +683,14 @@ where $P^i_{pdf}$ is $i^\text{th}$ initial individual PDF.
 It is known from \Cref{cor1} and \Cref{cor2} that $k-N<k^i_j\leq k$.
 \addtocounter{equation}{-1}\\
 
-Comparing $P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})$ with $P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})$ yields
+Comparing $P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})$ with $P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})$ yields
 \small\begin{equation}\label{eqn:cmp}
-\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^*})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^{T^*})}
+\frac{P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^*})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^{T^*})}
 \end{equation}\normalsize
 
 Take the logarithm of \Cref{eqn:cmp} and average it over $k$ steps:
 \small\begin{equation}\label{eqn:cmp_log}
- \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}+\sum\limits_{j=1}^{N}\frac{1}{k}\sum\limits_{l=1}^{k^i_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}.
+ \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})}=\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}+\sum\limits_{j=1}^{N}\frac{1}{k}\sum\limits_{l=1}^{k^i_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}.
 \end{equation}\normalsize
 
 Since $P^i_{pdf}(x^T)$ and $P^i_{pdf}(x^{T^*})$ are bounded, then
@@ -725,41 +726,41 @@ c(x^T)=\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln\frac{1-p_j}{
 Considering \Cref{eqn:cmp_lim1} and \Cref{eqn:cmp_lim2}, the limit of \Cref{eqn:cmp_log} is
 \small \begin{equation}\label{eqn:lim}
 % \lim\limits_{k\rightarrow \infty}
- \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}\overset{P}{\longrightarrow}c(x^T)
+ \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})}\overset{P}{\longrightarrow}c(x^T)
 % \sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
 \end{equation}\normalsize
  
 It follows from \Cref{eqn:lim} that
 \small\begin{equation}\label{eqn:lim2}
-\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
+\frac{P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
 \end{equation}\normalsize
 
 Define the set $\bar{X}_{eq}^T=S\setminus X^T_{eq}$ and $c_M=\max\limits_{x^T\in\bar{X}^T_{eq}}c(x^T)$.
 Then $c_M<0$.
 Summing \Cref{eqn:lim2} over $\bar{X}_{eq}^T$ yields
 \small\begin{equation}\label{eqn:lim3}
-\frac{\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}_{eq}^T|
+\frac{\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}_{eq}^T|
 \end{equation}\normalsize
 where $|\bar{X}_{eq}^T|$ denotes the cardinality of $\bar{X}_{eq}^T$.
 
-Since $c_M<0$,  ${P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
+Since $c_M<0$,  ${P^i_{pdf}(x^{T^*}|\mathbf{z}^{CB,i}_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
 \begin{equation}\label{eqn:lim4}
-\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
+\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
 \end{equation}
 
 Utilizing the relation 
 \begin{equation*}
-0\leq P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})\leq P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k},
+0\leq P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})\leq P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})e^{\left[c_M-c(x^T)\right]k},
 \end{equation*}
 it can be derived from \Cref{eqn:lim4} that
 \small\begin{equation*}
-\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})\overset{P}{\longrightarrow} 0
+\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})\overset{P}{\longrightarrow} 0
 \end{equation*}\normalsize
 
 Therefore,
 \small\begin{equation*}
 	\lim\limits_{k\rightarrow \infty}
-	P(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in X_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})=1
+	P(x^T\in X^T_{eq}|\mathbf{z}^{CB,i}_{1:k})=\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in X_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{CB,i}_{1:k})=1
 \end{equation*}\normalsize
 %\begin{enumerate}
 %	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,

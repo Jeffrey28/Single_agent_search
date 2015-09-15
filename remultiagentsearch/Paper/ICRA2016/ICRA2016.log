@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 SEP 2015 14:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 SEP 2015 16:39
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -750,38 +750,38 @@ Package pdftex.def Info: figures/com_topo.pdf used on input line 273.
 File: figures/data_exchange.pdf Graphic file (type pdf)
 
 <use figures/data_exchange.pdf>
-Package pdftex.def Info: figures/data_exchange.pdf used on input line 434.
+Package pdftex.def Info: figures/data_exchange.pdf used on input line 435.
 (pdftex.def)             Requested size: 242.82503pt x 166.65018pt.
  [3 <./figures/com_topo.pdf> <./figures/data_exchange.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/data_exchange.pdf): PDF in
 clusion: multiple pdfs with page group included in a single page
->] <figures/DBF_demo.pdf, id=55, 2077.76347pt x 1705.06848pt>
+>] <figures/DBF_demo.pdf, id=56, 2077.76347pt x 1705.06848pt>
 File: figures/DBF_demo.pdf Graphic file (type pdf)
 
 <use figures/DBF_demo.pdf>
-Package pdftex.def Info: figures/DBF_demo.pdf used on input line 507.
+Package pdftex.def Info: figures/DBF_demo.pdf used on input line 508.
 (pdftex.def)             Requested size: 227.64894pt x 186.80362pt.
  [4]
-Overfull \hbox (7.24725pt too wide) detected at line 647
+Overfull \hbox (7.24725pt too wide) detected at line 648
 \OML/cmm/m/it/10 P[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]\OMS/cmsy/m/n/10 j\OML
 /cmm/m/it/10 z[]; [] ; z[]\OT1/cmr/m/n/10 ) = \OML/cmm/m/it/10 P[]\OT1/cmr/m/n/
 10 (\OML/cmm/m/it/10 x[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 :
  []
 
 
-Underfull \hbox (badness 7649) in paragraph at lines 649--651
+Underfull \hbox (badness 7649) in paragraph at lines 650--652
 []\OT1/ptm/b/n/10 (4) \OT1/ptm/m/n/10 In-di-vid-ual PDF of $\OML/cmm/m/it/10 i[
 ]$ \OT1/ptm/m/n/10 robot at time $\OML/cmm/m/it/10 k$ \OT1/ptm/m/n/10 is
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 679--684
+Underfull \hbox (badness 10000) in paragraph at lines 680--685
 
  []
 
 [5 <./figures/DBF_demo.pdf>]
-Overfull \hbox (6.14972pt too wide) detected at line 693
+Overfull \hbox (12.7971pt too wide) detected at line 694
 [] [] [] \OT1/cmr/m/n/9 = [] [] [] + [] [] [] [] []\OML/cmm/m/it/9 :
  []
 
@@ -790,7 +790,7 @@ File: figures/sta_sen_sta_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1.pdf used on input lin
-e 838.
+e 839.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_5.pdf, id=83, 481.94987pt x 409.20854pt>
@@ -798,7 +798,7 @@ File: figures/sta_sen_sta_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5.pdf used on input lin
-e 842.
+e 843.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_10.pdf, id=84, 481.94987pt x 409.20854pt>
@@ -806,7 +806,7 @@ File: figures/sta_sen_sta_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_10.pdf used on input li
-ne 846.
+ne 847.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_30.pdf, id=85, 481.94987pt x 409.20854pt>
@@ -814,14 +814,14 @@ File: figures/sta_sen_sta_tar_single_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_30.pdf used on input li
-ne 850.
+ne 851.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_30.pdf, id=86, 759.49211pt x 557.13321pt>
 File: figures/sta_sen_sta_tar_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_30.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 854.
+Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 855.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
 
@@ -830,7 +830,7 @@ File: figures/mov_sen_mov_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_1.pdf used on input lin
-e 864.
+e 865.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_5.pdf, id=88, 489.1769pt x 416.43553pt>
@@ -838,7 +838,7 @@ File: figures/mov_sen_mov_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_5.pdf used on input lin
-e 868.
+e 869.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_10.pdf, id=89, 489.1769pt x 416.43553pt>
@@ -846,7 +846,7 @@ File: figures/mov_sen_mov_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_10.pdf used on input li
-ne 872.
+ne 873.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_40.pdf, id=90, 489.1769pt x 416.43553pt>
@@ -854,14 +854,14 @@ File: figures/mov_sen_mov_tar_single_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_40.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_40.pdf used on input li
-ne 876.
+ne 877.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_40.pdf, id=91, 759.49211pt x 557.13321pt>
 File: figures/mov_sen_mov_tar_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_40.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 880.
+Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 881.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
  [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_single_
@@ -917,7 +917,7 @@ Before submitting the final camera ready copy, remember to:
 Here is how much of TeX's memory you used:
  17163 strings out of 493117
  335531 string characters out of 6135433
- 392137 words of memory out of 5000000
+ 393137 words of memory out of 5000000
  20286 multiletter control sequences out of 15000+600000
  52964 words of font info for 117 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -949,7 +949,7 @@ st/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
 ype1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/
 times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on ICRA2016.pdf (8 pages, 639146 bytes).
+Output written on ICRA2016.pdf (8 pages, 640522 bytes).
 PDF statistics:
  350 PDF objects out of 1000 (max. 8388607)
  238 compressed objects within 3 object streams
