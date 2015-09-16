@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 SEP 2015 22:57
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 SEP 2015 23:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -792,21 +792,21 @@ Overfull \hbox (6.14972pt too wide) detected at line 729
  []
 
 [5 <./figures/DBF_demo.pdf>]
-<figures/sta_sen_sta_tar_single_1.pdf, id=73, 481.94987pt x 409.20854pt>
+<figures/sta_sen_sta_tar_single_1.pdf, id=73, 481.94987pt x 456.18404pt>
 File: figures/sta_sen_sta_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1.pdf used on input lin
 e 877.
-(pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
+(pdftex.def)             Requested size: 96.12033pt x 90.97763pt.
 
-<figures/sta_sen_sta_tar_single_5.pdf, id=74, 481.94987pt x 409.20854pt>
+<figures/sta_sen_sta_tar_single_5.pdf, id=74, 481.94987pt x 456.18404pt>
 File: figures/sta_sen_sta_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5.pdf used on input lin
 e 881.
-(pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
+(pdftex.def)             Requested size: 96.12033pt x 90.97763pt.
 
 <figures/sta_sen_sta_tar_single_10.pdf, id=75, 481.94987pt x 409.20854pt>
 File: figures/sta_sen_sta_tar_single_10.pdf Graphic file (type pdf)
@@ -832,21 +832,21 @@ Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 893.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
 
-<figures/mov_sen_mov_tar_single_1.pdf, id=78, 489.1769pt x 416.43553pt>
+<figures/mov_sen_mov_tar_single_1.pdf, id=78, 489.1769pt x 459.79752pt>
 File: figures/mov_sen_mov_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_1.pdf used on input lin
 e 903.
-(pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
+(pdftex.def)             Requested size: 96.12033pt x 90.34421pt.
 
-<figures/mov_sen_mov_tar_single_5.pdf, id=79, 489.1769pt x 416.43553pt>
+<figures/mov_sen_mov_tar_single_5.pdf, id=79, 489.1769pt x 459.79752pt>
 File: figures/mov_sen_mov_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_5.pdf used on input lin
 e 907.
-(pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
+(pdftex.def)             Requested size: 96.12033pt x 90.34421pt.
 
 <figures/mov_sen_mov_tar_single_10.pdf, id=80, 489.1769pt x 416.43553pt>
 File: figures/mov_sen_mov_tar_single_10.pdf Graphic file (type pdf)
@@ -871,11 +871,8 @@ File: figures/mov_sen_mov_tar_40.pdf Graphic file (type pdf)
 Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 919.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
- [6]
-Underfull \vbox (badness 2027) has occurred while \output is active []
-
- [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_single_
-5.pdf
+ [6] [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_sin
+gle_5.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5.p
 df): PDF inclusion: multiple pdfs with page group included in a single page
@@ -959,7 +956,7 @@ st/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
 ype1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/
 times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on ICRA2016.pdf (8 pages, 630274 bytes).
+Output written on ICRA2016.pdf (8 pages, 630414 bytes).
 PDF statistics:
  344 PDF objects out of 1000 (max. 8388607)
  234 compressed objects within 3 object streams
