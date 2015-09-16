@@ -603,31 +603,31 @@ This section proves consistency and consensus of LIFO-DBF.
 Only proofs for localizing static target are presented, including static robots and moving robots.
 The proof of LIFO-DBF for moving target is similar to that of static target by considering the dynamic model of the target, but with more complicated algebraic manipulation. 
 
-Considering $S$ is finite and $x^{T^*}$ is the true location of target, define an \textit{equivalent-location} set $X^T_{eq}\subseteq S$ such that 
-\small\begin{equation*}
-X^T_{eq}=\left\lbrace x^T\in S\arrowvert P(z_k|x^{T})=P(z_k|x^{T^*}),\; \forall z_k\in \left\lbrace 0,1\right\rbrace\right\rbrace ,
-\end{equation*}\normalsize
-i.e., $x^T\in X^T_{eq}$ gives the same observation likelihood as $x^{T^*}$ for given robot positions.
-%for any two parameters in $X^T_{eq}$, the sensor model with one of these two parameters generates equivalent probability value for the same observation $z_k$
-Since $S$ is finite, $X^T_{eq}$ is also finite. 
-%Let $X^T_{eq,1},\dots,X^T_{eq,u}$ denote all equi-parameter sets that partition $X^T$ such that following properties hold:
-%\begin{enumerate}
-%	\item $\bigcup^u_{i=1} X^T_{eq,i}= X^T$
-%	\item $X^T_{eq,i}\cap X^T_{eq,j}=\emptyset,\;i,j\in \left\lbrace 1,\dots,u\right\rbrace ,i\neq j.$
-%\end{enumerate}
-%Without loss of generality, assume $x^{T^*}\in X^T_{eq,1}$, where $x^{T^*}$ denotes the actual position of the target. 
-
-%\todohere{double check if the following examples for equi-parameter set are accurate}
-
-%\begin{rem}
-%	the equivalent-location set depends on the property of the sensor. 
-%	For example, for a laser scanner with high-fidelity sensing capability, each equivalent-location set contains only a small number of target positions.
-	The reason to introduce equivalent-location set is that ghost target might exist in some special robot arrangement and sensor types.
-	For example, for undirected binary sensors that are linearly arranged, a ghost target can exist at the mirror position of the true target.
-	When sensors are overlapped at a single point, ghost targets can exist on a circle that contains the true target.
-	In theory, DBF cannot rule out ghost targets in such cases and prior knowledge is needed for further clarification.
-%	Therefore, this study only proves the convergence to the equivalent-location set rather to the true location.
-	However, by using high-fidelity sensors, such as cameras and laser scanners, and multiple observations from different robot placements, equi-location set can be reduced to only contain true location of target.
+%Considering $S$ is finite and $x^{T^*}$ is the true location of target, define an \textit{equivalent-location} set $X^T_{eq}\subseteq S$ such that 
+%\small\begin{equation*}
+%X^T_{eq}=\left\lbrace x^T\in S\arrowvert P(z_k|x^{T})=P(z_k|x^{T^*}),\; \forall z_k\in \left\lbrace 0,1\right\rbrace\right\rbrace ,
+%\end{equation*}\normalsize
+%i.e., $x^T\in X^T_{eq}$ gives the same observation likelihood as $x^{T^*}$ for given robot positions.
+%%for any two parameters in $X^T_{eq}$, the sensor model with one of these two parameters generates equivalent probability value for the same observation $z_k$
+%Since $S$ is finite, $X^T_{eq}$ is also finite. 
+%%Let $X^T_{eq,1},\dots,X^T_{eq,u}$ denote all equi-parameter sets that partition $X^T$ such that following properties hold:
+%%\begin{enumerate}
+%%	\item $\bigcup^u_{i=1} X^T_{eq,i}= X^T$
+%%	\item $X^T_{eq,i}\cap X^T_{eq,j}=\emptyset,\;i,j\in \left\lbrace 1,\dots,u\right\rbrace ,i\neq j.$
+%%\end{enumerate}
+%%Without loss of generality, assume $x^{T^*}\in X^T_{eq,1}$, where $x^{T^*}$ denotes the actual position of the target. 
+%
+%%\todohere{double check if the following examples for equi-parameter set are accurate}
+%
+%%\begin{rem}
+%%	the equivalent-location set depends on the property of the sensor. 
+%%	For example, for a laser scanner with high-fidelity sensing capability, each equivalent-location set contains only a small number of target positions.
+%	The reason to introduce equivalent-location set is that ghost target might exist in some special robot arrangement and sensor types.
+%	For example, for undirected binary sensors that are linearly arranged, a ghost target can exist at the mirror position of the true target.
+%	When sensors are overlapped at a single point, ghost targets can exist on a circle that contains the true target.
+%	In theory, DBF cannot rule out ghost targets in such cases and prior knowledge is needed for further clarification.
+%%	Therefore, this study only proves the convergence to the equivalent-location set rather to the true location.
+%	However, by using high-fidelity sensors, such as cameras and laser scanners, and multiple observations from different robot placements, equi-location set can be reduced to only contain true location of target.
 	
 %\end{rem}
 
@@ -671,14 +671,14 @@ Since $S$ is finite, $X^T_{eq}$ is also finite.
 \end{algorithm}
 
 \subsection{Proof for static robots}
-The consistency of LIFO-DBF for static robots is stated as follows: 
+Considering $S$ is finite and $x^{T^*}$ is the true location of target, the consistency of LIFO-DBF for static robots is stated as follows: 
 %\todohere{converge to a set or treat the PDF as a r.v.?}
 \begin{thm}\label{thm:LIFO-dbf-sta-tar}
-	When robots are static, the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
+	When robots are static, the estimated target position converges to the true position of target in probability using LIFO-DBF, i.e.,
 %	the set of estimated target position of each robot converges to $ X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.,
 	\small\begin{equation*}
 	\lim\limits_{k\rightarrow \infty}
-	P(x^T\in X^T_{eq}|\mathbf{z}^{i}_{1:k})=
+	P(x^T=x^{T^*}|\mathbf{z}^{i}_{1:k})=
 %	\begin{cases}
 %	1 & \text{if}\; i=1\\
 %	0 & \text{if}\; i\neq 1
@@ -753,17 +753,17 @@ It follows from \Cref{eqn:lim} that
 \frac{P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
 \end{equation}\normalsize
 
-Define the set $\bar{X}_{eq}^T=S\setminus X^T_{eq}$ and $c_M=\max\limits_{x^T\in\bar{X}^T_{eq}}c(x^T)$.
+Define the set $\bar{X}^T=S\setminus \left\lbrace x^{T^*}\right\rbrace$ and $c_M=\max\limits_{x^T\in\bar{X}^T}c(x^T)$.
 Then $c_M<0$.
-Summing \Cref{eqn:lim2} over $\bar{X}_{eq}^T$ yields
+Summing \Cref{eqn:lim2} over $\bar{X}^T$ yields
 \small\begin{equation}\label{eqn:lim3}
-\frac{\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}_{eq}^T|
+\frac{\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}^T|
 \end{equation}\normalsize
-where $|\bar{X}_{eq}^T|$ denotes the cardinality of $\bar{X}_{eq}^T$.
+where $|\bar{X}^T|$ denotes the cardinality of $\bar{X}^T$.
 
 Since $c_M<0$,  ${P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
 \begin{equation}\label{eqn:lim4}
-\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
+\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
 \end{equation}
 
 Utilizing the relation 
@@ -772,13 +772,13 @@ Utilizing the relation
 \end{equation*}
 it can be derived from \Cref{eqn:lim4} that
 \small\begin{equation*}
-\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})\overset{P}{\longrightarrow} 0
+\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})\overset{P}{\longrightarrow} 0
 \end{equation*}\normalsize
 
 Therefore,
 \small\begin{equation*}
 	\lim\limits_{k\rightarrow \infty}
-	P(x^T\in X^T_{eq}|\mathbf{z}^{i}_{1:k})=\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in X_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})=1
+	P(x^{T^*}|\mathbf{z}^{i}_{1:k})=1-\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})=1
 \end{equation*}\normalsize
 %\begin{enumerate}
 %	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,
@@ -812,17 +812,18 @@ Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ p
 \medskip
 %The main theory of consistency of LIFO-DBF for moving robots is stated as follows:
 \begin{thm}\label{thm:LIFO-dbf-mov-tar}
-	If robots move within a collection of finite positions, the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
+	If robots move within a collection of finite positions, the estimated target position converges to the true position of target in probability using LIFO-DBF, i.e.,
+%	the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
 %	the set of estimated target position of each robot converges to $X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.,
 	\small\begin{equation*}
-		\lim\limits_{k\rightarrow \infty}P(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=
+		\lim\limits_{k\rightarrow \infty}P(x^T=x^{T^*}|\mathbf{z}^i_{1:k})=
 %		\begin{cases}
 %		1 & \text{if}\; i=1\\
 %		0 & \text{if}\; i\neq 1
 %		\end{cases},\;
 		1,\;i=1,\dots,N
 	\end{equation*}\normalsize
-	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right]$.
+%	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right]$.
 %	, $\left\lbrace k_1,\dots,k_N\right\rbrace$ are the timestamps of $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
@@ -842,9 +843,10 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \end{proof}
 \medskip
 \begin{rem}
-	When $X^T_{eq}$ only contains $x^{T^{*}}$, consistency means the estimated target position converges to true target position in probability. Additionally, consistency implies that all individual PDFs converge to the same distribution, thus the consensus is also guaranteed.
+%	When $X^T_{eq}$ only contains $x^{T^{*}}$, consistency means the estimated target position converges to true target position in probability. Additionally, 
+	Consistency implies that all individual PDFs converge to the same distribution (true target PDF), thus the consensus is also guaranteed.
 	It must be noted that traditional statistics dissemination-based methods only ensure consensus of individual PDFs \cite{bandyopadhyay2014distributed,julian2012distributed}. 
-	To the best knowledge of authors, there is no proof of consistency that the agreed PDF is close to the true target PDF.
+	To the best knowledge of authors, there is no proof of consistency that guarantees the agreed PDF is close to the true target PDF.
 %	 of individual PDFs.
 %	In fact, the statistics dissemination-based methods can ensure the convergence of the state estimate among robots. 
 %	However, there's no guarantee whether the agreed estimate is close to the actual target position.

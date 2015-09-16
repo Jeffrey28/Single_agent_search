@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 SEP 2015 16:58
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 SEP 2015 17:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -791,7 +791,7 @@ File: figures/sta_sen_sta_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1.pdf used on input lin
-e 857.
+e 859.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_5.pdf, id=80, 481.94987pt x 409.20854pt>
@@ -799,7 +799,7 @@ File: figures/sta_sen_sta_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5.pdf used on input lin
-e 861.
+e 863.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_10.pdf, id=81, 481.94987pt x 409.20854pt>
@@ -807,7 +807,7 @@ File: figures/sta_sen_sta_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_10.pdf used on input li
-ne 865.
+ne 867.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_30.pdf, id=82, 481.94987pt x 409.20854pt>
@@ -815,14 +815,14 @@ File: figures/sta_sen_sta_tar_single_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_30.pdf used on input li
-ne 869.
+ne 871.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_30.pdf, id=83, 759.49211pt x 557.13321pt>
 File: figures/sta_sen_sta_tar_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_30.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 873.
+Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 875.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
 
@@ -831,7 +831,7 @@ File: figures/mov_sen_mov_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_1.pdf used on input lin
-e 883.
+e 885.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_5.pdf, id=85, 489.1769pt x 416.43553pt>
@@ -839,7 +839,7 @@ File: figures/mov_sen_mov_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_5.pdf used on input lin
-e 887.
+e 889.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_10.pdf, id=86, 489.1769pt x 416.43553pt>
@@ -847,7 +847,7 @@ File: figures/mov_sen_mov_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_10.pdf used on input li
-ne 891.
+ne 893.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_40.pdf, id=87, 489.1769pt x 416.43553pt>
@@ -855,21 +855,18 @@ File: figures/mov_sen_mov_tar_single_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_40.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_40.pdf used on input li
-ne 895.
+ne 897.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_40.pdf, id=88, 759.49211pt x 557.13321pt>
 File: figures/mov_sen_mov_tar_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_40.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 899.
+Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 901.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
- [6]
-Underfull \vbox (badness 1609) has occurred while \output is active []
-
- [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_single_
-5.pdf
+ [6] [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_sin
+gle_5.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5.p
 df): PDF inclusion: multiple pdfs with page group included in a single page
@@ -921,7 +918,7 @@ Before submitting the final camera ready copy, remember to:
 Here is how much of TeX's memory you used:
  17163 strings out of 493117
  335531 string characters out of 6135433
- 395137 words of memory out of 5000000
+ 393137 words of memory out of 5000000
  20286 multiletter control sequences out of 15000+600000
  52964 words of font info for 117 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -953,7 +950,7 @@ st/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
 ype1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/
 times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on ICRA2016.pdf (8 pages, 639024 bytes).
+Output written on ICRA2016.pdf (8 pages, 636511 bytes).
 PDF statistics:
  350 PDF objects out of 1000 (max. 8388607)
  238 compressed objects within 3 object streams
