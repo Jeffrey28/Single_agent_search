@@ -9,7 +9,7 @@
 
 clear; clc; close all
 Selection1 = 5;    % select observaition exchange and fusion strategies
-max_EstStep = 100; % max step
+max_EstStep = 200; % max step
 switch Selection1
     case 1,  ObservExch='off'; ConsenStep=0;
     case 2,  ObservExch='off'; ConsenStep=10;
@@ -20,7 +20,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 4; % select the motion of agents and target
+Selection2 = 1; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -145,18 +145,48 @@ rbt(5).color = 'm';
 rbt(6).color = 'w';
 
 %% Communication structure
-rbt(1).neighbour=[2,6];
-rbt(2).neighbour=[1,3];
-rbt(3).neighbour=[2,4];
-rbt(4).neighbour=[3,5];
-rbt(5).neighbour=[4,6];
-rbt(6).neighbour=[1,5];
-% rbt(1).neighbour=[2,3,4,5,6];
-% rbt(2).neighbour=[1,3,4,5,6];
-% rbt(3).neighbour=[1,2,4,5,6];
-% rbt(4).neighbour=[1,2,3,5,6];
-% rbt(5).neighbour=[1,2,3,4,6];
-% rbt(6).neighbour=[1,2,3,4,5];
+% rbt(1).top(1).neighbour=[2,6];
+% rbt(2).top(1).neighbour=1;
+% rbt(3).top(1).neighbour=4;
+% rbt(4).top(1).neighbour=[3,5];
+% rbt(5).top(1).neighbour=4;
+% rbt(6).top(1).neighbour=1;
+% 
+% rbt(1).top(2).neighbour=0;
+% rbt(2).top(2).neighbour=3;
+% rbt(3).top(2).neighbour=2;
+% rbt(4).top(2).neighbour=0;
+% rbt(5).top(2).neighbour=6;
+% rbt(6).top(2).neighbour=5;
+
+rbt(1).top(1).neighbour=6;
+rbt(2).top(1).neighbour=0;
+rbt(3).top(1).neighbour=5;
+rbt(4).top(1).neighbour=0;
+rbt(5).top(1).neighbour=3;
+rbt(6).top(1).neighbour=1;
+
+rbt(1).top(2).neighbour=2;
+rbt(2).top(2).neighbour=1;
+rbt(3).top(2).neighbour=0;
+rbt(4).top(2).neighbour=5;
+rbt(5).top(2).neighbour=4;
+rbt(6).top(2).neighbour=0;
+
+rbt(1).top(3).neighbour=0;
+rbt(2).top(3).neighbour=3;
+rbt(3).top(3).neighbour=2;
+rbt(4).top(3).neighbour=0;
+rbt(5).top(3).neighbour=6;
+rbt(6).top(3).neighbour=5;
+
+% rbt(1).neighbour=[2,6];
+% rbt(2).neighbour=[1,3];
+% rbt(3).neighbour=[2,4];
+% rbt(4).neighbour=[3,5];
+% rbt(5).neighbour=[4,6];
+% rbt(6).neighbour=[1,5];
+
 %% Robot Buffer for Observation Exchange
 for i=1:NumOfRobot
     for j=1:NumOfRobot
@@ -171,7 +201,7 @@ end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Distributed Bayesian Filter for Target Tracking
-count = 1;
+count = 1; % time step
 % record the time that the mpc solver cannot give a solution and the
 % corresponding robot
 err.time = [];
@@ -230,19 +260,36 @@ while (1) %% Filtering Time Step
                 rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
             end
             
-            %% with Multis-step observation exch
+            %% with Multi-step observation exch
         case 'multi',
             if (Selection2 == 1) || (Selection2 == 3)
                 % static target
                 %% data transmission
                 % (1) sending/receive
                 % multi-step transmit of observation
+%                 if rem(count,2) == 1 % in odd round
+%                     top_idx = 1; % use topology 1
+%                 else
+%                     top_idx = 2; % use topology 2
+%                 end
+
+                if rem(count,3) == 1 % in odd round
+                    top_idx = 1; % use topology 1
+                elseif rem(count,3) == 2
+                    top_idx = 2; % use topology 2
+                else
+                    top_idx = 3; % use topology 2
+                end
+                
                 for i=1:NumOfRobot % Robot Iteration
                     % for information from neighbours to compare whether it is
                     % latest
                     tempRbtBuffer{i}=rbtBuffer{i};
                     for j=1:NumOfRobot
-                        for t=rbt(i).neighbour
+                        for t=rbt(i).top(top_idx).neighbour
+                            if t == 0 % if no neighbors
+                                continue
+                            end
                             % note: communication only transmit the latest
                             % observation stored in each neighbor
                             if (~isempty(rbtBuffer{t}.rbt(j).k)) && (isempty(tempRbtBuffer{i}.rbt(j).k) || (tempRbtBuffer{i}.rbt(j).k < rbtBuffer{t}.rbt(j).k))
@@ -298,8 +345,7 @@ while (1) %% Filtering Time Step
                         end
                     end
                     rbt(i).map=rbt(i).map/sum(sum(rbt(i).map));
-                end
-                
+                end               
                 
             elseif (Selection2 == 2) || (Selection2 == 4)
                 % moving target
@@ -513,18 +559,17 @@ while (1) %% Filtering Time Step
     %
     if (count == 1) || (count == 3) || (count == 5) || (count == 7) ||...
             (count == 10) || (count == 20) || (count == 30) || (count == 40)...
-            || (count == 50) || (count == 60) || (count == 70) || (count == 80)...
-            || (count == 90) || (count == 100)
+            || (count == 50) || (count == 100) || (count == 150) || (count == 200)
         switch Selection2
             case 1,  tag = 'sta_sen_sta_tar';
             case 2,  tag = 'sta_sen_mov_tar';
             case 3,  tag = 'mov_sen_sta_tar';
             case 4,  tag = 'mov_sen_mov_tar';
         end
-        file_name1 = sprintf('./figures/data_exchange/%s_%d_%s',tag,count,datestr(now,1));
+        file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s_2',tag,count,datestr(now,1));
         saveas(hf1,file_name1,'fig')
         saveas(hf1,file_name1,'jpg')
-        file_name2 = sprintf('./figures/data_exchange/%s_single_%d_%s',tag,count,datestr(now,1));
+        file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%s_2',tag,count,datestr(now,1));
         saveas(hf3,file_name2,'fig')
         saveas(hf3,file_name2,'jpg')
     end
