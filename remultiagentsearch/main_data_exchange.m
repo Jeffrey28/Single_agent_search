@@ -6,6 +6,7 @@
 % (3) Strategy: (3.1) Observation Exchange strategy (Neighbourhood or Global-Exchange)
 %               (3.2) Probability Map Consensus strategy (single step or multi-step)
 %% 2015 June; All Copyright Reserved
+%% This code is for fixed topology
 
 clear; clc; close all
 Selection1 = 5;    % select observaition exchange and fusion strategies

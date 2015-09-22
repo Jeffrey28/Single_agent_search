@@ -24,8 +24,6 @@
 \citation{lawton2003decentralized}
 \citation{liu2010simple}
 \citation{thatte2008sensor}
-\citation{bandyopadhyay2014distributed}
-\citation{julian2012distributed}
 \@writefile{toc}{\contentsline {section}{\numberline {II}PROBLEM FORMULATION}{2}}
 \newlabel{sec:prob_form}{{II}{2}}
 \newlabel{sec:prob_form@cref}{{[section][2][]II}{2}}
@@ -49,12 +47,12 @@
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {II-C.2}Updating}{3}}
 \newlabel{eqn:bayes_upd}{{4}{3}}
 \newlabel{eqn:bayes_upd@cref}{{[equation][4][]4}{3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of LIFO with three robots using line communication topology\relax }}{3}}
-\newlabel{fig:LIFO}{{2}{3}}
-\newlabel{fig:LIFO@cref}{{[figure][2][]2}{3}}
 \@writefile{toc}{\contentsline {section}{\numberline {III}Distributed Bayesian Filter via Latest-In-and-Full-Out Protocol}{3}}
 \newlabel{sec:LIFO-dbf}{{III}{3}}
 \newlabel{sec:LIFO-dbf@cref}{{[section][3][]III}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of LIFO with three robots using line communication topology\relax }}{3}}
+\newlabel{fig:LIFO}{{2}{3}}
+\newlabel{fig:LIFO@cref}{{[figure][2][]2}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {III-A}Latest-In-and-Full-Out (LIFO) Protocol}{3}}
 \newlabel{subsec:LIFO}{{III-A}{3}}
 \newlabel{subsec:LIFO@cref}{{[subsection][1][3]III-A}{3}}
@@ -75,25 +73,26 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {III-C}Algorithm of LIFO-DBF for Moving Target}{4}}
 \newlabel{subsec:LIFO-dbf-mov-tar}{{III-C}{4}}
 \newlabel{subsec:LIFO-dbf-mov-tar@cref}{{[subsection][3][3]III-C}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Example of LIFO-DBF for $1^\text  {st}$ robot at time $k$. (a) line topology of $N$ networked robots; (b) LIFO-DBF procedure: The stored individual PDF is $ P^1_{pdf}(k-N)$. The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of $1^\text  {st}$ robot at time $k$. $\Omega ^1_{\xi }=\left \delimiter "4266308 1,2,\dots  ,N+1-\xi \right \delimiter "5267309 $, $\xi =1,\dots  ,N$.\relax }}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Example of LIFO-DBF for $1^\text  {st}$ robot at time $k$. Networked robots take a line topology, shown in the top. The stored individual PDF is $ P^1_{pdf}(k-N)$. The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of $1^\text  {st}$ robot at time $k$. In this example, $\Omega ^1_{\xi }=\left \delimiter "4266308 1,2,\dots  ,N+1-\xi \right \delimiter "5267309 $, $\xi =1,\dots  ,N$.\relax }}{5}}
 \newlabel{fig:LIFO-DBF}{{3}{5}}
 \newlabel{fig:LIFO-DBF@cref}{{[figure][3][]3}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}Proof of Consistency and Consensus}{5}}
 \newlabel{sec:consist_proof}{{IV}{5}}
 \newlabel{sec:consist_proof@cref}{{[section][4][]IV}{5}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces LIFO-DBF Algorithm\relax }}{5}}
-\newlabel{alg:lifo-dbf}{{2}{5}}
-\newlabel{alg:lifo-dbf@cref}{{[algorithm][2][]2}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {IV-A}Proof for static robots}{5}}
 \newlabel{thm:LIFO-dbf-sta-tar}{{1}{5}}
 \newlabel{thm:LIFO-dbf-sta-tar@cref}{{[thm][1][]1}{5}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces LIFO-DBF Algorithm\relax }}{5}}
+\newlabel{alg:lifo-dbf}{{2}{5}}
+\newlabel{alg:lifo-dbf@cref}{{[algorithm][2][]2}{5}}
+\newlabel{eqn:cmp}{{6}{5}}
+\newlabel{eqn:cmp@cref}{{[equation][6][]6}{5}}
+\newlabel{eqn:cmp_log}{{7}{5}}
+\newlabel{eqn:cmp_log@cref}{{[equation][7][]7}{5}}
+\newlabel{eqn:cmp_lim1}{{8}{5}}
+\newlabel{eqn:cmp_lim1@cref}{{[equation][8][]8}{5}}
 \citation{bandyopadhyay2014distributed,julian2012distributed}
-\newlabel{eqn:cmp}{{6}{6}}
-\newlabel{eqn:cmp@cref}{{[equation][6][]6}{6}}
-\newlabel{eqn:cmp_log}{{7}{6}}
-\newlabel{eqn:cmp_log@cref}{{[equation][7][]7}{6}}
-\newlabel{eqn:cmp_lim1}{{8}{6}}
-\newlabel{eqn:cmp_lim1@cref}{{[equation][8][]8}{6}}
+\citation{bonnie2012modelling}
 \newlabel{eqn:cmp_lim2}{{9}{6}}
 \newlabel{eqn:cmp_lim2@cref}{{[equation][9][]9}{6}}
 \newlabel{eqn:lim}{{10}{6}}
@@ -111,7 +110,11 @@
 \newlabel{thm:LIFO-dbf-mov-tar@cref}{{[thm][2][]2}{6}}
 \newlabel{eqn:cmp2}{{14}{6}}
 \newlabel{eqn:cmp2@cref}{{[equation][14][]14}{6}}
-\citation{bonnie2012modelling}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Simulation}{6}}
+\newlabel{sec:sim}{{V}{6}}
+\newlabel{sec:sim@cref}{{[section][5][]V}{6}}
+\newlabel{eqn:gauss_sensor}{{15}{6}}
+\newlabel{eqn:gauss_sensor@cref}{{[subequation][15][]15}{6}}
 \citation{tisdale2009autonomous}
 \newlabel{fig:sta_sen_sta_tar_sing1}{{4a}{7}}
 \newlabel{fig:sta_sen_sta_tar_sing1@cref}{{[subfigure][1][4]4a}{7}}
@@ -136,11 +139,9 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces (a)-(d) The $1^\text  {st}$ robot's individual PDFs at different times; (e) All robots' individual PDFs at time $30$. The square denotes the current robot and stars represent other robots. The cross stands for the target.\relax }}{7}}
 \newlabel{fig:sta_sen_sta_tar}{{4}{7}}
 \newlabel{fig:sta_sen_sta_tar@cref}{{[figure][4][]4}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Simulation}{7}}
-\newlabel{sec:sim}{{V}{7}}
-\newlabel{sec:sim@cref}{{[section][5][]V}{7}}
-\newlabel{eqn:gauss_sensor}{{15}{7}}
-\newlabel{eqn:gauss_sensor@cref}{{[subequation][15][]15}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {V-A}Static Robots, Static Target}{7}}
+\newlabel{subsec:sim1}{{V-A}{7}}
+\newlabel{subsec:sim1@cref}{{[subsection][1][5]V-A}{7}}
 \newlabel{fig:mov_sen_mov_tar_sing1}{{5a}{7}}
 \newlabel{fig:mov_sen_mov_tar_sing1@cref}{{[subfigure][1][5]5a}{7}}
 \newlabel{sub@fig:mov_sen_mov_tar_sing1}{{a}{7}}
@@ -164,10 +165,10 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces (a)-(d) The $1^\text  {st}$ robot's individual PDFs at different times; (e) All robots' individual PDFs at time $40$.\relax }}{7}}
 \newlabel{fig:mov_sen_mov_tar}{{5}{7}}
 \newlabel{fig:mov_sen_mov_tar@cref}{{[figure][5][]5}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {V-A}Static Robots, Static Target}{7}}
-\newlabel{subsec:sim1}{{V-A}{7}}
-\newlabel{subsec:sim1@cref}{{[subsection][1][5]V-A}{7}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {V-B}Moving Robots, Moving Target}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{7}}
+\newlabel{sec:conclu}{{VI}{7}}
+\newlabel{sec:conclu@cref}{{[section][6][]VI}{7}}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{chamberland2007wireless}{1}
@@ -197,7 +198,4 @@
 \bibcite{thatte2008sensor}{25}
 \bibcite{kulich2014single}{26}
 \bibcite{tisdale2009autonomous}{27}
-\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{8}}
-\newlabel{sec:conclu}{{VI}{8}}
-\newlabel{sec:conclu@cref}{{[section][6][]VI}{8}}
 \@writefile{toc}{\contentsline {section}{References}{8}}

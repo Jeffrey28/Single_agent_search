@@ -77,7 +77,8 @@
 
 
 \title{\LARGE \bf
-Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full-Out Exchange Protocol of Observations}
+Distributed Environmental Estiamtion Using A Group of UGVs Under Dynamically Changing Interaction Topologies}
+%Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full-Out Exchange Protocol of Observations}
 
 
 \author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
@@ -103,15 +104,15 @@ Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full
 
 This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-robot network, utilizing the Latest-In-and-Full-Out (LIFO) local exchange protocol of observations.
 % for target search and tracking.
-Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only exchanges a full communication buffer consisting of latest available measurements with neighboring robots,
+Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only exchanges with neighboring robots a full communication buffer consisting of latest available measurements,
 %receives the latest available measurements and then broadcasts full communication buffer to its neighborhood, 
 which significantly reduces the transmission burden between each pair of robots from the order of environmental size to that of robot number.
 Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time.
 %, with each robot non-intermittently receiving observations of all others.
 Two types of LIFO-based DBF algorithms are then derived to estimate individual posterior density function (PDF) for static and moving target, respectively. 
-For the static target, each robot locally fuses the newly received observations while for the moving target, a triangular matrix of historical observations is stored and updated. 
+For the static target, each robot locally fuses the newly received observations while for the moving target, a set of historical observations is stored and updated. 
 %Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
-The consistency of LIFO-based DBF is proved that estimated target position of each robot converges in probability to the true target position when the number of observations tends to infinity.
+The consistency of LIFO-based DBF is proved that estimated target position converges in probability to the true target position when the number of observations tends to infinity.
 %the agreement between robots' estimated target position and the actual position.
 The effectiveness of this method is demonstrated by simulations of target localization.
 \end{abstract}
@@ -119,6 +120,11 @@ The effectiveness of this method is demonstrated by simulations of target locali
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
+Section II: Topology + LIFO + Proof
+Section III: Binary sensor + DBF + Proof.
+Section IV: Simulation
+
+
 Distributed filtering that focuses on using a group of networked robots to collectively infer environment status has been used for various applications, such as intruder detection \cite{chamberland2007wireless}, pedestrian tracking \cite{wang2007wlan} and micro-environmental monitoring \cite{cao2008development}. 
 Several techniques have been developed for distributed filtering.
 For example, Olfati-Saber (2005) proposed a distributed Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}.
@@ -127,7 +133,7 @@ Madhavan et al. (2004) presented a distributed extended Kalman filter for nonlin
 This filter was used to generate local terrain maps by using pose estimates to combine elevation gradient and vision-based depth with environmental features.
 Gu (2007) proposed a distributed particle filter for Markovian target tracking over an undirected sensor network \cite{gu2007distributed}. 
 Gaussian mixture models (GMM) were adopted to approximate the posterior distribution from weighted particles and the parameters of GMM were exchanged via average consensus filter.
-As a generic filtering scheme for nonlinear systems and arbitrary noise distributions, distributed Bayesian filter (DBF) has received increasing interest during past years \cite{bandyopadhyay2014distributed,julian2012distributed}, which is the focus of this study.
+As a generic filtering scheme for nonlinear systems and arbitrary noise distributions, distributed Bayesian filters (DBF) have received increasing interest during past years \cite{bandyopadhyay2014distributed,julian2012distributed}, which is the focus of this study.
 %This study focuses on developing a distributed Bayesian filter (DBF) that is applicable for state estimation of general nonlinear systems and the proposed DBF is applied to search and tracking (SAT) of both static and moving targets.
 
 The design of distributed filtering algorithms is closely related to communication topology of multi-robot network, which can be classified into two types: fusion center (FC)-based and neighborhood (NB)-based.
@@ -137,8 +143,8 @@ The local statistics is then transmitted (possibly via multi-hopping) to a singl
 % has been a common structure for distributed filtering, in which local information collected by robots is transmitted (possibly via multi-hopping) to the fusion center for forming global estimation \cite{zuo2006bandwidth,ribeiro2006bandwidth}. 
 %FC-based DBF is efficient for estimation in that it can collectively utilize all robots' information and thus useful for applications that only require information at a single central unit, such as in environmental monitoring.
 %However, FC-based DBF requires constant communication link between each robot and the center, which is challenging for applications of robots in vast or complex areas.
-In NB-based approaches, certain robots execute distributed filters to estimate individual posterior distribution. 
-A consensus of individual estimates is achieved by solely communicating statistics and/or observations within local neighbors of these robots.
+In NB-based approaches, a set of robots execute distributed filters to estimate individual posterior distribution. 
+Consensus of individual estimates is achieved by solely communicating statistics and/or observations within local neighbors of these robots.
 %Only communication between neighboring agents is allowed.
 The NB-based methods have become popular in recent years since such approaches do not require complex routing protocols or global knowledge of the network and therefore are robust to changes in network topology and to link failures.
 %, and thus suitable for networks with mobile agents.
@@ -233,7 +239,7 @@ Correspondingly, the likelihood function that no target is detected is:
 P(z^i_k=0|x^T_k;x^{R,i}_k)=1-P(z^i_k=1|x^T_k;x^{R,i}_k)
 \end{equation}\normalsize
 %\Cref{eqn:bin_sensor} actually defines a binary sensor model parameterized by $x^T_k$ and $x^R_k$.
-The combination of \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0} becomes a binary sensor model parameterized by $x^T_k$ and $x^{R,i}_k$. 
+The combination of \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0} forms a binary sensor model parameterized by $x^T_k$ and $x^{R,i}_k$. 
 For the purpose of simplicity, we will not explicitly write $x^{R,i}_k$ when no confusion may occur.
 %, with which all observations are generated. 
 The commonly used likelihood functions for binary sensor include Gaussian function \cite{bonnie2012modelling} and step function \cite{djuric2008target}.
@@ -270,24 +276,36 @@ All of them are undirected and connected topologies.
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.4\textwidth]{figures/com_topo}
+	\includegraphics[width=0.42\textwidth]{figures/com_topo}
 	\caption{Three types of topologies: (a) ring topology; (b) line topology; (c) star topology}
 	\label{fig:com_topo}
 \end{figure}
 
 \subsection{Distributed Bayesian Filter for Multiple Robots}\label{subsec:dbf}
-The generic distributed Bayesian filter (DBF) is introduced in this section, which is also stated in \cite{bandyopadhyay2014distributed} and \cite{julian2012distributed}. 
+The generic distributed Bayesian filter (DBF) is introduced in this section.
+%, which is also stated in \cite{bandyopadhyay2014distributed} and \cite{julian2012distributed}. 
 Each robot has its individual estimation of posterior density function (PDF) of target position, called \textit{individual PDF}. 
-The individual PDF of $i^\text{th}$ robot at time $k$ is defined as $P^i_{pdf}(x^T_{k}|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$, where $z^i_{1:k}$ denotes the set of observations by $i^\text{th}$ robot from time $1$ through $k$ and $z^{\mathcal{Q}_i}_{1:k}$ means observations by robots in $\mathcal{Q}_i$.
-The individual PDF is initialized as $P^i_{pdf}(x^T_0|z^i_0,z^{\mathcal{Q}_i}_0)=P(x^T_0)$, given all available prior information including past experience and environmental knowledge. Under the framework of DBF, the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on the observations of $i^\text{th}$ robot and robots in $\mathcal{Q}_i$.
+The individual PDF of $i^\text{th}$ robot at time $k$ is defined as
+% ,z^{\mathcal{Q}_i}_{1:k})
+$P^i_{pdf}(x^T_{k}|\mathbf{z}^i_{1:k})$, where $\mathbf{z}^i_{1:k}$ denotes the set of observations by $i^\text{th}$ robot and by robots in $\mathcal{Q}_i$ that are transmitted to $i^\text{th}$ robot by time $k$.
+%from time $1$ through $k$ and $z^{\mathcal{Q}_i}_{1:k}$ means the set of observations by robots in $\mathcal{Q}_i$ that are transmitted to $i^\text{th}$ robot.
+%Note that if the observation by $j^\text{th}(j\in \mathcal{Q}_i)$ robot at time $k'(k'\leq k)$ is not received by $i^\text{th}$ robot, the corresponding element $z^j_{k'}$ in $z^{\mathcal{Q}_i}_{1:k}$ is empty and thus not utilized for computing $i^\text{th}$ individual PDF.
+The individual PDF is initialized as $P^i_{pdf}(x^T_0|\mathbf{z}^i_0)=P(x^T_0)$,
+%$P^i_{pdf}(x^T_0|z^i_0,z^{\mathcal{Q}_i}_0)=P(x^T_0)$, 
+given all available prior information including past experience and environmental knowledge. Under the framework of DBF, the individual PDF is recursively estimated by two steps, i.e., prediction step and updating step, based on observations of $i^\text{th}$ robot and robots in $\mathcal{Q}_i$.
  
 \subsubsection{Prediction}
 %The $i^\text{th}$ individual PDF at time $k-1$ is known, denoted as $P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$. 
-At time $k$, the prior individual PDF $P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$ is first predicted forward by using the Chapman-Kolmogorov equation:
-\small\begin{align}\label{eqn:bayes_pred}
-&P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})\notag\\
-&=\int P(x^T_k|x^T_{k-1})P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})dx^T_{k-1}
-\end{align}\normalsize
+%At time $k$, the prior individual PDF $P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$ is first predicted forward by using the Chapman-Kolmogorov equation:
+At time $k$, the prior individual PDF $P^i_{pdf}(x^T_{k-1}|\mathbf{z}^i_{1:k-1})$ is first predicted forward by using the Chapman-Kolmogorov equation:
+%\small\begin{align}\label{eqn:bayes_pred}
+%&P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})\notag\\
+%&=\int P(x^T_k|x^T_{k-1})P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})dx^T_{k-1}
+%\end{align}\normalsize
+\small\begin{equation}\label{eqn:bayes_pred}
+P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})
+=\int P(x^T_k|x^T_{k-1})P^i_{pdf}(x^T_{k-1}|\mathbf{z}^i_{1:k-1})dx^T_{k-1}
+\end{equation}\normalsize
 where $P(x^T_k|x^T_{k-1})$ is a Markov motion model of the target, independent of robot states. 
 This model describes the state transition probability of the target from a prior state $x^T_{k-1}$ to posterior state $x^T_k$. 
 Note that the target is static in many search applications, such as the indoor search for stationary objects \cite{kulich2014single}. 
@@ -301,16 +319,30 @@ P(x^T_k|x^T_{k-1})=\begin{cases}
 %and \Cref{eqn:bayes_pred} can be reduced to $P^i_{pdf}(x^T_{k}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})=P^i_{pdf}(x^T_{k-1}|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})$.
 
 \subsubsection{Updating}
-At time $k$, the $i^\text{th}$ individual PDF is then updated by Bayes' formula using the latest available observations at time $k$: 
-\small\begin{align}\label{eqn:bayes_upd}
-&P^i_{pdf}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})\notag\\
-&=K_iP^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)
-\end{align}\normalsize
+The $i^\text{th}$ individual PDF is then updated by Bayes' formula using the set of newly received observations at time $k$, $\mathbf{z}^i_k$:
+%\small\begin{align}\label{eqn:bayes_upd}
+%&P^i_{pdf}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})\notag\\
+%&=K_iP^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)
+%\end{align}\normalsize
+%\small\begin{equation}\label{eqn:bayes_upd}
+%P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k})
+%=K_iP^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)
+%\end{equation}\normalsize
+\small\begin{equation}\label{eqn:bayes_upd}
+P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k})
+=K_iP^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})P(\mathbf{z}^i_k|x^T_k)
+\end{equation}\normalsize
 where $K_i$ is a normalization factor, given by:
+%\small\begin{align*}
+%K_i=1/\int P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
+%\end{align*}\normalsize
+%\small\begin{align*}
+%K_i=1/\int P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
+%\end{align*}\normalsize
 \small\begin{align*}
-K_i=1/\int P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
+K_i=1/\int P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})P(\mathbf{z}^i_k|x^T_k)dx^T_k
 \end{align*}\normalsize
-where $P^i_{pdf}(x^T_k|z^i_{1:k},z^{\mathcal{Q}_i}_{1:k})$ is called posterior individual PDF; $P(z^i_k|x^T_k)$ is the likelihood function of observation $z^i_k$, described in \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0}.
+and $P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k})$ is called posterior individual PDF; $P(z^i_k|x^T_k)$ is the likelihood function of observation $z^i_k$, described in \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0}.
 
 \section{Distributed Bayesian Filter via Latest-In-and-Full-Out Protocol}\label{sec:LIFO-dbf}
 This study proposes a Latest-In-and-Full-Out (LIFO) protocol for observation exchange and derives two corresponding distributed Bayesian filtering (DBF) algorithms, shorted as LIFO-DBF. 
@@ -322,11 +354,11 @@ The theoretical analysis show that LIFO-DBF can ensure the consistency and conse
 \subsection{Latest-In-and-Full-Out (LIFO) Protocol}\label{subsec:LIFO}
 Under LIFO, each robot contains a communication buffer (CB) to store its latest knowledge of observations of all robots: 
 \begin{equation*}
-\mathbf{z}^i_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
+\mathbf{z}^{CB,i}_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
 \end{equation*}
 where $z^j_{k^i_j}$ represents the observation made by ${j^\text{th}}$ robot at time $k^i_j$. 
-Note that under LIFO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace $, which will be proved in \Cref{cor1}.
-At time $k$, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest observation time of ${j^\text{th}}$ robot available to ${i^\text{th}}$ robot. Due to the communication delay, $k^i_j<k, \forall j\neq i$ always holds in practice.
+Note that under LIFO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace \setminus \left\lbrace i\right\rbrace$, which will be proved in \Cref{cor1}.
+At time $k$, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest observation time of ${j^\text{th}}$ robot available to ${i^\text{th}}$ robot. Due to the communication delay, $k^i_j<k, \forall j\neq i$ and $k^i_i=k$ always holds.
 The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 
 \begin{algorithm}
@@ -348,7 +380,7 @@ The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 		The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponds to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
 		The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
 		\begin{equation*}
-		\mathbf{z}^l_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
+		\mathbf{z}^{CB,l}_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i
 		\end{equation*}
 		
 		\State (2.2) Observation Step: 
@@ -461,18 +493,18 @@ This proves the \Cref{prop1} for $d(j,i)=s+1$.
 %\vspace{\baselineskip}
 \medskip
 \begin{cor}\label{cor1}
-For the same topology in \Cref{prop1}, all elements in $\mathbf{z}^i_k$ under LIFO become filled when $k\geq N$, i.e., $\mathcal{Q}_i = \left\lbrace1,\dots,N \right\rbrace $.	
+For the same topology in \Cref{prop1}, all elements in $\mathbf{z}^{CB,i}_k$ under LIFO become filled when $k\geq N$, i.e., $\mathcal{Q}_i = \left\lbrace1,\dots,N \right\rbrace \setminus \left\lbrace i\right\rbrace $.	
 \end{cor}
 \begin{proof}
-In a network of $N$ robots, the maximal length of shortest paths is no greater than $N-1$. Based on \Cref{prop1}, $\tau_{i,j}\leq N-1$ and thus all elements of $\mathbf{z}^i_k$ become filled when $k\geq N$.
+In a network of $N$ robots, the maximal length of shortest paths is no greater than $N-1$. Based on \Cref{prop1}, $\tau_{i,j}\leq N-1$ and thus all elements of $\mathbf{z}^{CB,i}_k$ become filled when $k\geq N$.
 \end{proof}
 \medskip
 \begin{cor}\label{cor2}
-For the same topology in \Cref{prop1}, once all elements in $\mathbf{z}^i_k$ are filled, the updating of each element is non-intermittent. 	
+For the same topology in \Cref{prop1}, once all elements in $\mathbf{z}^{CB,i}_k$ are filled, the updating of each element is non-intermittent. 	
 \end{cor}
 \begin{proof}
 For a network with fixed topology, shortest path(s) between any pair of nodes are fixed. 
-Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of each element in $\mathbf{z}^i_k$ is non-intermittent.
+Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of each element in $\mathbf{z}^{CB,i}_k$ is non-intermittent.
 \end{proof}
 \medskip
 \begin{rem}
@@ -485,35 +517,46 @@ Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of e
 \subsection{Algorithm of LIFO-DBF for Static Target}\label{subsec:LIFO-dbf-sta-tar} 
 
 This section derives the LIFO-DBF algorithm for localizing a static target. 
-Each robot stores last-step individual PDF, i.e., $P^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})$. 
+Each robot stores last-step individual PDF, i.e., $P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k-1})$. 
+According to \Cref{cor2}, $\mathbf{z}^i_k=\mathbf{z}^{CB,i}_k$ and $\mathbf{z}^{i}_{1:k}=\mathbf{z}^{CB,i}_{1:k}=\left[ z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right]$.
 The assumption of static target can simplify the Bayesian filter as the prediction step becomes unnecessary. 
 Therefore, the $i^\text{th}$ individual PDF is only updated by 
-\small\begin{equation}\label{eqn:LIFO-dbf-sta-tar}
-P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})=K_iP^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
-\end{equation}\normalsize
+\small\begin{align}\label{eqn:LIFO-dbf-sta-tar}
+P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})&=K_iP^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})P(\mathbf{z}^i_k|x^T_k)\notag\\
+&=K_iP^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
+\end{align}\normalsize
+
+%\small\begin{equation}\label{eqn:LIFO-dbf-sta-tar}
+%P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})=K_iP^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)
+%\end{equation}\normalsize
 where
 \small\begin{equation*}
-K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^i_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)dx^T
+K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k-1})\prod\limits_{j=1}^{N}P(z^j_{k^i_j}|x^T)dx^T
 \end{equation*}\normalsize
 
 \subsection{Algorithm of LIFO-DBF for Moving Target}\label{subsec:LIFO-dbf-mov-tar}
 This section derives the LIFO-DBF for localizing a moving target. 
-Instead of storing last-step PDF, at $k$ each robot maintains an individual PDF of time $(k-N)$ and a triangular matrix of historical observations from time $(k-N+1)$ to current time $k$. 
+Instead of storing last-step PDF, at time $k$ each robot maintains an individual PDF of time $(k-N)$ and a collection of historical observations, called the \textit{record set}, from time $(k-N+1)$ to $k$. 
 The $i^\text{th}$ individual PDF is then alternatively predicted and updated by using aforementioned Bayesian filter (\Cref{eqn:bayes_pred} and \Cref{eqn:bayes_upd}) from $(k-N)$ to $k$.
 \cref{fig:LIFO-DBF} illustrates the LIFO-DBF procedure for the $1^\text{st}$ robot as an example.
+With a line topology, the record set of $1^\text{st}$ robot is shown as a triangle.
+% shape formed by squares that contain observations from $(k-N+1)$ to $k$.
+
+Let $\Omega^i_{\xi}\,\left(\xi=1,\dots,N\right) $ denote the index set of robots whose observation at time $(k-N+\xi)$ is stored in $i^\text{th}$ robot's record set. 
+The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:lifo-dbf}.
+
 \begin{figure}%[thpb]
 	\centering
 	\includegraphics[width=0.47\textwidth]{figures/DBF_demo}
-	\caption{Example of LIFO-DBF for $1^\text{st}$ robot at time $k$. 
-		(a) line topology of $N$ networked robots;
-		(b) LIFO-DBF procedure: The stored individual PDF is $ P^1_{pdf}(k-N)$.
+	\caption{Example of LIFO-DBF for $1^\text{st}$ robot at time $k$. 	 
+		Networked robots take a line topology, shown in the top. 
+		The stored individual PDF is $ P^1_{pdf}(k-N)$.
 		The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. 
 		Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of $1^\text{st}$ robot at time $k$.
-	$\Omega^1_{\xi}=\left\lbrace 1,2,\dots,N+1-\xi\right\rbrace $, $\xi=1,\dots,N$.}
+		In this example, $\Omega^1_{\xi}=\left\lbrace 1,2,\dots,N+1-\xi\right\rbrace $, $\xi=1,\dots,N$.}
 	\label{fig:LIFO-DBF}
 \end{figure}
 
-The \textbf{LIFO-DBF algorithm} for moving target is stated in \cref{alg:lifo-dbf}.
 %\begin{enumerate}
 %For $i^\text{th}$ robot at $k^\text{th}$ step:
 %
@@ -566,8 +609,7 @@ The \textbf{LIFO-DBF algorithm} for moving target is stated in \cref{alg:lifo-db
 %K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{k-N+\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
 %\end{gather*} 
 %  
-%4)	Store the first-step virtual PDF as the $(k-N+1)^\text{th}$ individual PDF: $P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P_{virt}(x^T_{k-N+1}).$
-Note that $\Omega^i_{\xi}$ denotes the index set of robots whose observation at time $(k-N+\xi)$ is stored in $i^\text{th}$ robot's CB. 
+%4)	Store the first-step virtual PDF as the $(k-N+1)^\text{th}$ individual PDF: $P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P_{virt}(x^T_{k-N+1}).$ 
 %The individual PDF of $i^\text{th}$ robot at time $k$ is $P^i_{virt}(x^T_k)$.
 \medskip
 \begin{rem}
@@ -583,38 +625,39 @@ This section proves consistency and consensus of LIFO-DBF.
 Only proofs for localizing static target are presented, including static robots and moving robots.
 The proof of LIFO-DBF for moving target is similar to that of static target by considering the dynamic model of the target, but with more complicated algebraic manipulation. 
 
-Considering $S$ is finite and $x^{T^*}$ is the true location of target, define an \textit{equivalent-location} set $X^T_{eq}\subseteq S$ such that 
-\small\begin{equation*}
-X^T_{eq}=\left\lbrace x^T\in S\arrowvert P(z_k|x^{T})=P(z_k|x^{T^*}),\; \forall z_k\in \left\lbrace 0,1\right\rbrace\right\rbrace ,
-\end{equation*}\normalsize
-i.e., $x^T\in X^T_{eq}$ gives the same observation likelihood as $x^{T^*}$ for given robot positions.
-%for any two parameters in $X^T_{eq}$, the sensor model with one of these two parameters generates equivalent probability value for the same observation $z_k$
-Since $S$ is finite, $X^T_{eq}$ is also finite. 
-%Let $X^T_{eq,1},\dots,X^T_{eq,u}$ denote all equi-parameter sets that partition $X^T$ such that following properties hold:
-%\begin{enumerate}
-%	\item $\bigcup^u_{i=1} X^T_{eq,i}= X^T$
-%	\item $X^T_{eq,i}\cap X^T_{eq,j}=\emptyset,\;i,j\in \left\lbrace 1,\dots,u\right\rbrace ,i\neq j.$
-%\end{enumerate}
-%Without loss of generality, assume $x^{T^*}\in X^T_{eq,1}$, where $x^{T^*}$ denotes the actual position of the target. 
-
-%\todohere{double check if the following examples for equi-parameter set are accurate}
-
-%\begin{rem}
-%	the equivalent-location set depends on the property of the sensor. 
-%	For example, for a laser scanner with high-fidelity sensing capability, each equivalent-location set contains only a small number of target positions.
-	The reason to introduce equivalent-location set is that ghost target might exist in some special robot arrangement and sensor types.
-	For example, for undirected binary sensors that are linearly arranged, a ghost target can exist at the mirror position of the true target.
-	When sensors are overlapped at a single point, ghost targets can exist on a circle that contains the true target.
-	In theory, DBF cannot rule out ghost targets in such cases and prior knowledge is needed for further clarification.
-%	Therefore, this study only proves the convergence to the equivalent-location set rather to the true location.
-	However, by using high-fidelity sensors, such as cameras and laser scanners, and multiple observations from different robot placements, equi-location set can be reduced to only contain true location of target.
+%Considering $S$ is finite and $x^{T^*}$ is the true location of target, define an \textit{equivalent-location} set $X^T_{eq}\subseteq S$ such that 
+%\small\begin{equation*}
+%X^T_{eq}=\left\lbrace x^T\in S\arrowvert P(z_k|x^{T})=P(z_k|x^{T^*}),\; \forall z_k\in \left\lbrace 0,1\right\rbrace\right\rbrace ,
+%\end{equation*}\normalsize
+%i.e., $x^T\in X^T_{eq}$ gives the same observation likelihood as $x^{T^*}$ for given robot positions.
+%%for any two parameters in $X^T_{eq}$, the sensor model with one of these two parameters generates equivalent probability value for the same observation $z_k$
+%Since $S$ is finite, $X^T_{eq}$ is also finite. 
+%%Let $X^T_{eq,1},\dots,X^T_{eq,u}$ denote all equi-parameter sets that partition $X^T$ such that following properties hold:
+%%\begin{enumerate}
+%%	\item $\bigcup^u_{i=1} X^T_{eq,i}= X^T$
+%%	\item $X^T_{eq,i}\cap X^T_{eq,j}=\emptyset,\;i,j\in \left\lbrace 1,\dots,u\right\rbrace ,i\neq j.$
+%%\end{enumerate}
+%%Without loss of generality, assume $x^{T^*}\in X^T_{eq,1}$, where $x^{T^*}$ denotes the actual position of the target. 
+%
+%%\todohere{double check if the following examples for equi-parameter set are accurate}
+%
+%%\begin{rem}
+%%	the equivalent-location set depends on the property of the sensor. 
+%%	For example, for a laser scanner with high-fidelity sensing capability, each equivalent-location set contains only a small number of target positions.
+%	The reason to introduce equivalent-location set is that ghost target might exist in some special robot arrangement and sensor types.
+%	For example, for undirected binary sensors that are linearly arranged, a ghost target can exist at the mirror position of the true target.
+%	When sensors are overlapped at a single point, ghost targets can exist on a circle that contains the true target.
+%	In theory, DBF cannot rule out ghost targets in such cases and prior knowledge is needed for further clarification.
+%%	Therefore, this study only proves the convergence to the equivalent-location set rather to the true location.
+%	However, by using high-fidelity sensors, such as cameras and laser scanners, and multiple observations from different robot placements, equi-location set can be reduced to only contain true location of target.
 	
 %\end{rem}
 
 \begin{algorithm}
 	\caption{LIFO-DBF Algorithm}\label{alg:lifo-dbf}
 	\begin{algorithmic}
-		\State For $i^\text{th}$ robot at $k^\text{th}$ step:		
+		\State For $i^\text{th}$ robot at $k^\text{th}$ step:
+		\State After updating CB by \cref{alg:lifo},	
 		\State \textbf{(1)} The stored individual PDF for time $(k-N)$ is:
 		\small\begin{equation*}
 		P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
@@ -646,34 +689,34 @@ Since $S$ is finite, $X^T_{eq}$ is also finite.
 		\end{equation*}
 		
 		\State\textbf{(4)} Individual PDF of $i^\text{th}$ robot at time $k$ is
-		$P^i_{pdf}(x^T_{k}|\mathbf{z}^i_{1:k})=P^i_{virt}(x^T_k)$.		
+		$P^i_{pdf}(x^T_{k}|\mathbf{z}^{i}_{1:k})=P^i_{virt}(x^T_k)$.		
 	\end{algorithmic}
 \end{algorithm}
 
 \subsection{Proof for static robots}
-The consistency of LIFO-DBF for static robots is stated as follows: 
+Considering $S$ is finite and $x^{T^*}$ is the true location of target, the consistency of LIFO-DBF for static robots is stated as follows: 
 %\todohere{converge to a set or treat the PDF as a r.v.?}
 \begin{thm}\label{thm:LIFO-dbf-sta-tar}
-	When robots are static, the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
+	When robots are static, the estimated target position converges to the true position of target in probability using LIFO-DBF, i.e.,
 %	the set of estimated target position of each robot converges to $ X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.,
 	\small\begin{equation*}
 	\lim\limits_{k\rightarrow \infty}
-	P(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=
+	P(x^T=x^{T^*}|\mathbf{z}^{i}_{1:k})=
 %	\begin{cases}
 %	1 & \text{if}\; i=1\\
 %	0 & \text{if}\; i\neq 1
 %	\end{cases},\;
-	1,\;i=1,\dots,N
+	1,\;i=1,\dots,N.
 	\end{equation*}\normalsize
-	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right] $.
+%	where $\mathbf{z}^{CB,i}_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right] $.
 %	, $\left\lbrace k_1,\dots,k_N\right\rbrace $ are the timestamps of the $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
 \begin{proof}	
-Considering the conditional independence of observations for given $x^T\in S$, the batch form of DBF at $k^\text{th}$ step is:
+Considering the conditional independence of observations given $x^T\in S$, the batch form of DBF at $k^\text{th}$ step is:
 \small\begin{subequations}
 	\begin{align*}
-		P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})&=P^i_{pdf}(x^T|z^1_{1:k^i_1},\dots,z^N_{1:k^i_N})\\
+		P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})&=P^i_{pdf}(x^T|z^1_{1:k^i_1},\dots,z^N_{1:k^i_N})\\
 		&=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)}{\sum\limits_{x^T\in S}P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)},
 	\end{align*}
 \end{subequations}\normalsize
@@ -681,14 +724,14 @@ where $P^i_{pdf}$ is $i^\text{th}$ initial individual PDF.
 It is known from \Cref{cor1} and \Cref{cor2} that $k-N<k^i_j\leq k$.
 \addtocounter{equation}{-1}\\
 
-Comparing $P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})$ with $P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})$ yields
+Comparing $P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})$ with $P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})$ yields
 \small\begin{equation}\label{eqn:cmp}
-\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^*})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^{T^*})}
+\frac{P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^*})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^{T^*})}
 \end{equation}\normalsize
 
 Take the logarithm of \Cref{eqn:cmp} and average it over $k$ steps:
 \small\begin{equation}\label{eqn:cmp_log}
- \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}=\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}+\sum\limits_{j=1}^{N}\frac{1}{k}\sum\limits_{l=1}^{k^i_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}.
+ \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}=\frac{1}{k}\ln\frac{P^i_{pdf}(x^T)}{P^i_{pdf}(x^{T^*})}+\sum\limits_{j=1}^{N}\frac{1}{k}\sum\limits_{l=1}^{k^i_j}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}.
 \end{equation}\normalsize
 
 Since $P^i_{pdf}(x^T)$ and $P^i_{pdf}(x^{T^*})$ are bounded, then
@@ -708,7 +751,7 @@ Utilizing the facts: (1) $z^j_l$ are conditionally independent samples from $B(1
 %\lim\limits_{k\rightarrow\infty}
 \frac{1}{k}(k^i_j-\sum\limits_{l=1}^{k^i_j}z^j_l)\overset{P}{\longrightarrow}1-p^*_j
 \end{equation*}\normalsize
-where $p_j^*=P(z^j_k=1|x^{T^*})$ and ``$\overset{P}{\longrightarrow}$" denotes ``convergence in probability''.
+where $p_j^*=P(z^j_l=1|x^{T^*})$ and ``$\overset{P}{\longrightarrow}$" denotes ``convergence in probability''.
 Then, 
 \small\begin{equation}\label{eqn:cmp_lim2}
 %\lim\limits_{k\rightarrow \infty}
@@ -724,41 +767,41 @@ c(x^T)=\sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln\frac{1-p_j}{
 Considering \Cref{eqn:cmp_lim1} and \Cref{eqn:cmp_lim2}, the limit of \Cref{eqn:cmp_log} is
 \small \begin{equation}\label{eqn:lim}
 % \lim\limits_{k\rightarrow \infty}
- \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}\overset{P}{\longrightarrow}c(x^T)
+ \frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}\overset{P}{\longrightarrow}c(x^T)
 % \sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
 \end{equation}\normalsize
  
 It follows from \Cref{eqn:lim} that
 \small\begin{equation}\label{eqn:lim2}
-\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
+\frac{P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
 \end{equation}\normalsize
 
-Define the set $\bar{X}_{eq}^T=S\setminus X^T_{eq}$ and $c_M=\max\limits_{x^T\in\bar{X}^T_{eq}}c(x^T)$.
+Define the set $\bar{X}^T=S\setminus \left\lbrace x^{T^*}\right\rbrace$ and $c_M=\max\limits_{x^T\in\bar{X}^T}c(x^T)$.
 Then $c_M<0$.
-Summing \Cref{eqn:lim2} over $\bar{X}_{eq}^T$ yields
+Summing \Cref{eqn:lim2} over $\bar{X}^T$ yields
 \small\begin{equation}\label{eqn:lim3}
-\frac{\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}_{eq}^T|
+\frac{\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}^T|
 \end{equation}\normalsize
-where $|\bar{X}_{eq}^T|$ denotes the cardinality of $\bar{X}_{eq}^T$.
+where $|\bar{X}^T|$ denotes the cardinality of $\bar{X}^T$.
 
-Since $c_M<0$,  ${P^i_{pdf}(x^{T^*}|\mathbf{z}^i_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
+Since $c_M<0$,  ${P^i_{pdf}(x^{T^*}|\mathbf{z}^{i}_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
 \begin{equation}\label{eqn:lim4}
-\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
+\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
 \end{equation}
 
 Utilizing the relation 
 \begin{equation*}
-0\leq P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})\leq P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})e^{\left[c_M-c(x^T)\right]k},
+0\leq P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})\leq P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})e^{\left[c_M-c(x^T)\right]k},
 \end{equation*}
 it can be derived from \Cref{eqn:lim4} that
 \small\begin{equation*}
-\sum\limits_{x^T\in \bar{X}_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})\overset{P}{\longrightarrow} 0
+\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})\overset{P}{\longrightarrow} 0
 \end{equation*}\normalsize
 
 Therefore,
 \small\begin{equation*}
 	\lim\limits_{k\rightarrow \infty}
-	P(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in X_{eq}^T}P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})=1
+	P(x^T=x^{T^*}|\mathbf{z}^{i}_{1:k})=1-\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{i}_{1:k})=1
 \end{equation*}\normalsize
 %\begin{enumerate}
 %	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,
@@ -792,17 +835,18 @@ Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ p
 \medskip
 %The main theory of consistency of LIFO-DBF for moving robots is stated as follows:
 \begin{thm}\label{thm:LIFO-dbf-mov-tar}
-	If robots move within a collection of finite positions, the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
+	If robots move within a collection of finite positions, the estimated target position converges to the true position of target in probability using LIFO-DBF, i.e.,
+%	the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
 %	the set of estimated target position of each robot converges to $X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.,
 	\small\begin{equation*}
-		\lim\limits_{k\rightarrow \infty}P(x^T\in X^T_{eq}|\mathbf{z}^i_{1:k})=
+		\lim\limits_{k\rightarrow \infty}P(x^T=x^{T^*}|\mathbf{z}^i_{1:k})=
 %		\begin{cases}
 %		1 & \text{if}\; i=1\\
 %		0 & \text{if}\; i\neq 1
 %		\end{cases},\;
 		1,\;i=1,\dots,N
 	\end{equation*}\normalsize
-	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right]$.
+%	where $\mathbf{z}^i_{1:k}=\left[z^1_{1:k^i_1},\dots,z^N_{1:k^i_N}\right]$.
 %	, $\left\lbrace k_1,\dots,k_N\right\rbrace$ are the timestamps of $i^\text{th}$ robot's latest knowledge of all robots' observations.
 \end{thm}
 
@@ -810,7 +854,7 @@ Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ p
 %Let $M^i\subseteq\left\lbrace 1,\dots,k_j\right\rbrace\times X^R $ denote the set of pair $(k,x^R)$ to indicate $j^\text{th}$ robot's position at the corresponding time of observation.
 Similar to \Cref{thm:LIFO-dbf-sta-tar}, the batch form of DBF at $k^\text{th}$ step is
 \small\begin{equation}\label{eqn:cmp2}
-\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^{*}}|\mathbf{z}^i_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^T;x^R_l)}{P^i_{pdf}(x^{T^{*}})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k_j}P(z^j_l|x^{T^{*}};x^R_l)}
+\frac{P^i_{pdf}(x^T|\mathbf{z}^i_{1:k})}{P^i_{pdf}(x^{T^{*}}|\mathbf{z}^i_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^T;x^R_l)}{P^i_{pdf}(x^{T^{*}})\prod\limits_{j=1}^{N}\prod\limits_{l=1}^{k^i_j}P(z^j_l|x^{T^{*}};x^R_l)}
 \end{equation}\normalsize
 
 The only difference from \Cref{eqn:cmp} is that $P(z^j_l|x^T;x^R_l)$ in \Cref{eqn:cmp2} varies as the robot moves.
@@ -822,9 +866,11 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \end{proof}
 \medskip
 \begin{rem}
-	When $X^T_{eq}$ only contains $x^{T^{*}}$, consistency means the estimated target position converges to true target position in probability. Additionally, consistency implies that all individual PDFs converge to the same distribution, thus the consensus is also guaranteed.
+%	When $X^T_{eq}$ only contains $x^{T^{*}}$, consistency means the estimated target position converges to true target position in probability. Additionally, 
+	Consistency implies that all individual PDFs converge to the same distribution (true target PDF), thus the consensus is also guaranteed.
 	It must be noted that traditional statistics dissemination-based methods only ensure consensus of individual PDFs \cite{bandyopadhyay2014distributed,julian2012distributed}. 
-	To the best knowledge of authors, there is no proof of consistency that the agreed PDF is close to the true target PDF.
+	To the best knowledge of authors, there is no proof of consistency on estimated target position.
+%	that guarantees the agreed PDF is close to the true target PDF.
 %	 of individual PDFs.
 %	In fact, the statistics dissemination-based methods can ensure the convergence of the state estimate among robots. 
 %	However, there's no guarantee whether the agreed estimate is close to the actual target position.
@@ -911,6 +957,7 @@ A single-integrator dynamics is used as the target motion model.
 The positions of six static robots are shown as stars and square in \cref{fig:sta_sen_sta_tar}.
 %Each robot constantly receives binary observations of the target.
 The LIFO-DBF for static target is implemented on each robot for target localization.
+The networked robots use a ring communication topology that each robot can communicate with two fixed neighbors.
 \cref{fig:sta_sen_sta_tar} shows the estimation results of the static target. 
 After the initial observation, each robot forms a circular individual PDF, centered at its own position.
 %\cref{fig:sta_sen_sta_tar_sing1} shows the individual PDF after initial observation for $1^\text{st}$ robot.
@@ -956,10 +1003,10 @@ As more observations are used, the posterior individual PDF concentrates to the 
 %\end{figure}
 
 \subsection{Moving Robots, Moving Target}
-The six robots move within the field to estimate the target position. 
+The six robots move within the field to estimate the target position, using the same topology and neighborhood as in \cref{subsec:sim1}.
 %The motion planning of robots for effective target search has received much attention in the past years. 
 %Readers interested in this topic can refer to \cite{tisdale2009autonomous,furukawa2006recursive}.
-In this work, the robot positions are randomly generated at each time.
+In this work, robot positions are randomly generated at each time.
 % in order to demonstrate the effectiveness of LIFO-DBF.
 Readers interested in the motion planning of robots for effective target localization can refer to \cite{tisdale2009autonomous}. %,furukawa2006recursive
 The target dynamics is given by a single-integrator model: $x^T(k+1)=x^T(k)+v\Delta T$,
@@ -983,15 +1030,16 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 \section{CONCLUSION}\label{sec:conclu}
 This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-robot network, utilizing the Latest-In-and-Full-Out (LIFO) protocol for observation exchange.
 % for target search and tracking.
-Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only exchanges a full communication buffer consisting of latest available measurements with neighboring robots,
+Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only exchanges with neighboring robots a full communication buffer consisting of latest available measurements,
 %only receives the latest available measurements and then broadcasts full communication buffer to its direct neighborhood by single-hopping, 
 which significantly reduces the transmission burden between each pair of robots from the order of environmental size to that of robot number.
 Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time via local communication among direct neighborhood.
 %, with each robot non-intermittently receiving observations of all others.
+It is worth noting that LIFO is a general measurement exchange protocol and applicable to various sorts of sensors.
 Two types of LIFO-based DBF algorithms are proposed to estimate individual PDF for static and moving target, respectively. 
-For the static target, each robot locally fuses the newly received observations while for the moving target, a triangular matrix of historical observations is stored and updated. 
+For the static target, each robot locally fuses the newly received observations while for the moving target, a record set of historical observations is stored and updated. 
 %Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
-The consistency of LIFO-based DBF is proved utilizing the law of large numbers, which ensures that estimated target position of each robot converges in probability to the true target position when the number of observations tends to infinity.
+The consistency of LIFO-based DBF is proved by utilizing the law of large numbers, which ensures that estimated target position converges in probability to the true target position when the number of observations tends to infinity.
 %the agreement between robots' estimated target position and the actual position.
 %The effectiveness of this method is demonstrated by simulations.
 
@@ -1031,10 +1079,10 @@ The switching topology, including package loss, can lead to unpredictable delay 
 %
 %Appendixes should appear before the acknowledgment.
 
-%\section*{ACKNOWLEDGMENT}
+\section*{ACKNOWLEDGMENT}
 %This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.
-%The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
-%They would also like to thank Yuting Wei in the Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
+The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
+They would also like to thank Yuting Wei in the Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
 
 %The preferred spelling of the word ÒacknowledgmentÓ in America is without an ÒeÓ after the ÒgÓ. Avoid the stilted expression, ÒOne of us (R. B. G.) thanks . . .Ó  Instead, try ÒR. B. G. thanksÓ. Put sponsor acknowledgments in the unnumbered footnote on the first page.
 
