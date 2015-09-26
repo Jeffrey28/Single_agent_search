@@ -102,7 +102,7 @@ Distributed Environmental Estiamtion Using A Group of UGVs Under Dynamically Cha
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-UGV network, utilizing the Latest-In-and-Full-Out (LIFO) local exchange protocol of observations.
+This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a network of multiple unmanned ground vehicles (UGVs), utilizing the Latest-In-and-Full-Out (LIFO) local exchange protocol of observations.
 % for target search and tracking.
 Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only exchanges with neighboring UGVs a full communication buffer consisting of latest available measurements,
 %receives the latest available measurements and then broadcasts full communication buffer to its neighborhood, 
@@ -972,22 +972,22 @@ As more observations are used, the posterior individual PDF concentrates to the 
 %	\label{fig:mov_sen_sta_tar}
 %\end{figure}
 
-\subsection{Moving UGVs, Moving Target}
-The six UGVs move within the field to estimate the target position, using the same topology and neighborhood as in \cref{subsec:sim1}.
-%The motion planning of UGVs for effective target search has received much attention in the past years. 
-%Readers interested in this topic can refer to \cite{tisdale2009autonomous,furukawa2006recursive}.
-In this work, UGV positions are randomly generated at each time.
-% in order to demonstrate the effectiveness of LIFO-DBF.
-Readers interested in the motion planning of UGVs for effective target localization can refer to \cite{tisdale2009autonomous}. %,furukawa2006recursive
-The target dynamics is given by a single-integrator model: $x^T(k+1)=x^T(k)+v\Delta T$,
-%\small\begin{equation*}
-%x^T(k+1)=x^T(k)+v\Delta T
-%\end{equation*}\normalsize
-where $v$ is the constant velocity of the target; $\Delta T$ is the sampling time.
-
-The LIFO-DBF described in \cref{subsec:LIFO-dbf-mov-tar} is utilized for target localization.
-\cref{fig:mov_sen_mov_tar} shows the estimation results of the moving target. 
-It is interesting to notice that the posterior individual PDFs concentrate to the true target location at each time, even when the target constantly moves.
+%\subsection{Moving UGVs, Moving Target}
+%The six UGVs move within the field to estimate the target position, using the same topology and neighborhood as in \cref{subsec:sim1}.
+%%The motion planning of UGVs for effective target search has received much attention in the past years. 
+%%Readers interested in this topic can refer to \cite{tisdale2009autonomous,furukawa2006recursive}.
+%In this work, UGV positions are randomly generated at each time.
+%% in order to demonstrate the effectiveness of LIFO-DBF.
+%Readers interested in the motion planning of UGVs for effective target localization can refer to \cite{tisdale2009autonomous}. %,furukawa2006recursive
+%The target dynamics is given by a single-integrator model: $x^T(k+1)=x^T(k)+v\Delta T$,
+%%\small\begin{equation*}
+%%x^T(k+1)=x^T(k)+v\Delta T
+%%\end{equation*}\normalsize
+%where $v$ is the constant velocity of the target; $\Delta T$ is the sampling time.
+%
+%The LIFO-DBF described in \cref{subsec:LIFO-dbf-mov-tar} is utilized for target localization.
+%\cref{fig:mov_sen_mov_tar} shows the estimation results of the moving target. 
+%It is interesting to notice that the posterior individual PDFs concentrate to the true target location at each time, even when the target constantly moves.
 %\cref{fig:entropy} (b) shows the decrease of the entropy of the posterior distribution.
 
 %\begin{figure}%[thpb]
