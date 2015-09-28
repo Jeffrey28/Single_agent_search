@@ -23,17 +23,6 @@ J.-F. Chamberland and V.~V. Veeravalli, ``Wireless sensors in distributed
   detection applications,'' \emph{Signal Processing Magazine, IEEE}, vol.~24,
   no.~3, pp. 16--25, 2007.
 
-\bibitem{wang2007wlan}
-H.~Wang, H.~Lenz, A.~Szabo, J.~Bamberger, and U.~D. Hanebeck, ``Wlan-based
-  pedestrian tracking using particle filters and low-cost mems sensors,'' in
-  \emph{Positioning, Navigation and Communication, 2007. WPNC'07. 4th Workshop
-  on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp. 1--7.
-
-\bibitem{cao2008development}
-X.~Cao, J.~Chen, Y.~Zhang, and Y.~Sun, ``Development of an integrated wireless
-  sensor network micro-environmental monitoring system,'' \emph{ISA
-  transactions}, vol.~47, no.~3, pp. 247--255, 2008.
-
 \bibitem{2005distributed}
 R.~Olfati-Saber, ``Distributed kalman filter with embedded consensus filters,''
   in \emph{Decision and Control, 2005 and 2005 European Control Conference.
@@ -60,11 +49,6 @@ B.~J. Julian, M.~Angermann, M.~Schwager, and D.~Rus, ``Distributed robotic
   sensor networks: An information-theoretic approach,'' \emph{The International
   Journal of Robotics Research}, vol.~31, no.~10, pp. 1134--1154, 2012.
 
-\bibitem{olfati2007consensus}
-R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
-  networked multi-agent systems,'' \emph{Proceedings of the IEEE}, vol.~95,
-  no.~1, pp. 215--233, 2007.
-
 \bibitem{zuo2006bandwidth}
 L.~Zuo, K.~Mehrotra, P.~K. Varshney, and C.~K. Mohan, ``Bandwidth-efficient
   target tracking in distributed sensor networks using particle filters,'' in
@@ -90,16 +74,6 @@ X.~Sheng, Y.-H. Hu, and P.~Ramanathan, ``Distributed particle filter with gmm
   Information processing in sensor networks}.\hskip 1em plus 0.5em minus
   0.4em\relax IEEE Press, 2005, p.~24.
 
-\bibitem{ren2005consensus}
-W.~Ren, R.~W. Beard, \emph{et~al.}, ``Consensus seeking in multiagent systems
-  under dynamically changing interaction topologies,'' \emph{IEEE Transactions
-  on automatic control}, vol.~50, no.~5, pp. 655--661, 2005.
-
-\bibitem{jadbabaie2003coordination}
-A.~Jadbabaie, J.~Lin, \emph{et~al.}, ``Coordination of groups of mobile
-  autonomous agents using nearest neighbor rules,'' \emph{Automatic Control,
-  IEEE Transactions on}, vol.~48, no.~6, pp. 988--1001, 2003.
-
 \bibitem{hlinka2012likelihood}
 O.~Hlinka, O.~Slu{\v{c}}iak, F.~Hlawatsch, P.~M. Djuri{\'c}, and M.~Rupp,
   ``Likelihood consensus and its application to distributed particle
@@ -112,6 +86,21 @@ J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
   \emph{Acoustics, Speech and Signal Processing (ICASSP), 2012 IEEE
   International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
   2012, pp. 3857--3860.
+
+\bibitem{olfati2007consensus}
+R.~Olfati-Saber, A.~Fax, and R.~M. Murray, ``Consensus and cooperation in
+  networked multi-agent systems,'' \emph{Proceedings of the IEEE}, vol.~95,
+  no.~1, pp. 215--233, 2007.
+
+\bibitem{ren2005consensus}
+W.~Ren, R.~W. Beard, \emph{et~al.}, ``Consensus seeking in multiagent systems
+  under dynamically changing interaction topologies,'' \emph{IEEE Transactions
+  on automatic control}, vol.~50, no.~5, pp. 655--661, 2005.
+
+\bibitem{jadbabaie2003coordination}
+A.~Jadbabaie, J.~Lin, \emph{et~al.}, ``Coordination of groups of mobile
+  autonomous agents using nearest neighbor rules,'' \emph{Automatic Control,
+  IEEE Transactions on}, vol.~48, no.~6, pp. 988--1001, 2003.
 
 \bibitem{coates2004distributed}
 M.~Coates, ``Distributed particle filters for sensor networks,'' in
@@ -131,17 +120,6 @@ P.~M. Djuri{\'c}, J.~Beaudeau, and M.~F. Bugallo, ``Non-centralized target
   Processing (ICASSP), 2011 IEEE International Conference on}.\hskip 1em plus
   0.5em minus 0.4em\relax IEEE, 2011, pp. 5928--5931.
 
-\bibitem{bonnie2012modelling}
-D.~Bonnie, S.~Candido, T.~Bretl, and S.~Hutchinson, ``Modelling search with a
-  binary sensor utilizing self-conjugacy of the exponential family,'' in
-  \emph{Robotics and Automation (ICRA), 2012 IEEE International Conference
-  on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2012, pp. 3975--3982.
-
-\bibitem{djuric2008target}
-P.~M. Djuri{\'c}, M.~Vemula, and M.~F. Bugallo, ``Target tracking by particle
-  filtering in binary sensor networks,'' \emph{Signal Processing, IEEE
-  Transactions on}, vol.~56, no.~6, pp. 2229--2238, 2008.
-
 \bibitem{lawton2003decentralized}
 J.~R. Lawton, R.~W. Beard, and B.~J. Young, ``A decentralized approach to
   formation maneuvers,'' \emph{Robotics and Automation, IEEE Transactions on},
@@ -157,15 +135,15 @@ G.~Thatte and U.~Mitra, ``Sensor selection and power allocation for distributed
   estimation in sensor networks: Beyond the star topology,'' \emph{Signal
   Processing, IEEE Transactions on}, vol.~56, no.~7, pp. 2649--2661, 2008.
 
-\bibitem{kulich2014single}
-M.~Kulich, L.~Preucil, and J.~J. Miranda~Bront, ``Single robot search for a
-  stationary object in an unknown environment,'' in \emph{Robotics and
-  Automation (ICRA), 2014 IEEE International Conference on}.\hskip 1em plus
-  0.5em minus 0.4em\relax IEEE, 2014, pp. 5830--5835.
+\bibitem{bonnie2012modelling}
+D.~Bonnie, S.~Candido, T.~Bretl, and S.~Hutchinson, ``Modelling search with a
+  binary sensor utilizing self-conjugacy of the exponential family,'' in
+  \emph{Robotics and Automation (ICRA), 2012 IEEE International Conference
+  on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2012, pp. 3975--3982.
 
-\bibitem{tisdale2009autonomous}
-J.~Tisdale, Z.~Kim, and J.~K. Hedrick, ``Autonomous uav path planning and
-  estimation,'' \emph{Robotics \& Automation Magazine, IEEE}, vol.~16, no.~2,
-  pp. 35--42, 2009.
+\bibitem{djuric2008target}
+P.~M. Djuri{\'c}, M.~Vemula, and M.~F. Bugallo, ``Target tracking by particle
+  filtering in binary sensor networks,'' \emph{Signal Processing, IEEE
+  Transactions on}, vol.~56, no.~6, pp. 2229--2238, 2008.
 
 \end{thebibliography}

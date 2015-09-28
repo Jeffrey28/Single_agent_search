@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  25 SEP 2015 19:05
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  28 SEP 2015 03:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -739,42 +739,31 @@ LaTeX Font Info:    Try loading font information for OT1+pcr on input line 96.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-)
-Underfull \hbox (badness 1400) in paragraph at lines 139--152
-\OT1/ptm/m/n/10 which can be clas-si-fied into two types: fu-sion cen-ter
- []
-
-[1{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+) [1{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
-[2] <figures/com_topo.pdf, id=33, 4413.45395pt x 1508.86661pt>
+<figures/com_topo.pdf, id=16, 4413.45395pt x 1508.86661pt>
 File: figures/com_topo.pdf Graphic file (type pdf)
 
 <use figures/com_topo.pdf>
-Package pdftex.def Info: figures/com_topo.pdf used on input line 288.
+Package pdftex.def Info: figures/com_topo.pdf used on input line 191.
 (pdftex.def)             Requested size: 212.47287pt x 72.63889pt.
-
-<figures/data_exchange.pdf, id=34, 2100.45984pt x 1437.04874pt>
+ [2 <./figures/com_topo.pdf>]
+<figures/data_exchange.pdf, id=43, 2100.45984pt x 1437.04874pt>
 File: figures/data_exchange.pdf Graphic file (type pdf)
 
 <use figures/data_exchange.pdf>
-Package pdftex.def Info: figures/data_exchange.pdf used on input line 377.
+Package pdftex.def Info: figures/data_exchange.pdf used on input line 287.
 (pdftex.def)             Requested size: 242.82503pt x 166.12326pt.
- [3 <./figures/com_topo.pdf>]
-Underfull \vbox (badness 3861) has occurred while \output is active []
-
- [4 <./figures/data_exchange.pdf>]
-Overfull \hbox (21.35495pt too wide) detected at line 704
-[] [] [] \OT1/cmr/m/n/9 = [] [] [] + [] [] [] [] []\OML/cmm/m/it/9 :
+ [3 <./figures/data_exchange.pdf>]
+Overfull \hbox (0.51746pt too wide) in paragraph at lines 463--463
+[] 
  []
 
-
-Overfull \hbox (5.74377pt too wide) detected at line 774
-[] \OML/cmm/m/it/9 P\OT1/cmr/m/n/9 (\OML/cmm/m/it/9 x[] \OT1/cmr/m/n/9 = \OML/c
-mm/m/it/9 x[]\OMS/cmsy/m/n/9 j\OT1/cmr/bx/n/9 z[]\OT1/cmr/m/n/9 ) = 1 \OMS/cmsy
-/m/n/9 ^^@ [] [] \OML/cmm/m/it/9 P[]\OT1/cmr/m/n/9 (\OML/cmm/m/it/9 x[]\OMS/cms
-y/m/n/9 j\OT1/cmr/bx/n/9 z[]\OT1/cmr/m/n/9 ) = 1
+[4]
+Overfull \hbox (1.42546pt too wide) detected at line 659
+[] [] [] \OT1/cmr/m/n/7 = [] [] [] + [] [] [] [] []\OML/cmm/m/it/7 :
  []
 
 <figures/sta_sen_sta_tar_single_1.pdf, id=66, 481.94987pt x 409.20854pt>
@@ -782,7 +771,7 @@ File: figures/sta_sen_sta_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1.pdf used on input lin
-e 852.
+e 816.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_5.pdf, id=67, 481.94987pt x 409.20854pt>
@@ -790,7 +779,7 @@ File: figures/sta_sen_sta_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5.pdf used on input lin
-e 856.
+e 820.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_10.pdf, id=68, 481.94987pt x 409.20854pt>
@@ -798,7 +787,7 @@ File: figures/sta_sen_sta_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_10.pdf used on input li
-ne 860.
+ne 824.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_single_30.pdf, id=69, 481.94987pt x 409.20854pt>
@@ -806,14 +795,14 @@ File: figures/sta_sen_sta_tar_single_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_30.pdf used on input li
-ne 864.
+ne 828.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
 <figures/sta_sen_sta_tar_30.pdf, id=70, 759.49211pt x 557.13321pt>
 File: figures/sta_sen_sta_tar_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_30.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 868.
+Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 832.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
 
@@ -822,7 +811,7 @@ File: figures/mov_sen_mov_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_1.pdf used on input lin
-e 878.
+e 842.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_5.pdf, id=72, 489.1769pt x 416.43553pt>
@@ -830,7 +819,7 @@ File: figures/mov_sen_mov_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_5.pdf used on input lin
-e 882.
+e 846.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_10.pdf, id=73, 489.1769pt x 416.43553pt>
@@ -838,7 +827,7 @@ File: figures/mov_sen_mov_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_10.pdf used on input li
-ne 886.
+ne 850.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_single_40.pdf, id=74, 489.1769pt x 416.43553pt>
@@ -846,14 +835,14 @@ File: figures/mov_sen_mov_tar_single_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_40.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_40.pdf used on input li
-ne 890.
+ne 854.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
 <figures/mov_sen_mov_tar_40.pdf, id=75, 759.49211pt x 557.13321pt>
 File: figures/mov_sen_mov_tar_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_40.pdf>
-Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 894.
+Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 858.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
  [5]
@@ -896,7 +885,7 @@ pdf): PDF inclusion: multiple pdfs with page group included in a single page
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/mov_sen_mov_tar_40.pdf): P
 DF inclusion: multiple pdfs with page group included in a single page
->] (./ACC2016.bbl)
+>] (./ACC2016.bbl [7])
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -908,51 +897,56 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-[7] (./ACC2016.aux) ) 
+[8
+
+] (./ACC2016.aux) ) 
 Here is how much of TeX's memory you used:
- 17170 strings out of 493117
- 335716 string characters out of 6135433
- 397216 words of memory out of 5000000
- 20284 multiletter control sequences out of 15000+600000
- 54118 words of font info for 124 fonts, out of 8000000 for 9000
+ 17163 strings out of 493117
+ 335558 string characters out of 6135433
+ 396215 words of memory out of 5000000
+ 20276 multiletter control sequences out of 15000+600000
+ 54427 words of font info for 125 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 62i,18n,75p,526b,557s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8
-r.enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10
-.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx5.p
+ 62i,18n,75p,1340b,558s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.
+enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.p
 fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx6.pfb
-></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb><
-/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
-usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb
-></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb>
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></
-usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></us
-r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/lo
-cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/loca
-l/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/
-texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/tex
-live/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texliv
-e/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2
-014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2014/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2014/texmf
--dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2014/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2014/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2014/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2014/texmf-dist/fo
-nts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2014/texmf-dis
-t/fonts/type1/public/rsfs/rsfs10.pfb></usr/local/texlive/2014/texmf-dist/fonts/
-type1/public/rsfs/rsfs5.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw
-/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/u
-tmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb
-></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/loc
-al/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ACC2016.pdf (7 pages, 612290 bytes).
+></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb><
+/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr
+/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/
+local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex7.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex8.pfb>
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.p
+fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pf
+b></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb>
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></
+usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/lo
+cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loca
+l/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/t
+exlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texl
+ive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive
+/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/20
+14/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2014/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2014/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2014/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2014/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2014/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2014/texmf-dist/
+fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2014/texmf-d
+ist/fonts/type1/public/rsfs/rsfs10.pfb></usr/local/texlive/2014/texmf-dist/font
+s/type1/public/rsfs/rsfs5.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/u
+rw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times
+/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.p
+fb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/l
+ocal/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on ACC2016.pdf (8 pages, 637048 bytes).
 PDF statistics:
- 357 PDF objects out of 1000 (max. 8388607)
- 245 compressed objects within 3 object streams
+ 372 PDF objects out of 1000 (max. 8388607)
+ 256 compressed objects within 3 object streams
  0 named destinations out of 1000 (max. 500000)
  73 words of extra memory for PDF output out of 10000 (max. 10000000)
 

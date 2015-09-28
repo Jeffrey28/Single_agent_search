@@ -130,6 +130,9 @@ for i=1:NumOfRobot
     subplot(2,3,i); contourf((rbt(i).map)'); hold on; title(['Sensor ',num2str(i)]);
     rbt(i).prob = zeros(fld.x,fld.y);
     rbt(i).entropy = zeros(1,max_EstStep);
+    for j = 1:NumOfRobot
+        rbt(i).rbt(j).used = []; % save the observations times that have been used for updating
+    end
 end
 
 % binary sensor model
@@ -145,40 +148,40 @@ rbt(5).color = 'm';
 rbt(6).color = 'w';
 
 %% Communication structure
-% rbt(1).top(1).neighbour=[2,6];
-% rbt(2).top(1).neighbour=1;
-% rbt(3).top(1).neighbour=4;
-% rbt(4).top(1).neighbour=[3,5];
-% rbt(5).top(1).neighbour=4;
-% rbt(6).top(1).neighbour=1;
-% 
-% rbt(1).top(2).neighbour=0;
-% rbt(2).top(2).neighbour=3;
-% rbt(3).top(2).neighbour=2;
-% rbt(4).top(2).neighbour=0;
-% rbt(5).top(2).neighbour=6;
-% rbt(6).top(2).neighbour=5;
-
-rbt(1).top(1).neighbour=6;
-rbt(2).top(1).neighbour=0;
-rbt(3).top(1).neighbour=5;
-rbt(4).top(1).neighbour=0;
-rbt(5).top(1).neighbour=3;
+rbt(1).top(1).neighbour=[2,6];
+rbt(2).top(1).neighbour=1;
+rbt(3).top(1).neighbour=4;
+rbt(4).top(1).neighbour=[3,5];
+rbt(5).top(1).neighbour=4;
 rbt(6).top(1).neighbour=1;
 
-rbt(1).top(2).neighbour=2;
-rbt(2).top(2).neighbour=1;
-rbt(3).top(2).neighbour=0;
-rbt(4).top(2).neighbour=5;
-rbt(5).top(2).neighbour=4;
-rbt(6).top(2).neighbour=0;
+rbt(1).top(2).neighbour=0;
+rbt(2).top(2).neighbour=3;
+rbt(3).top(2).neighbour=2;
+rbt(4).top(2).neighbour=0;
+rbt(5).top(2).neighbour=6;
+rbt(6).top(2).neighbour=5;
 
-rbt(1).top(3).neighbour=0;
-rbt(2).top(3).neighbour=3;
-rbt(3).top(3).neighbour=2;
-rbt(4).top(3).neighbour=0;
-rbt(5).top(3).neighbour=6;
-rbt(6).top(3).neighbour=5;
+% rbt(1).top(1).neighbour=6;
+% rbt(2).top(1).neighbour=0;
+% rbt(3).top(1).neighbour=5;
+% rbt(4).top(1).neighbour=0;
+% rbt(5).top(1).neighbour=3;
+% rbt(6).top(1).neighbour=1;
+% 
+% rbt(1).top(2).neighbour=2;
+% rbt(2).top(2).neighbour=1;
+% rbt(3).top(2).neighbour=0;
+% rbt(4).top(2).neighbour=5;
+% rbt(5).top(2).neighbour=4;
+% rbt(6).top(2).neighbour=0;
+% 
+% rbt(1).top(3).neighbour=0;
+% rbt(2).top(3).neighbour=3;
+% rbt(3).top(3).neighbour=2;
+% rbt(4).top(3).neighbour=0;
+% rbt(5).top(3).neighbour=6;
+% rbt(6).top(3).neighbour=5;
 
 % rbt(1).neighbour=[2,6];
 % rbt(2).neighbour=[1,3];
@@ -195,7 +198,7 @@ for i=1:NumOfRobot
         rbtBuffer{i}.rbt(j).z=[];
         rbtBuffer{i}.rbt(j).k=[];
         rbtBuffer{i}.rbt(j).prob=[];
-        rbtBuffer{i}.rbt(j).map = {};% record the previously calculated map to reduce computation
+        rbtBuffer{i}.rbt(j).map = {};% record the previously calculated map to reduce computation        
     end
 end
 
@@ -267,19 +270,19 @@ while (1) %% Filtering Time Step
                 %% data transmission
                 % (1) sending/receive
                 % multi-step transmit of observation
-%                 if rem(count,2) == 1 % in odd round
-%                     top_idx = 1; % use topology 1
-%                 else
-%                     top_idx = 2; % use topology 2
-%                 end
-
-                if rem(count,3) == 1 % in odd round
+                if rem(count,2) == 1 % in odd round
                     top_idx = 1; % use topology 1
-                elseif rem(count,3) == 2
-                    top_idx = 2; % use topology 2
                 else
-                    top_idx = 3; % use topology 2
+                    top_idx = 2; % use topology 2
                 end
+
+%                 if rem(count,3) == 1 % in odd round
+%                     top_idx = 1; % use topology 1
+%                 elseif rem(count,3) == 2
+%                     top_idx = 2; % use topology 2
+%                 else
+%                     top_idx = 3; % use topology 2
+%                 end
                 
                 for i=1:NumOfRobot % Robot Iteration
                     % for information from neighbours to compare whether it is
@@ -335,10 +338,11 @@ while (1) %% Filtering Time Step
                 % calculate probility of latest z
                 for i=1:NumOfRobot % Robot Iteration
                     for j=1:NumOfRobot
-                        if (~isempty(rbtBuffer{i}.rbt(j).k))
+                        if (~isempty(rbtBuffer{i}.rbt(j).k)) && (~ismember(rbtBuffer{i}.rbt(j).k,rbt(i).rbt(j).used))
 %                         if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).z == 1)
 %                             rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
                             rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
+                            rbt(i).rbt(j).used = [rbt(i).rbt(j).used,rbtBuffer{i}.rbt(j).k];
 %                         elseif ~isempty(rbtBuffer{i}.rbt(j).k) && (rbtBuffer{i}.rbt(j).z == 0)
 %                             rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
 %                             rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
@@ -559,17 +563,18 @@ while (1) %% Filtering Time Step
     %
     if (count == 1) || (count == 3) || (count == 5) || (count == 7) ||...
             (count == 10) || (count == 20) || (count == 30) || (count == 40)...
-            || (count == 50) || (count == 100) || (count == 150) || (count == 200)
+            || (count == 50) || (count == 60) || (count == 70) || (count == 80)...
+            || (count == 90) || (count == 100) 
         switch Selection2
             case 1,  tag = 'sta_sen_sta_tar';
             case 2,  tag = 'sta_sen_mov_tar';
             case 3,  tag = 'mov_sen_sta_tar';
             case 4,  tag = 'mov_sen_mov_tar';
         end
-        file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s_2',tag,count,datestr(now,1));
+        file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s',tag,count,datestr(now,1));
         saveas(hf1,file_name1,'fig')
         saveas(hf1,file_name1,'jpg')
-        file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%s_2',tag,count,datestr(now,1));
+        file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%s',tag,count,datestr(now,1));
         saveas(hf3,file_name2,'fig')
         saveas(hf3,file_name2,'jpg')
     end
