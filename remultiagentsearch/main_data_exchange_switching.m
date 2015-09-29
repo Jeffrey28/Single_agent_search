@@ -211,7 +211,11 @@ err.time = [];
 err.rbt = [];
 while (1) %% Filtering Time Step
     figure(1); clf(hf1);
-    figure(3); clf(hf3);
+    for i = 1:NumOfRobot
+        tmp_hf = figure(i+2); 
+        clf(tmp_hf);
+    end
+    
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Target Movement
 %     if rem(count,2) == 1
@@ -500,19 +504,21 @@ while (1) %% Filtering Time Step
     subplot(2,3,5); xlabel(['Step=',num2str(count)],'FontSize',14);
     
     % plot single figure for the first robot
-    hf3 = figure (3); % handle for plot of a single robot's target PDF
-    contourf((rbt(1).map)'); hold on;
-    title(['Sensor ',1, ' Observ.= ',num2str(rbt(1).z)],'FontSize',16);
-    for j=1:NumOfRobot
-        if j==1
-            plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
-        else
-            plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
+    for k = 1:NumOfRobot
+        figure (k+2); % handle for plot of a single robot's target PDF
+        contourf((rbt(k).map)'); hold on;
+        title(['Sensor ',1, ' Observ.= ',num2str(rbt(1).z)],'FontSize',16);
+        for j=1:NumOfRobot
+            if j==k
+                plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
+            else
+                plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
+            end
+            plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
+            set(gca,'fontsize',16)
         end
-        plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
-        set(gca,'fontsize',16)
-    end  
-    xlabel(['Step=',num2str(count)],'FontSize',16);
+        xlabel(['Step=',num2str(count)],'FontSize',16);
+    end
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Probability Map Consensus
@@ -571,12 +577,15 @@ while (1) %% Filtering Time Step
             case 3,  tag = 'mov_sen_sta_tar';
             case 4,  tag = 'mov_sen_mov_tar';
         end
-        file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s',tag,count,datestr(now,1));
-        saveas(hf1,file_name1,'fig')
-        saveas(hf1,file_name1,'jpg')
-        file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%s',tag,count,datestr(now,1));
-        saveas(hf3,file_name2,'fig')
-        saveas(hf3,file_name2,'jpg')
+%         file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s',tag,count,datestr(now,1));
+%         saveas(hf1,file_name1,'fig')
+%         saveas(hf1,file_name1,'jpg')
+        for k = 1:NumOfRobot
+            tmp_hf = figure(k+2);
+            file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%d_%s',tag,k,count,datestr(now,1));
+            saveas(tmp_hf,file_name2,'fig')
+            saveas(tmp_hf,file_name2,'jpg')
+        end
     end
     %}
     

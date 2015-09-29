@@ -102,56 +102,62 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\begin{abstract}
 		
-		This paper presents a distributed Bayesian filtering (DBF) method for a network of multiple unmanned ground vehicles (UGVs) under dynamically changing interaction topologies. The information exchange among UGVs relies on a measurement dissemination scheme, called Latest-In-and-Full-Out (LIFO) protocol. Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only sends a buffer that contains latest available measurements to neighboring UGVs, which reduces the transmission burden from the order of environmental size to that of UGV number. 
+		This paper presents a distributed Bayesian filtering (DBF) method for a network of multiple unmanned ground vehicles (UGVs) under dynamically changing interaction topologies. The information exchange among UGVs relies on a measurement dissemination scheme, called Latest-In-and-Full-Out (LIFO) protocol. Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only sends a buffer that contains latest available measurements to neighboring nodes, which reduces the transmission burden from the order of environmental size to that of UGV number. 
 		Under the condition that the union of undirected switching topologies
 %		 across some time intervals
 		is connected frequently enough,
 %		 as system evolves,
-		LIFO can disseminate observations over the network within finite time. The LIFO-based DBF algorithm is then derived to estimate individual posterior density function (PDF) for target localization in a static environment. The consistency of this algorithm is analytically proved that each individual estimate of target position converges in probability to the true value when the number of observations tends to infinity.
+		LIFO can disseminate observations over the network within finite time. The LIFO-based DBF algorithm is then derived to estimate individual posterior density function (PDF) for target localization in a static environment. The consistency of this algorithm is proved that each individual estimate of target position converges in probability to the true value when the number of observations tends to infinity.
 		The effectiveness of this method is demonstrated by a series of simulations.
 	\end{abstract}
 	
-	
+	\begin{keywords} 
+		Multiple vehicle system, environment estimation, distributed filtering, switching interaction topology
+	\end{keywords}
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\section{INTRODUCTION}
 	%Section II: Topology + LIFO + Proof
 	%Section III: Binary sensor + DBF + Proof.
 	%Section IV: Simulation
 	
-	Unmanned ground vehicles (UGV) that operate without on-board operators have been used for many applications that are inconvenient, dangerous, or impossible to human. Distributed estimation using a group of networked UGVs has been applied to collectively infer status of complex environment, such as intruder detection \cite{chamberland2007wireless}, and \todohere{[add a SLAM paper]}. Several techniques have been developed for distributed estimation, including distributed linear Kalman filters (DKF) \cite{2005distributed}, distributed extended Kalman filters \cite{madhavan2004distributed} and distributed particle filters \cite{gu2007distributed}, etc. The most generic filtering scheme is distributed Bayesian filters (DBF), which can be applied for nonlinear systems with arbitrary noise distributions \cite{bandyopadhyay2014distributed,julian2012distributed}.
-	The study focuses on a communication-efficient DBF for networked UGVs.
+	Unmanned ground vehicles (UGV) that operate without on-board operators have been used for many applications that are inconvenient, dangerous, or impossible to human. Distributed estimation using a group of networked UGVs has been applied to collectively infer status of complex environment, such as intruder detection \cite{chamberland2007wireless}, and object tracking \cite{wang2003online}. Several techniques have been developed for distributed estimation, including distributed linear Kalman filters (DKF) \cite{2005distributed}, distributed extended Kalman filters \cite{madhavan2004distributed} and distributed particle filters \cite{gu2007distributed}, etc. The most generic filtering scheme is distributed Bayesian filters (DBF), which can be applied for nonlinear systems with arbitrary noise distributions \cite{bandyopadhyay2014distributed,julian2012distributed}.
+	This paper focuses on a communication-efficient DBF for networked UGVs.
 	
-	The interaction topology plays a central role on the design of DBF, of which two types are widely investigated in literature: fusion center (FC) and neighborhood (NB). In the former, local statistics estimated by each agent is transmitted to a single FC, where a global posterior distribution is calculated at each filtering cycle \cite{zuo2006bandwidth,vemula2006target}. In the latter, each agent individually executes distributed estimation and the agreement of local posterior distributions is achieved by a certain consensus strategy \cite{jadbabaie2003coordination,ren2005consensus,olfati2007consensus}. In general, the NB-based distributed filters are more suitable in practice since they do not require a fusion center with powerful computation capability and are more robust to changes in network topology and link failures. So far, NB-based approaches have two mainstream schemes according to the transmitted data among agents, i.e., \textit{statistics dissemination} (SD) and \textit{measurement dissemination} (MD). In the SD scheme, each agent exchanges such statistics as posterior distributions and likelihood functions within neighboring nodes \cite{hlinka2013distributed}. In the MD scheme, instead of exchanging statistics, each agent sends its observations to neighboring nodes. 
+	The interaction topology plays a central role on the design of DBF, of which two types are widely investigated in literature: fusion center (FC) and neighborhood (NB). In the former, local statistics estimated by each agent is transmitted to a single FC, where a global posterior distribution is calculated at each filtering cycle \cite{zuo2006bandwidth,vemula2006target}. In the latter, each agent individually executes distributed estimation and the agreement of local posterior distributions is achieved by a certain consensus strategy \cite{jadbabaie2003coordination,ren2005consensus,olfati2007consensus}. In general, the NB-based distributed filters are more suitable in practice since they do not require a fusion center with powerful computation capability and are more robust to changes in network topology and link failures. So far, the NB-based approaches have two mainstream schemes according to the transmitted data among agents, i.e., \textit{statistics dissemination} (SD) and \textit{measurement dissemination} (MD). In the SD scheme, each agent exchanges such statistics as posterior distributions and likelihood functions within neighboring nodes \cite{hlinka2013distributed}. In the MD scheme, instead of exchanging statistics, each agent sends its observations to neighboring nodes. 
 	
-	The pioneering work of statistics dissemination scheme can date back to the 80s of last century \todohere{reference}. Later, \todohere{reference} have considerably advanced the study of this scheme in the field of distributed estimation. Madhavan et al. (2004) presented a distributed extended Kalman filter for nonlinear systems \cite{madhavan2004distributed}. This filter was used to generate local terrain maps by using pose estimates to combine elevation gradient and vision-based depth with environmental features. Olfati-Saber (2005) proposed a distributed linear Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}. Each DKF used additional low-pass and band-pass consensus filters to compute the average of weighted measurements and inverse-covariance matrices. 
+%	The pioneering work of statistics dissemination scheme can date back to the 80s of last century \todohere{reference}. 
+%	Later, \todohere{reference} have considerably advanced the study of this scheme in the field of distributed estimation. 
+	Statistics dissemination scheme has gained increasing interest and been widely investigated during last decade.
+	Madhavan et al. (2004) presented a distributed extended Kalman filter for nonlinear systems \cite{madhavan2004distributed}. This filter was used to generate local terrain maps by using pose estimates to combine elevation gradient and vision-based depth with environmental features. Olfati-Saber (2005) proposed a distributed linear Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}. Each DKF used additional low-pass and band-pass consensus filters to compute the average of weighted measurements and inverse-covariance matrices. 
 %	Sheng et al. (2005) proposed a multiple leader-based distributed particle filter with Gaussian Mixer for target tracking \cite{sheng2005distributed}. Sensors are grouped into multiple uncorrelated cliques, in each of which a leader is assigned to perform particle filtering and the particle information is then exchanged among leaders. 
 	Gu (2007) proposed a distributed particle filter for Markovian target tracking over an undirected sensor network \cite{gu2007distributed}. Gaussian mixture models (GMM) were adopted to approximate the posterior distribution from weighted particles and the parameters of GMM were exchanged via average consensus filter. 
-	Hlinka et al. (2012) proposed a distributed method for computing an approximation of the joint (all-sensors) likelihood function by means of weighted-linear-average consensus algorithm when local likelihood functions belong to the exponential family of distributions \cite{hlinka2012likelihood}. Saptarshi et al. (2014) presented a Bayesian consensus filter that uses logarithmic opinion pool for fusing posterior distributions of the tracked target \cite{bandyopadhyay2014distributed}. Other examples can be found in \cite{julian2012distributed,beaudeau2012target}. 
+	Hlinka et al. (2012) proposed a distributed method for computing an approximation of the joint (all-sensors) likelihood function by means of weighted-linear-average consensus algorithm when local likelihood functions belong to the exponential family of distributions \cite{hlinka2012likelihood}. Saptarshi et al. (2014) presented a Bayesian consensus filter that uses logarithmic opinion pool for fusing posterior distributions of the tracked target \cite{bandyopadhyay2014distributed}. Other examples can be found in \cite{julian2012distributed} and \cite{beaudeau2012target}. 
 %	Generally, this scheme can be further categorized into two types: leader-based and consensus-based. In the former, statistics is sequentially passed and updated along a path formed by active UGVs, called leaders. Only leaders perform filtering based on its own measurement and received measurements from local neighbors \cite{sheng2005distributed}. In the latter, every UGV diffuses statistics among neighbors, via which global agreement of the statistics is achieved by using consensus protocols \cite{olfati2007consensus,ren2005consensus,jadbabaie2003coordination}. 
 	
 	
 	Despite the popularity of statistics dissemination, exchanging statistics can consume high communication resources. 
-	One remedy is to approximate statistics with parametric models, such as Gaussian Mixture Models \cite{sheng2005distributed}, which can reduce communication burden to a certain extent. 
+	One remedy is to approximate statistics with parametric models, e.g., Gaussian Mixture Model \cite{sheng2005distributed}, which can reduce communication burden to a certain extent. 
 	However, such a manipulation increases the computation burden of each agent and sacrifices filtering  accuracy due to approximation.
-	The measurement dissemination scheme is one promising alternative to exchanging statistics among neighbors. 
+	The measurement dissemination scheme is an alternative solution to address the issue of exchanging statistics. 
 	An early work on measurement dissemination was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}. Ribeiro et al. (2006) exchanged quantized observations along with error-variance limits considering more pragmatic signal models \cite{ribeiro2006bandwidth}.
-	A recent work was conducted by Djuric et al. (2011), who proposed to broadcast raw measurements to other agents, and therefore each agent has a complete set of observations of other UGVs for executing particle filtering \cite{djuric2011non}.  A shortcoming of aforementioned works is that their communication topologies are assumed to be a fixed and complete graph that every pair of distinct UGVs is constantly connected by a unique edge. In many real applications, interaction topology for UGVs may change dynamically as communication links between UGVs can become unreliable due to disturbances or communication range limitations, for example, \todohere{reference}.
+	A recent work was conducted by Djuric et al. (2011), who proposed to broadcast raw measurements to other agents, and therefore each agent has a complete set of observations of other UGVs for executing particle filtering \cite{djuric2011non}.  A shortcoming of aforementioned works is that their communication topologies are assumed to be a fixed and complete graph that every pair of distinct UGVs is constantly connected by a unique edge. In many real applications,the  interaction topology may change dynamically due to unreliable links, external disturbances and/or range limits \cite{xiao2008asynchronous}.
 %	The communication links between UGVs may be unreliable due to disturbances or communication range limitations. 
 %	If the information is being exchanged by direct sensing, the locally visible neighbors of a vehicle will likely change over time. 
-	In such cases, dynamically changing topologies can cause issues such as random packet loss and variable transmission delay, thus decreasing the performance of distributed estimation, and even leading to inconsistency and non-consensus. 
+	In such cases, dynamically changing topologies can cause random packet loss and variable transmission delay, thus decreasing the performance of distributed estimation, and even leading to inconsistency and non-consensus. 
 	
 	This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a group of networked UGVs with dynamically changing interaction topologies. The measurement dissemination scheme uses the so-called Latest-In-and-Full-Out (LIFO) protocol, in which each UGV is only allowed to broadcast observations to its neighbors by using single-hopping.
-	Individual Bayesian filter is implemented locally after exchanging observations using LIFO.
-	Under the condition that the union of undirected switching topologies is connected frequently enough, two properties can be achieved: (1) LIFO can disseminate observations over the network within finite time; (2) LIFO-based DBF guarantees the consistency of estimation that each individual estimate of target position converges in probability to the true value as the number of observations tends to infinity. 
+	Individual Bayesian filter is implemented locally for each UGV after exchanging observations using LIFO.
+	Under the condition that the union of undirected switching topologies is connected frequently enough, two properties are achieved: (1) LIFO can disseminate observations over the network within finite time; (2) LIFO-based DBF guarantees the consistency of estimation that each individual estimate of target position converges in probability to the true value as the number of observations tends to infinity. 
 	The main benefit of using LIFO is on the reduction of communication burden, with the transmission data volume scaling linearly with the UGV number. 
 	
 	The rest of this paper is organized as follows: 
 	The LIFO protocol for dynamically changing interaction topologies is formulated in \cref{sec:lifo}.
-	The LIFO-based DBF algorithm is described in \cref{sec:LIFO-dbf}, where the consistency and consensus of estimation is analytically proved.
+	The LIFO-based DBF algorithm is described in \cref{sec:LIFO-dbf}, where the consistency and consensus of estimation are proved.
 	Simulation results are presented in \cref{sec:sim} and \cref{sec:conclu} concludes the paper.
 	
 	\section{LIFO Protocol for Dynamically Changing Interaction Topologies}\label{sec:lifo}
 	Consider a network of $N$ UGVs in a bounded two-dimensional space $S$. 
+	The interaction topology can be dynamically changing due to limited communication range, varying team formation or link failure.
 	Each UGV is equipped with a sensor for environmental perception. 
 	Due to the limit of communication range, each UGV can only exchange sensor observations with its neighbors. 
 	The Bayesian filter is run locally on each UGV based on its own and received observations via single-hopping to estimate the target position.
@@ -159,7 +165,7 @@
 	\subsection{Graphical Model of Interaction Topology}
 	%The UGV network is always assumed to be connected, i.e., there exists a path, either direct or indirect, between every pair of UGVs.
 	%Under this assumption, consider an undirected and fixed graph 
-	Consider a simple\footnote{An undirected graph $G=(V,E)$ is \textit{simple} if it has no self-loops or repeated edges, i.e., $\left( i,j\right)\in E,\,\text{only if } i\neq j$ and $E$ only contains distinct elements. A graph is \textit{connected} when there is a path between every pair of vertices in $V$.}, undirected graph $G=(V,E)$ to represent the interaction topology of the UGV network, where $V=\left\lbrace 1,\dots,N\right\rbrace $ represents the index set of UGVs and $E=V\times V$ denotes the edge set. 
+	Consider a simple\footnote{An undirected graph $G=(V,E)$ is \textit{simple} if it has no self-loops or repeated edges, i.e., $\left( i,j\right)\in E,\,\text{only if } i\neq j$ and $E$ only contains distinct elements. A graph is \textit{connected} when there is a path between every pair of vertices in $V$.}, undirected graph $G=(V,E)$ to represent the interaction topology of N networked UGVs, where $V=\left\lbrace 1,\dots,N\right\rbrace $ represents the index set of UGVs and $E=V\times V$ denotes the edge set. 
 	The \textit{adjacency matrix} $M=\left[ m_{ij}\right] $ of graph $G$ describes the interaction topology:
 	\small\begin{equation*}
 		m_{ij}=\begin{cases}
@@ -172,17 +178,18 @@
 	\cref{fig:com_topo} illustrates three types of typical topologies: ring \cite{lawton2003decentralized}, line \cite{liu2010simple}, and star \cite{thatte2008sensor}. 
 	All of them are represented by simple and undirected graphs.
 	
-	The interaction topology can be dynamically changing due to limited communication range, varying team formation or link failure.
-	Let $\bar{G}=\left\lbrace G_1,G_2,\dots,G_L\right\rbrace $ denote the set of all possible simple and undirected graphs defined for the network of UGVs.
-	The adjacency matrix associated with a graph $G_l,\,l\in\left\lbrace 1,2,\dots,L \right\rbrace $ is denoted as $M^l=[m^l_{ij}]$.
+%	The interaction topology can be dynamically changing due to limited communication range, varying team formation or link failure.
+%	Let $\bar{G}=\left\lbrace G_1,G_2,\dots,G_L\right\rbrace $ denote the set of all possible simple and undirected graphs defined for the network of UGVs.
+	Let $\bar{G}$ denote the set of all possible simple and undirected graphs defined for the network of UGVs.
 	It is easy to know that $\bar{G}$ has finite elements.
+	The adjacency matrix associated with a graph $G_l\in\bar{G}$ is denoted as $M^l=[m^l_{ij}]$.	
 	Define the \textit{union} of a collection of graphs $\left\lbrace G_{i_1},G_{i_2},\dots,G_{i_l} \right\rbrace \subset \bar{G}$ as the undirected graph with nodes in $V$ and edge set given by the union of edge sets of $G_{i_j},\,j=1\dots,l$.
 	Such collection is defined to be \textit{jointly connected} if the union of its members forms a connected graph.
 	
 	We define two concepts of neighborhood in a UGV network.
 	The \textit{direct neighborhood} of $i^\text{th}$ UGV under topology $G_{l}$ is defined as $\mathcal{N}_i(G_{l})=\left\lbrace j|m^l_{ij}=1,\,j\in\left\lbrace1,\dots,N \right\rbrace \right\rbrace $. 
-	All the UGVs in $\mathcal{N}_i(G_{l})$ can directly exchange information with $i^\text{th}$ UGV via single-hopping.
-	In addition to direct neighborhood, another set called \textit{available neighborhood} is defined as $\mathcal{Q}_i(G_{l})$, which contains indices of UGVs whose observations can be received by the $i^\text{th}$ UGV given a specific observation exchange protocol and the interaction topology represented by $G_{l}$. 
+	All UGVs in $\mathcal{N}_i(G_{l})$ can directly exchange information with $i^\text{th}$ UGV via single-hopping.
+	In addition to direct neighborhood, another set called \textit{available neighborhood} is defined as $\mathcal{Q}_i(G_{l})$, which contains indices of UGVs whose observations can be received by the $i^\text{th}$ UGV given a specific observation exchange protocol and the interaction topology $G_{l}$. 
 	Note that in general $\mathcal{N}_i(G_{l})\subseteq\mathcal{Q}_i(G_{l})$.
 	%but when only single-hopping is allowed, $\mathcal{N}_i=\mathcal{Q}_i$. 
 		
@@ -208,8 +215,9 @@
 		\mathbf{z}^{CB,i}_k=\left[ z^1_{k^i_1},\dots,z^N_{k^i_N}\right]
 	\end{equation*}
 	where $z^j_{k^i_j}$ represents the observation made by ${j^\text{th}}$ UGV at time $k^i_j$. 
-	Note that under LIFO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace \setminus \left\lbrace i\right\rbrace$, which will be proved in \Cref{cor1}.
+	Note that under LIFO and certain conditions of interaction topologies, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace \setminus \left\lbrace i\right\rbrace$, which will be proved in \Cref{cor1}.
 	$z^j_{k^i_j}$ is stored in the CB of ${i^\text{th}}$ UGV, where $k^i_j$ is the latest observation time of ${j^\text{th}}$ UGV available to ${i^\text{th}}$ UGV by time $k$. Due to the communication delay, $k^i_j<k, \forall j\neq i$ and $k^i_i=k$ always holds.
+	Let $G[k]\in\bar{G} $ represent the interaction topology at time $k$. 
 	The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 	For the clarity of explanation of DBF in \cref{sec:LIFO-dbf}, we define a \textit{new observation set} $\mathbf{z}^{new,i}_k$ for $i^\text{th}$ UGV to denote the set of observations that the $i^\text{th}$ UGV receives and stores in its CB at $k$.
 	
@@ -218,7 +226,7 @@
 		\label{alg:lifo}
 		\begin{algorithmic}
 			\State \textbf{(1)} Initialization:
-			The CB of $i^\text{th}$ UGV is initialized when $k=0$: 
+			The CB of $i^\text{th}$ UGV is initialized when $k=0$,
 			\begin{equation*}
 				%$\begin{array}{c}
 				z^j_{k^i_j}=\varnothing,\; k^i_j=0,\;j=1,\dots,N
@@ -227,23 +235,23 @@
 			
 			\State \textbf{(2)} At $k^\text{th}$ step for $i^\text{th}$ UGV:	
 			
-			\State The interaction topology is represented by $G[k]\in\bar{G}$.
+%			\State The interaction topology is represented by $G[k]\in\bar{G}$.
 			\State (2.1) Receiving Step:
 			
-			The $i^\text{th}$ UGV receives all CBs of its direct neighborhood $\mathcal{N}_i(G[k])$.
-			The received CBs are totally $|\mathcal{N}_i(G[k])|$ groups, each of which corresponds to the $(k-1)^\text{th}$ step CB of a UGV in $\mathcal{N}_i(G[k])$. 
-			The received CB from $l^\text{th}$  $\left(l\in \mathcal{N}_i(G[k])\right)$ UGV is denoted as
+			The $i^\text{th}$ UGV receives all CBs of its direct neighborhood $\mathcal{N}_i(G[k-1])$.
+			The received CBs are totally $|\mathcal{N}_i(G[k-1])|$ groups, each of which corresponds to the $(k-1)^\text{th}$ step CB of a UGV in $\mathcal{N}_i(G[k-1])$. 
+			The received CB from $l^\text{th}$  $\left(l\in \mathcal{N}_i(G[k-1])\right)$ UGV is denoted as
 			\begin{equation*}
-				\mathbf{z}^{CB,l}_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i(G[k])
+				\mathbf{z}^{CB,l}_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i(G[k-1])
 			\end{equation*}
 			
 			\State (2.2) Observation Step: 
 			
 			The $i^\text{th}$ UGV updates $z^j_{k^i_j}\,(j=i)$ by its own observation at current step.
-			\small\begin{align*}
+			\begin{align*}
 			\text{add}\; & z^i_k\; \text{to}\; \mathbf{z}^{new,i}_k,\\
 			z^j_{k^i_j}&=z^i_k,\;k^i_j=k,\;\text{if }j=i.
-			\end{align*} \normalsize
+			\end{align*}
 %			\begin{equation*}
 %				z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
 %			\end{equation*}
@@ -251,12 +259,12 @@
 			
 			\State (2.3) Comparison Step:
 			
-			The $i^\text{th}$ UGV updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i(G[k])$. For all $j\neq i$,
-			\small\begin{align*}
+			The $i^\text{th}$ UGV updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i(G[k-1])$. For all $j\neq i$,
+			\begin{align*}
 				l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,\;i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
 				\text{If}\; l_\text{latest} &> (k-1)^i_j,\;\text{add $z^i_{(k-1)^{l_\text{latest}}_j}$ \text{to} $\mathbf{z}^{new,i}_k$.}\\
-				z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_\text{latest}}_j},\; k^i_j=\left(k-1\right)^{l_\text{latest}}_j
-			\end{align*} \normalsize
+				z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_\text{latest}}_j},\; k^i_j=\left(k-1\right)^{l_\text{latest}}_j.
+			\end{align*}
 			
 			\State (2.4) Sending Step:
 			
@@ -277,24 +285,32 @@
 	\end{rem}
 	
 	\medskip
-	\todohere{change the figure to be a switching topology. change the contents here accordingly}
+%	\todohere{change the figure to be a switching topology. change the contents here accordingly}
 	\cref{fig:LIFO} illustrates the LIFO cycles of a network of 3 UGVs with switching line topologies. 
-	Two facts can be noticed in \cref{fig:LIFO}: (1) all UGV CBs are filled within 3 steps, which means under LIFO each UGV has a maximum delay of 2 steps for receiving observations from other UGVs; (2) after filled, CBs are updated non-intermittently, which means each UGV continuously receives new observations of other UGVs. Extending the two facts to a network of $N$ UGVs, we have the following proposition:
+	There are two types of topologies, the first only UGV $1$ and UGV $2$ or UGV $2$ and UGV $3$ can communicate with each other.
+	Several facts can be noticed in \cref{fig:LIFO}: 
+	(1) the two topologies are jointly connected within each time intervals $\left[0,3 \right) ,\,\left[3,5 \right) ,\,\left[5,7 \right)$.
+	(2) CBs of all UGVs are filled within $5$ steps.
+%	, which means under LIFO each UGV has a maximum delay of 2 steps for receiving observations from other UGVs; 
+	(3) after being filled, each CB keeps updated every finite time steps, which means each UGV receives new observations of other UGVs with finite delay.
+	Extending the these facts to a network of $N$ UGVs, we have the following proposition:
 	%\medskip
 	
 	\begin{figure}%[thpb]
 		\centering
-		\includegraphics[width=0.48\textwidth]{figures/data_exchange}
-		\caption{Example of LIFO with three UGVs using line communication topology}
+		\includegraphics[width=0.45\textwidth]{figures/data_exchange_switch}
+		\caption{Example of LIFO with three UGVs using switching line interaction topologies. The hollow arrow represents a communication link between two UGVs.\todohere{change 'robot' to UGV; add topology for k=0 and 7.}}
 		\label{fig:LIFO}
 	\end{figure}
 	
 	\begin{prop}\label{prop1}
 		%For a fixed and undirected network of $N$ UGVs, LIFO uses the shortest path(s) between $i^\text{th}$ and $j^\text{th}$ UGV to exchange observation, the length of which is the delay $\tau_{i,j}$ between these two UGVs.
 		Consider a network of $N$ UGVs with undirected switching interaction topologies.
-		Let $G[k]\in\bar{G} $ represent the interaction topology at time $k$. 
-		\todohere{may rephrase the following sentence}
-		If there exists an infinite sequence of contiguous, nonempty and uniformly bounded time intervals $\left[k_m,k_{m+1} \right),\,m=1,2,\dots$, starting at $k_1=0$, with the property that the union of graphs across each such interval is jointly connected, then an arbitrary pair of UGVs can exchange observations under LIFO. In addition, the delay between the part of UGVs is no greater than \small$(N-1)T_u$\normalsize, where \small$T_u=\sup\limits_{m=1,2,\dots}\left( k_{m+1}-k_m\right) T$ \normalsize is the upper bound of interval lengths.
+%		\todohere{may rephrase the following sentence}
+		If the following two conditions are satisfied:
+		(1) there exists an infinite sequence of time intervals $\left[k_m,k_{m+1} \right),\,m=1,2,\dots$, starting at $k_1=0$ and are contiguous, nonempty and uniformly bounded;
+		(2) the union of graphs across each such interval is jointly connected,
+		then arbitrary pair of UGVs can exchange observations under LIFO. In addition, the delay between the pair of UGVs is no greater than \small$(N-1)T_u$\normalsize, where \small$T_u=\sup\limits_{m=1,2,\dots}\left( k_{m+1}-k_m\right) T$ \normalsize is the upper bound of interval lengths.
 	\end{prop}
 	
 	\begin{proof} 
@@ -368,22 +384,23 @@
 	In this study, each UGV is equipped with a binary sensor, which only gives two types of observation: $1$ if the target is detected, and $0$ if no target is detected. 
 	The observation of $i^\text{th}$ sensor at $k^\text{th}$ time step is denoted as $z^i_k$.
 	% and subjects to Bernoulli distribution $B(1,p_{i,k})$.
-	The likelihood function that the target is detected is:
+	The likelihood function that the target is detected is
 	%The following likelihood function gives the probability for $i^\text{th}$ sensor to obtain $z^i_k$:
 	%\small\begin{equation}\label{eqn:bin_sensor}
 	%	P(z^i_k|x^T_k;x^R_k)=p^{z^i_k}_{i,k}(1-p_{i,k})^{1-z^i_k},
 	%\end{equation}\normalsize
 	%where $p_{i,k}=P(z^i_k=1|x^T_k;x^R_k)$; $x^T_k$ and $x^R_k$ denote the target and UGV position at $k$, respectively.
 	\small\begin{equation}\label{eqn:bin_sensor1}
-	P(z^i_k=1|x^T;x^{R,i})\in \left[0,1\right],\; x^T\in S
+	P(z^i_k=1|x^T;x^{R,i})\in \left[0,1\right],\; x^T\in S,
 	\end{equation}\normalsize
 	where $x^T$ denotes the target position; $x^{R,i}$ is the UGV position.
 	%; $X^T$ represents the set of all possible target positions.
-	Correspondingly, the likelihood function that no target is detected is:
+	Correspondingly, the likelihood function that no target is detected is
 	\small\begin{equation}\label{eqn:bin_sensor0}
-	P(z^i_k=0|x^T;x^{R,i})=1-P(z^i_k=1|x^T;x^{R,i})
+	P(z^i_k=0|x^T;x^{R,i})=1-P(z^i_k=1|x^T;x^{R,i}).
 	\end{equation}\normalsize
 	%\Cref{eqn:bin_sensor} actually defines a binary sensor model parameterized by $x^T_k$ and $x^R_k$.
+	
 	The combination of \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0} forms a binary sensor model parameterized by $x^T$ and $x^{R,i}$. 
 	For the purpose of simplicity, we will not explicitly write $x^{R,i}$ when no confusion may occur.
 	%, with which all observations are generated. 
@@ -459,9 +476,9 @@
 	\small\begin{align}\label{eqn:bayes_upd}
 		P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})
 		&=K_iP^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k-1})P(\mathbf{z}^{new,i}_k|x^T)\notag\\
-		&=K_iP^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k-1})\prod\limits_{z^j_{k^i_j}\in \mathbf{z}^{new,i}_k}P(z^j_{k^i_j}|x^T)dx^T
+		&=K_iP^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k-1})\prod\limits_{z^j_{k^i_j}\in \mathbf{z}^{new,i}_k}P(z^j_{k^i_j}|x^T)dx^T.
 	\end{align}
-	where $K_i$ is a normalization factor, given by:
+	where $K_i$ is a normalization factor, given by
 	%\small\begin{align*}
 	%K_i=1/\int P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
 	%\end{align*}\normalsize
@@ -470,10 +487,10 @@
 	%\end{align*}\normalsize
 	\small\begin{align*}
 		%K_i=1/\int P^i_{pdf}(x^T_k|\mathbf{z}^{new,i}_{1:k-1})P(\mathbf{z}^{new,i}_k|x^T_k)dx^T_k
-		K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k-1})\prod\limits_{z^j_{k^i_j}\in \mathbf{z}^{new,i}_k}P(z^j_{k^i_j}|x^T)dx^T
+		K_i=1/\int P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k-1})\prod\limits_{z^j_{k^i_j}\in \mathbf{z}^{new,i}_k}P(z^j_{k^i_j}|x^T)dx^T,
 	\end{align*}\normalsize
 	and $P^i_{pdf}(x^T_k|\mathbf{z}^{new,i}_{1:k})$ is called posterior individual PDF; $P(z^j_{k^i_j}|x^T_k)$ is the likelihood function of observation $z^j_{k^i_j}$, described in \Cref{eqn:bin_sensor1} and \Cref{eqn:bin_sensor0}.
-	Note that the factorization of $P(\mathbf{z}^{new,i}_k|x^T)$ in \cref{eqn:bayes_upd} results from the conditional independence of observations by different UGVs given the position of the target.
+	Note that the factorization of $P(\mathbf{z}^{new,i}_k|x^T)$ in \Cref{eqn:bayes_upd} results from the conditional independence of observations by different UGVs given the position of the target.
 	
 	%Utilizing the conditional independence property of observations, $P(\mathbf{z}^{new,i}_k|x^T)$ can be further factorized:
 	%\small\begin{equation}\label{eqn:LIFO-dbf-sta-tar}
@@ -612,7 +629,7 @@
 	%\subsection{Proof for static UGVs}
 	This section presents the main result of this study that LIFO-DBF achieves consistent and consensual estimation of target position provided that the union of interaction topologies across some time intervals are jointly connected frequently enough as the system evolves.
 %	results of LIFO-DBF under the condition of the interaction topology described in \cref{prop1}.
-	To be specific, considering $S$ is finite and $x^{T^*}$ is the true position of target, the consistency of LIFO-DBF for static UGVs is stated as follows: 
+	To be specific, considering $S$ is finite and $x^{T^*}$ is the true position of target, the consistency of LIFO-DBF for static UGVs is stated as follows:
 	%\todohere{converge to a set or treat the PDF as a r.v.?}
 	\begin{thm}\label{thm:LIFO-dbf-sta-tar}
 		Considering a network of $N$ static UGVs with the interaction topology condition in \cref{prop1}, the estimated target position converges to the true position of target in probability using LIFO-DBF, i.e.,
@@ -634,7 +651,7 @@
 	\begin{proof}	
 		For the purpose of clarity, define time sets of $i^\text{th}$ UGV, $\mathscr{K}^{i}_{j,k},\,j\in\left\lbrace 1,\dots,N\right\rbrace $, that contain time steps of observations by $j^\text{th}$ UGV that are contained in $\mathbf{z}^{new,i}_{1:k}$.
 		It is known from \Cref{cor1} that the cardinality of $\mathscr{K}^i_{j,k}$ has following property: \small$k-(N-1)T_u<|\mathscr{K}^i_{j,k}|\leq k$\normalsize.
-		Considering the conditional independence of observations given $x^T\in S$, the batch form of DBF at $k^\text{th}$ step is:
+		Considering the conditional independence of observations given $x^T\in S$, the batch form of DBF at $k^\text{th}$ step is
 		%\small\begin{subequations}
 		%	\begin{align*}
 		%		P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})
@@ -647,10 +664,9 @@
 		\end{equation}\normalsize
 		where $P^i_{pdf}$ is the initial individual PDF of $i^\text{th}$ UGV. 
 		%\addtocounter{equation}{-1}\\
-		
 		Comparing $P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})$ with $P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})$ yields
 		\small\begin{equation}\label{eqn:cmp}
-			\frac{P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l\in\mathscr{K}^{i}_{j,k}}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^*})\prod\limits_{j=1}^{N}\prod\limits_{l\in\mathscr{K}^{i}_{j,k}}P(z^j_l|x^{T^*})}
+			\frac{P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}=\frac{P^i_{pdf}(x^T)\prod\limits_{j=1}^{N}\prod\limits_{l\in\mathscr{K}^{i}_{j,k}}P(z^j_l|x^T)}{P^i_{pdf}(x^{T^*})\prod\limits_{j=1}^{N}\prod\limits_{l\in\mathscr{K}^{i}_{j,k}}P(z^j_l|x^{T^*})}.
 		\end{equation}\normalsize
 		
 		Take the logarithm of \Cref{eqn:cmp} and average it over $k$ steps:
@@ -665,7 +681,7 @@
 		
 		The binary observations subject to Bernoulli distribution $B(1,p_j)$, yielding
 		\small\begin{equation*}
-			P(z^j_l|x^T)=p^{z^j_l}_j(1-p_j)^{1-z^j_l}
+			P(z^j_l|x^T)=p^{z^j_l}_j(1-p_j)^{1-z^j_l},
 		\end{equation*}\normalsize
 		where $p_j=P(z^j_l=1|x^T)$. 
 		Utilizing the facts: (1) $z^j_l$ are conditionally independent samples from $B(1,p_j^*)$ and (2) $k-(N-1)T_u<|\mathscr{K}^i_{j,k}|\leq k$, the law of large numbers yields
@@ -673,13 +689,13 @@
 			%\lim\limits_{k\rightarrow \infty}
 			\frac{1}{k}\sum\limits_{l\in\mathscr{K}^i_{j,k}}z^j_l\overset{P}{\longrightarrow}p^*_j,\quad 
 			%\lim\limits_{k\rightarrow\infty}
-			\frac{1}{k}(|\mathscr{K}^i_{j,k}|-\sum\limits_{l\in\mathscr{K}^i_{j,k}}z^j_l)\overset{P}{\longrightarrow}1-p^*_j
+			\frac{1}{k}(|\mathscr{K}^i_{j,k}|-\sum\limits_{l\in\mathscr{K}^i_{j,k}}z^j_l)\overset{P}{\longrightarrow}1-p^*_j,
 		\end{equation*}\normalsize
 		where $p_j^*=P(z^j_l=1|x^{T^*})$ and ``$\overset{P}{\longrightarrow}$" denotes ``convergence in probability''.
 		Then, 
 		\small\begin{equation}\label{eqn:cmp_lim2}
 			%\lim\limits_{k\rightarrow \infty}
-			\frac{1}{k}\sum\limits_{l\in\mathscr{K}^i_{j,k}}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}\overset{P}{\longrightarrow}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
+			\frac{1}{k}\sum\limits_{l\in\mathscr{K}^i_{j,k}}\ln\frac{P(z^j_l|x^T)}{P(z^j_l|x^{T^*})}\overset{P}{\longrightarrow}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}.
 		\end{equation}\normalsize
 		
 		Note that the right-hand side of \Cref{eqn:cmp_lim2} achieves maximum value 0 if and only if $p_j=p_j^*$. 
@@ -691,26 +707,26 @@
 		Considering \Cref{eqn:cmp_lim1} and \Cref{eqn:cmp_lim2}, the limit of \Cref{eqn:cmp_log} is
 		\small \begin{equation}\label{eqn:lim}
 			% \lim\limits_{k\rightarrow \infty}
-			\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}\overset{P}{\longrightarrow}c(x^T)
+			\frac{1}{k}\ln\frac{P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}\overset{P}{\longrightarrow}c(x^T).
 			% \sum\limits_{j=1}^{N}p^*_j\ln \frac{p_j}{p^*_j}+(1-p^*_j)\ln \frac{1-p_j}{1-p^*_j}
 		\end{equation}\normalsize
 		
 		It follows from \Cref{eqn:lim} that
 		\small\begin{equation}\label{eqn:lim2}
-			\frac{P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1
+			\frac{P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})}{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})e^{c(x^T)k}}\overset{P}{\longrightarrow}1.
 		\end{equation}\normalsize
 		
 		Define the set $\bar{X}^T=S\setminus \left\lbrace x^{T^*}\right\rbrace$ and $c_M=\max\limits_{x^T\in\bar{X}^T}c(x^T)$.
+		
 		Then $c_M<0$.
 		Summing \Cref{eqn:lim2} over $\bar{X}^T$ yields
 		\small\begin{equation}\label{eqn:lim3}
-			\frac{\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}^T|
+			\frac{\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})e^{\left[c_M-c(x^T)\right]k}}{{P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}e^{c_Mk}}\overset{P}{\longrightarrow} |\bar{X}^T|,
 		\end{equation}\normalsize
 		where $|\bar{X}^T|$ denotes the cardinality of $\bar{X}^T$.
-		
 		Since $c_M<0$,  ${P^i_{pdf}(x^{T^*}|\mathbf{z}^{new,i}_{1:k})}e^{c_Mk}{\longrightarrow}0$, \Cref{eqn:lim3} implies
 		\begin{equation}\label{eqn:lim4}
-			\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0
+			\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})e^{\left[c_M-c(x^T)\right]k}\overset{P}{\longrightarrow}0.
 		\end{equation}
 		
 		Utilizing the relation 
@@ -719,13 +735,13 @@
 		\end{equation*}
 		it can be derived from \Cref{eqn:lim4} that
 		\small\begin{equation*}
-			\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})\overset{P}{\longrightarrow} 0
+			\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})\overset{P}{\longrightarrow} 0.
 		\end{equation*}\normalsize
 		
 		Therefore,
 		\footnotesize\begin{equation*}
 			\lim\limits_{k\rightarrow \infty}
-			P(x^T=x^{T^*}|\mathbf{z}^{new,i}_{1:k})=1-\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})=1
+			P(x^T=x^{T^*}|\mathbf{z}^{new,i}_{1:k})=1-\lim\limits_{k\rightarrow \infty}\sum\limits_{x^T\in \bar{X}^T}P^i_{pdf}(x^T|\mathbf{z}^{new,i}_{1:k})=1.
 		\end{equation*}\normalsize
 		%\begin{enumerate}
 		%	\item When $p_j\neq p^*_j$, i.e., $x^T\notin X^T_{eq}$,
@@ -790,10 +806,12 @@
 	%\end{proof}
 	%\medskip
 	
+	
 	\begin{rem}
 		%	When $X^T_{eq}$ only contains $x^{T^{*}}$, consistency means the estimated target position converges to true target position in probability. Additionally, 
-		Consistency implies that all individual PDFs converge to the same distribution, thus the consensus is also guaranteed.
-		It must be noted that traditional statistics dissemination-based methods only ensure consensus of individual PDFs \cite{bandyopadhyay2014distributed,julian2012distributed}. 
+		This paper can guarantee both consistency and consensus of individual PDF. 
+		The reason is that all individual PDFs converge to the same distribution, thus the consensus is also achieved.
+		Different from this study, traditional statistics dissemination-based methods only ensure consensus of individual PDFs \cite{bandyopadhyay2014distributed,julian2012distributed}. 
 		To the best knowledge of authors, there is no proof of consistency on estimated target position.
 		%	that guarantees the agreed PDF is close to the true target PDF.
 		%	 of individual PDFs.
@@ -801,74 +819,150 @@
 		%	However, there's no guarantee whether the agreed estimate is close to the actual target position.
 	\end{rem}
 	
-	\begin{rem}
-%		It is interesting to notice that the interaction topology condition for consistency and consensus in this study is similar to the condition for information consensus in \cite{jadbabaie2003coordination}.
-%		However, the problems studies in this work and in \cite{jadbabaie2003coordination} are different.
-		Different from \cite{jadbabaie2003coordination} that focuses on the information consensus by directly manipulating the communicated individual information among neighboring agents via average-consensus method.
-		This study does not modify the exchanged information themselves during the communication process.
-		Instead, consistency and consensus is achieved as a result of the dissemination of individual observations within the network.
-	\end{rem}
+%	\begin{rem}
+%%		It is interesting to notice that the interaction topology condition for consistency and consensus in this study is similar to the condition for information consensus in \cite{jadbabaie2003coordination}.
+%%		However, the problems studies in this work and in \cite{jadbabaie2003coordination} are different.
+%		Different from \cite{jadbabaie2003coordination} that focuses on the information consensus by directly manipulating the communicated individual information among neighboring agents via average-consensus method.
+%		This study does not modify the exchanged information themselves during the communication process.
+%		Instead, consistency and consensus is achieved as a result of the dissemination of individual observations within the network.		
+%	\end{rem}
 	
 	\section{Simulation}\label{sec:sim}
 	\begin{figure}%[thpb]
 		\centering
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1}
-			\caption{Step 1}\label{fig:sta_sen_sta_tar_sing1}
+		\begin{subfigure}[b]{0.3\textwidth}
+			\includegraphics[width=\textwidth]{figures/com_topo1}
+			\caption{Collection of changing topologies}\label{fig:com_topo1}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5}
-			\caption{Step 5}\label{fig:sta_sen_sta_tar_sing2}
+		~
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_1}
+			\caption{Step 1}\label{fig:sta_sen_sta_tar_sing1_1}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_10}
-			\caption{Step 10}\label{fig:sta_sen_sta_tar_sing3}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_5}
+			\caption{Step 5}\label{fig:sta_sen_sta_tar_sing1_2}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_30}
-			\caption{Step 30}\label{fig:sta_sen_sta_tar_sing4}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_20}
+			\caption{Step 20}\label{fig:sta_sen_sta_tar_sing1_3}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.4\textwidth}
-			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_30}
-			\caption{Step 30}\label{fig:sta_sen_sta_tar_all}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_50}
+			\caption{Step 50}\label{fig:sta_sen_sta_tar_sing1_4}
 		\end{subfigure}
-		\caption{(a)-(d) The $1^\text{st}$ UGV's individual PDFs at different times; (e) All UGVs' individual PDFs at time $30$. The square denotes the current UGV and stars represent other UGVs. The cross stands for the target.}
-		\label{fig:sta_sen_sta_tar}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_2_1}
+			\caption{Step 1}\label{fig:sta_sen_sta_tar_sing2_1}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_2_5}
+			\caption{Step 5}\label{fig:sta_sen_sta_tar_sing2_2}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_2_20}
+			\caption{Step 20}\label{fig:sta_sen_sta_tar_sing2_3}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_2_50}
+			\caption{Step 50}\label{fig:sta_sen_sta_tar_sing2_4}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_1}
+			\caption{Step 1}\label{fig:sta_sen_sta_tar_sing3_1}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_5}
+			\caption{Step 5}\label{fig:sta_sen_sta_tar_sing3_2}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_20}
+			\caption{Step 20}\label{fig:sta_sen_sta_tar_sing3_3}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_50}
+			\caption{Step 50}\label{fig:sta_sen_sta_tar_sing3_4}
+		\end{subfigure}
+%		\begin{subfigure}[b]{0.4\textwidth}
+%			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_30}
+%			\caption{Step 30}\label{fig:sta_sen_sta_tar_all}
+%		\end{subfigure}
+		\caption{Individual PDFs for two changing interaction topologies: (b)-(e) The $1^\text{st}$ UGV's individual PDFs at different times; (f)-(i) The $2^\text{nd}$ UGV's individual PDFs; (j)-(m) The $5^\text{nd}$ UGV's individual PDFs. The cross stands for the target.\todohere{four plots combine into one single plot. PDF evolution}}
+%			The square denotes the current UGV and stars represent other UGVs. The cross stands for the target.}
+		\label{fig:sta_sen_sta_tar1}
 	\end{figure}
 	
 	\begin{figure}%[thpb]
 		\centering
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_1}
-			\caption{Step 1}\label{fig:mov_sen_mov_tar_sing1}
+		\begin{subfigure}[b]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{figures/com_topo2}
+			\caption{Collection of changing topologies}\label{fig:com_topo2}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_5}
-			\caption{Step 5}\label{fig:mov_sen_mov_tar_sing2}
-		\end{subfigure}	
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_10}
-			\caption{Step 10}\label{fig:mov_sen_mov_tar_sing3}
-		\end{subfigure}	
-		\begin{subfigure}[b]{0.19\textwidth}
-			\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_40}
-			\caption{Step 40}\label{fig:mov_sen_mov_tar_sing4}
+		~
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_1_1}
+			\caption{Step 1}\label{fig:sta_sen_sta_tar_2_sing1_1}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.4\textwidth}
-			\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_40}
-			\caption{Step 40}\label{fig:mov_sen_mov_tar_all}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_1_5}
+			\caption{Step 5}\label{fig:sta_sen_sta_tar_2_sing1_2}
 		\end{subfigure}
-		\caption{(a)-(d) The $1^\text{st}$ UGV's individual PDFs at different times; (e) All UGVs' individual PDFs at time $40$.}
-		\label{fig:mov_sen_mov_tar}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_1_20}
+			\caption{Step 20}\label{fig:sta_sen_sta_tar_2_sing1_3}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_1_50}
+			\caption{Step 50}\label{fig:sta_sen_sta_tar_2_sing1_4}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_2_1}
+			\caption{Step 1}\label{fig:sta_sen_sta_tar_2_sing2_1}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_2_5}
+			\caption{Step 5}\label{fig:sta_sen_sta_tar_2_sing2_2}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_2_20}
+			\caption{Step 20}\label{fig:sta_sen_sta_tar_2_sing2_3}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_2_50}
+			\caption{Step 50}\label{fig:sta_sen_sta_tar_2_sing2_4}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_5_1}
+			\caption{Step 1}\label{fig:sta_sen_sta_tar_2_sing3_1}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_5_5}
+			\caption{Step 5}\label{fig:sta_sen_sta_tar_2_sing3_2}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_5_20}
+			\caption{Step 20}\label{fig:sta_sen_sta_tar_2_sing3_3}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.17\textwidth}
+			\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_2_single_5_50}
+			\caption{Step 50}\label{fig:sta_sen_sta_tar_2_sing3_4}
+		\end{subfigure}
+%		\begin{subfigure}[b]{0.4\textwidth}
+%			\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_40}
+%			\caption{Step 40}\label{fig:mov_sen_mov_tar_all}
+%		\end{subfigure}
+		\caption{Individual PDFs for three switching interaction topologies: (b)-(e) The $1^\text{st}$ UGV's individual PDFs; (f)-(i) The $2^\text{nd}$ UGV's individual PDFs; (j)-(m) The $5^\text{nd}$ UGV's individual PDFs. }
+		\label{fig:sta_sen_sta_tar2}
 	\end{figure}
 	
-	This section simulates two sets of changing interaction topologies to demonstrate the effectiveness of LIFO-DBF.
-	In both cases, six static UGVs are utilized and each UGV is equipped with a binary sensor. 
+	This section simulates two sets of dynamically changing interaction topologies to demonstrate the effectiveness of LIFO-DBF.
+	In both cases, six static UGVs, represented as one square and five stars in \cref{fig:sta_sen_sta_tar1} and \cref{fig:sta_sen_sta_tar2}, are utilized and each UGV is equipped with a binary sensor. 
+	The square represents the UGV, whose individual PDF is shown in the figure.
 	All sensors are modeled with identical Gaussian functions \cite{bonnie2012modelling}:
 	%\small\begin{align}\label{eqn:gauss_sensor}
 	\small\begin{subequations}\label{eqn:gauss_sensor}
 		\begin{align}
-			P(z^i_k=1|x_k^T;x_k^{R,i})&=e^{-\frac{1}{2}(x_k^T-x_k^{R,i})^T{\Sigma}^{-1}(x_k^T-x_k^{R,i})}\\
+			P(z^i_k=1|x_k^T;x_k^{R,i})&=e^{-\frac{1}{2}(x_k^T-x_k^{R,i})^T{\Sigma}^{-1}(x_k^T-x_k^{R,i})},\\
 			%		\exp\left\lbrace -\frac{1}{2}(x^T-x^R)^T{\Sigma}^{-1}(x^T-x^R)\right\rbrace \\
 			P(z^i_k=0|x_k^T;x_k^{R,i})&=1-P(z^i_k=1|x_k^T;x_k^{R,i}).
 		\end{align}
@@ -878,13 +972,13 @@
 	%Figure 4 shows the 1-D illustration of Gaussian binary sensor model.
 	%where $x^R$ denotes the UGV position, which is included in UGV state $y^R$.
 	
-	The collection of changing interaction topologies for the first scenario is shown in Fig. xxx.
-	Two topologies appears alternatively.
-	Notice that these two topologies are jointly connected.
+	\cref{fig:com_topo1} and \cref{fig:com_topo2} illustrates the collections of changing interaction topologies for the first and second scenario, respectively, one with two topologies and the other with three topologies.
+	The union of both collections are designed to be jointly connected.
+	In both scenarios, topologies appear alternatively such that they can be said to be connected frequently enough.
 %	The first scenario consists of six static UGVs and a single static target.
 	%, which acts as a proof of concept of LIFO-DBF for static target.
-	The second scenario subsequently deals with a collection of three topologies, as shown in Fig. xxx.
-	These three topologies are also jointly connected and appears alternatively.
+%	The second scenario subsequently deals with a collection of three topologies, as shown in \cref{fig:com_topo2}.
+%	These three topologies also appear alternatively and are therefore jointly connected with sufficient frequency.
 %	six moving UGVs for localizing a moving target. 
 %	UGV positions are randomly generated at each time step. 
 	%The third scenario contains six moving sensors and one moving target. 
@@ -892,15 +986,15 @@
 	
 %	\subsection{Static UGVs, Static Target}\label{subsec:sim1}
 	
-	The positions of six static UGVs are shown as stars and square in \cref{fig:sta_sen_sta_tar}.
+%	The positions of six static UGVs are shown as stars and square in \cref{fig:sta_sen_sta_tar1} and \cref{fig:sta_sen_sta_tar2}.
 	%Each UGV constantly receives binary observations of the target.
 	The LIFO-DBF is implemented on each UGV for target localization.
 %	The networked UGVs use a ring communication topology that each UGV can communicate with two fixed neighbors.
-	\cref{fig:sta_sen_sta_tar} shows the estimation results of the static target. 
+%	\cref{fig:sta_sen_sta_tar1} shows the estimation results of the static target. 
 	After the initial observation, each UGV forms a circular individual PDF, centered at its own position.
 	%\cref{fig:sta_sen_sta_tar_sing1} shows the individual PDF after initial observation for $1^\text{st}$ UGV.
 	The circular PDF happens because the Gaussian sensor model (\Cref{eqn:gauss_sensor}) only depends on the distance between UGV and target.
-	As more observations are used, the posterior individual PDF concentrates to the true location of the target (\cref{fig:sta_sen_sta_tar_sing4}), which accords with the consistency of LIFO-DBF.
+	As more observations are received by each UGV, the posterior individual PDF concentrates to the true location of the target, which accords with the consistency of LIFO-DBF.
 	%In fact, with the Guassian sensor model (\Cref{eqn:gauss_sensor}), all positions with equal distance to a UGV belong to the same equi-parameter set of the UGV.
 	%Considering the system of six UGVs located separately, the equi-parameter set that contains the actual target position only contains one element.
 	%\cref{fig:entropy} (a) shows the decrease of the entropy of each UGV's individual PDF, indicating the reduction of the uncertainty in PDF estimation.
@@ -966,34 +1060,17 @@
 	%\end{figure}
 	
 	\section{CONCLUSION}\label{sec:conclu}
-	This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-UGV network, utilizing the Latest-In-and-Full-Out (LIFO) protocol for observation exchange.
-	% for target search and tracking.
-	Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only exchanges with neighboring UGVs a full communication buffer consisting of latest available measurements,
-	%only receives the latest available measurements and then broadcasts full communication buffer to its direct neighborhood by single-hopping, 
-	which significantly reduces the transmission burden between each pair of UGVs from the order of environmental size to that of UGV number.
-	Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time via local communication among direct neighborhood.
-	%, with each UGV non-intermittently receiving observations of all others.
-	It is worth noting that LIFO is a general measurement exchange protocol and applicable to various sorts of sensors.
-	Two types of LIFO-based DBF algorithms are proposed to estimate individual PDF for static and moving target, respectively. 
-	For the static target, each UGV locally fuses the newly received observations while for the moving target, a record set of historical observations is stored and updated. 
-	%Upon obtaining the latest available observations of all UGVs, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
-	The consistency of LIFO-based DBF is proved by utilizing the law of large numbers, which ensures that estimated target position converges in probability to the true target position when the number of observations tends to infinity.
-	%the agreement between UGVs' estimated target position and the actual position.
-	%The effectiveness of this method is demonstrated by simulations.
+	This paper presents a distributed Bayesian filtering (DBF) method for a network of multiple unmanned ground vehicles (UGVs) under dynamically changing interaction topologies. 
+	The information exchange among UGVs relies on a measurement dissemination scheme, called Latest-In-and-Full-Out (LIFO) protocol. Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only sends a full communication buffer consisting of latest available measurements, which significantly reduces the transmission burden between each pair of UGVs from the order of environmental size to that of UGV number. 
+	Under the condition that the union of undirected switching topologies
+	%		 across some time intervals
+	is connected frequently enough,
+	%		 as system evolves,
+	LIFO can disseminate observations over the network within finite time. The LIFO-based DBF algorithm is then derived to estimate individual posterior density function (PDF) for target localization in a static environment. The consistency of this algorithm is proved by utilizing the law of large numbers, ensuring that each individual estimate of target position converges in probability to the true value when the number of observations tends to infinity.
 	
-	%In this study, we proposed the Latest-In-and-Full-Out (LIFO) strategy for distributed Bayesian filters (LIFO-DBF) in a multi-UGV network.
-	%% with the application of distributed search and tracking (SAT) of target.
-	%With fixed communication topology, LIFO guarantees the global dissemination of all UGVs' observations over the network only via local exchange of observations among neighbors.
-	%Once elements in communication buffer (CB) gets filled, each UGV can receive and update its CB non-intermittently under LIFO.
-	%Two LIFO-DBFs are proposed for SAT of a static and a moving target, respectively. 
-	%For the static target, each UGV locally fuses the latest knowledge of all UGVs' observations by only considering the updating step of the Bayesian filter. 
-	%For the moving target, each UGV maintains a triangle matrix of historical observations and an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps upon obtaining the latest available observations of all UGVs. 
-	%The consistency of LIFO-DBF is proved by showing the asymptotic concentration of posterior individual PDF to the equi-parameter set containing the actual state, ensuring the agreement between UGVs' state estimate using LIFO-DBF and the actual environment state.
-	%Simulations demonstrate the effectiveness of LIFO-DBF for SAT of both static and moving targets.
-	
-	Future work includes how to handle other types of sensors and switching topology.
+	Future work includes how to handle other types of sensors and directed interaction topologies.
 	Other types of sensors may have biased observations and subject to non-Bernoulli distribution, which complicates the design and analysis of LIFO-based Bayesian filters.
-	The switching topology, including package loss, can lead to unpredictable delay and intermittent transmission, which may affect the consistency and consensus of LIFO-DBF. 
+	The directed interaction topologies, due to the constraint of unidirectional communication, may affect condition for the consistency and consensus of LIFO-DBF. 
 	%In addition, combining LIFO-DBF with UGV motion planning is promising for more effective SAT of target.
 	
 	
@@ -1027,7 +1104,7 @@
 	
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\bibliographystyle{IEEEtran}
+	{\footnotesize\bibliographystyle{IEEEtran}}
 	%\bibliographystyle{bibtex}
 	\bibliography{references}
 	

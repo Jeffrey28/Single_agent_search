@@ -156,17 +156,18 @@ a = dir(folder_path);
 %
 % read sta_sen_sta_tar_xxx.fig, mov_sen_sta_tar_xxx.fig, mov_sen_mov_tar_xxx.fig 
 for ii = 1:size(a,1)
-    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
-%         file_name_list{cnt} = a(ii).name;
-%         cnt = cnt+1;
+    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar_2_single')) && ~isempty(strfind(a(ii).name,'fig'))
+        if ~isempty(strfind(a(ii).name,'1')) || ~isempty(strfind(a(ii).name,'5'))...
+                || ~isempty(strfind(a(ii).name,'20')) || ~isempty(strfind(a(ii).name,'50'))
+            file_name_list{cnt} = a(ii).name;
+            cnt = cnt+1;
+        end
     elseif ~isempty(strfind(a(ii).name,'mov_sen_sta_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
 %         file_name_list{cnt} = a(ii).name;
 %         cnt = cnt+1;
-    elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
-    
-%     elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar')) && isempty(strfind(a(ii).name,'single')) && ~isempty(strfind(a(ii).name,'fig'))
-        file_name_list{cnt} = a(ii).name;
-        cnt = cnt+1;
+    elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))   
+%         file_name_list{cnt} = a(ii).name;
+%         cnt = cnt+1;
     end
 end
 
@@ -181,10 +182,10 @@ for jj = 1:length(file_name_list)
     hline = findobj(h,'type','line');
     nLines = length(hline);
     
-%     for iterLine = 1:nLines
-%         mInd = nLines-iterLine+1;
-%         set(hline(mInd),'MarkerSize',20)
-%     end
+    for iterLine = 1:nLines
+        mInd = nLines-iterLine+1;
+        set(hline(mInd),'MarkerSize',20)
+    end
     
     sp = 1; % start point for reading the name
     ep = strfind(file_name,'.fig')-1; % end point for reading the name
