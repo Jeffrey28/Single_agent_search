@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  28 SEP 2015 20:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  30 SEP 2015 21:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -771,322 +771,97 @@ Overfull \hbox (1.42546pt too wide) detected at line 675
 File: figures/com_topo1.pdf Graphic file (type pdf)
 
 <use figures/com_topo1.pdf>
-Package pdftex.def Info: figures/com_topo1.pdf used on input line 834.
+Package pdftex.def Info: figures/com_topo1.pdf used on input line 836.
 (pdftex.def)             Requested size: 151.76854pt x 66.38931pt.
 
-<figures/sta_sen_sta_tar_single_1_1.pdf, id=66, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_1_1.pdf Graphic file (type pdf)
+<figures/sta_sen_sta_tar_single_1_combo.pdf, id=66, 989.4492pt x 871.0181pt>
+File: figures/sta_sen_sta_tar_single_1_combo.pdf Graphic file (type pdf)
 
-<use figures/sta_sen_sta_tar_single_1_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_1.pdf used on input l
-ine 839.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
+<use figures/sta_sen_sta_tar_single_1_combo.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_combo.pdf used on inp
+ut line 841.
+(pdftex.def)             Requested size: 177.06458pt x 155.85944pt.
 
-<figures/sta_sen_sta_tar_single_1_5.pdf, id=67, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_1_5.pdf Graphic file (type pdf)
+<figures/sta_sen_sta_tar_single_2_combo.pdf, id=67, 989.4492pt x 871.0181pt>
+File: figures/sta_sen_sta_tar_single_2_combo.pdf Graphic file (type pdf)
 
-<use figures/sta_sen_sta_tar_single_1_5.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_5.pdf used on input l
-ine 843.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
+<use figures/sta_sen_sta_tar_single_2_combo.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_single_2_combo.pdf used on inp
+ut line 857.
+(pdftex.def)             Requested size: 177.06458pt x 155.85944pt.
 
-<figures/sta_sen_sta_tar_single_1_20.pdf, id=68, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_1_20.pdf Graphic file (type pdf)
+<figures/sta_sen_sta_tar_single_5_combo.pdf, id=68, 989.4492pt x 871.0181pt>
+File: figures/sta_sen_sta_tar_single_5_combo.pdf Graphic file (type pdf)
 
-<use figures/sta_sen_sta_tar_single_1_20.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_20.pdf used on input 
-line 847.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
+<use figures/sta_sen_sta_tar_single_5_combo.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_combo.pdf used on inp
+ut line 873.
+(pdftex.def)             Requested size: 177.06458pt x 155.85944pt.
 
-<figures/sta_sen_sta_tar_single_1_50.pdf, id=69, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_1_50.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_1_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_50.pdf used on input 
-line 851.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_2_1.pdf, id=70, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_2_1.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_2_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_2_1.pdf used on input l
-ine 855.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_2_5.pdf, id=71, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_2_5.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_2_5.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_2_5.pdf used on input l
-ine 859.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_2_20.pdf, id=72, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_2_20.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_2_20.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_2_20.pdf used on input 
-line 863.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_2_50.pdf, id=73, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_2_50.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_2_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_2_50.pdf used on input 
-line 867.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_5_1.pdf, id=74, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_5_1.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_5_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_1.pdf used on input l
-ine 871.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_5_5.pdf, id=75, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_5_5.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_5_5.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_5.pdf used on input l
-ine 875.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_5_20.pdf, id=76, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_5_20.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_5_20.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_20.pdf used on input 
-line 879.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_single_5_50.pdf, id=77, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_single_5_50.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_single_5_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_50.pdf used on input 
-line 883.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-
-LaTeX Warning: Float too large for page by 14.3628pt on input line 893.
-
-<figures/com_topo2.pdf, id=78, 5598.5161pt x 1580.99619pt>
+<figures/com_topo2.pdf, id=69, 5598.5161pt x 1580.99619pt>
 File: figures/com_topo2.pdf Graphic file (type pdf)
 
 <use figures/com_topo2.pdf>
-Package pdftex.def Info: figures/com_topo2.pdf used on input line 898.
+Package pdftex.def Info: figures/com_topo2.pdf used on input line 901.
 (pdftex.def)             Requested size: 227.64894pt x 64.2664pt.
 
-<figures/sta_sen_sta_tar_2_single_1_1.pdf, id=79, 481.94981pt x 412.82202pt>
-File: figures/sta_sen_sta_tar_2_single_1_1.pdf Graphic file (type pdf)
+<figures/sta_sen_sta_tar_2_single_1_combo.pdf, id=70, 985.96039pt x 872.55742pt
+>
+File: figures/sta_sen_sta_tar_2_single_1_combo.pdf Graphic file (type pdf)
+ <use figures/sta_sen_sta_tar_2_single_1_combo.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_1_combo.pdf used on i
+nput line 906.
+(pdftex.def)             Requested size: 177.06458pt x 156.69408pt.
 
-<use figures/sta_sen_sta_tar_2_single_1_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_1_1.pdf used on input
- line 903.
-(pdftex.def)             Requested size: 86.00037pt x 73.66223pt.
+<figures/sta_sen_sta_tar_2_single_2_combo.pdf, id=71, 989.4492pt x 872.55742pt>
+File: figures/sta_sen_sta_tar_2_single_2_combo.pdf Graphic file (type pdf)
+<use figures/sta_sen_sta_tar_2_single_2_combo.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_2_combo.pdf used on i
+nput line 922.
+(pdftex.def)             Requested size: 177.06458pt x 156.13487pt.
 
-<figures/sta_sen_sta_tar_2_single_1_5.pdf, id=80, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_1_5.pdf Graphic file (type pdf)
+<figures/sta_sen_sta_tar_2_single_5_combo.pdf, id=72, 989.4492pt x 871.0181pt>
+File: figures/sta_sen_sta_tar_2_single_5_combo.pdf Graphic file (type pdf)
 
-<use figures/sta_sen_sta_tar_2_single_1_5.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_1_5.pdf used on input
- line 907.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
+<use figures/sta_sen_sta_tar_2_single_5_combo.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_5_combo.pdf used on i
+nput line 938.
+(pdftex.def)             Requested size: 177.06458pt x 155.85944pt.
+ [5] [6 <./figures/com_topo1.pdf> <./figures/sta_sen_sta_tar_single_1_combo.pdf
 
-<figures/sta_sen_sta_tar_2_single_1_20.pdf, id=81, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_1_20.pdf Graphic file (type pdf)
 
-<use figures/sta_sen_sta_tar_2_single_1_20.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_1_20.pdf used on inpu
-t line 911.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
+pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_1_c
+ombo.pdf): PDF inclusion: multiple pdfs with page group included in a single pa
+ge
+> <./figures/sta_sen_sta_tar_single_2_combo.pdf
 
-<figures/sta_sen_sta_tar_2_single_1_50.pdf, id=82, 481.94984pt x 412.82202pt>
-File: figures/sta_sen_sta_tar_2_single_1_50.pdf Graphic file (type pdf)
+pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_2_c
+ombo.pdf): PDF inclusion: multiple pdfs with page group included in a single pa
+ge
+> <./figures/sta_sen_sta_tar_single_5_combo.pdf
 
-<use figures/sta_sen_sta_tar_2_single_1_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_1_50.pdf used on inpu
-t line 915.
-(pdftex.def)             Requested size: 86.00037pt x 73.66223pt.
-
-<figures/sta_sen_sta_tar_2_single_2_1.pdf, id=83, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_2_1.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_2_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_2_1.pdf used on input
- line 919.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_2_5.pdf, id=84, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_2_5.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_2_5.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_2_5.pdf used on input
- line 923.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_2_20.pdf, id=85, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_2_20.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_2_20.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_2_20.pdf used on inpu
-t line 927.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_2_50.pdf, id=86, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_2_50.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_2_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_2_50.pdf used on inpu
-t line 931.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_5_1.pdf, id=87, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_5_1.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_5_1.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_5_1.pdf used on input
- line 935.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_5_5.pdf, id=88, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_5_5.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_5_5.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_5_5.pdf used on input
- line 939.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_5_20.pdf, id=89, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_5_20.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_5_20.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_5_20.pdf used on inpu
-t line 943.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
-
-<figures/sta_sen_sta_tar_2_single_5_50.pdf, id=90, 481.94987pt x 412.82205pt>
-File: figures/sta_sen_sta_tar_2_single_5_50.pdf Graphic file (type pdf)
-
-<use figures/sta_sen_sta_tar_2_single_5_50.pdf>
-Package pdftex.def Info: figures/sta_sen_sta_tar_2_single_5_50.pdf used on inpu
-t line 947.
-(pdftex.def)             Requested size: 86.00037pt x 73.66225pt.
- [5] [6 <./figures/com_topo1.pdf> <./figures/sta_sen_sta_tar_single_1_1.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_1_1
-.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_1_5.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_1_5
-.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_1_20.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_1_2
-0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_1_50.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_1_5
-0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_2_1.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_2_1
-.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_2_5.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_2_5
-.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_2_20.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_2_2
-0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_2_50.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_2_5
-0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_5_1.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5_1
-.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_5_5.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5_5
-.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_5_20.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5_2
-0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_single_5_50.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5_5
-0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
+pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_single_5_c
+ombo.pdf): PDF inclusion: multiple pdfs with page group included in a single pa
+ge
 > <./figures/com_topo2.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/com_topo2.pdf): PDF inclus
 ion: multiple pdfs with page group included in a single page
-> <./figures/sta_sen_sta_tar_2_single_1_1.pdf
+> <./figures/sta_sen_sta_tar_2_single_1_combo.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_1
-_1.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
-> <./figures/sta_sen_sta_tar_2_single_1_5.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_1
-_5.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
-> <./figures/sta_sen_sta_tar_2_single_1_20.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_1
-_20.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
-e
-> <./figures/sta_sen_sta_tar_2_single_1_50.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_1
-_50.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
-e
-> <./figures/sta_sen_sta_tar_2_single_2_1.pdf
+_combo.pdf): PDF inclusion: multiple pdfs with page group included in a single 
+page
+> <./figures/sta_sen_sta_tar_2_single_2_combo.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_2
-_1.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
-> <./figures/sta_sen_sta_tar_2_single_2_5.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_2
-_5.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
-> <./figures/sta_sen_sta_tar_2_single_2_20.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_2
-_20.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
-e
-> <./figures/sta_sen_sta_tar_2_single_2_50.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_2
-_50.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
-e
-> <./figures/sta_sen_sta_tar_2_single_5_1.pdf
+_combo.pdf): PDF inclusion: multiple pdfs with page group included in a single 
+page
+> <./figures/sta_sen_sta_tar_2_single_5_combo.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_5
-_1.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
-> <./figures/sta_sen_sta_tar_2_single_5_5.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_5
-_5.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
-> <./figures/sta_sen_sta_tar_2_single_5_20.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_5
-_20.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
-e
-> <./figures/sta_sen_sta_tar_2_single_5_50.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./figures/sta_sen_sta_tar_2_single_5
-_50.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
-e
+_combo.pdf): PDF inclusion: multiple pdfs with page group included in a single 
+page
 >] (./ACC2016.bbl)
 
 ** Conference Paper **
@@ -1101,13 +876,13 @@ Before submitting the final camera ready copy, remember to:
 
 [7] (./ACC2016.aux) ) 
 Here is how much of TeX's memory you used:
- 17309 strings out of 493117
- 341225 string characters out of 6135433
- 402216 words of memory out of 5000000
- 20406 multiletter control sequences out of 15000+600000
+ 17147 strings out of 493117
+ 335093 string characters out of 6135433
+ 396216 words of memory out of 5000000
+ 20262 multiletter control sequences out of 15000+600000
  54427 words of font info for 125 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 62i,18n,75p,1344b,532s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 62i,18n,75p,1330b,541s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8
 r.enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10
 .pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx6.p
@@ -1143,10 +918,10 @@ nts/type1/public/rsfs/rsfs5.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1
 es/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a
 .pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ACC2016.pdf (7 pages, 933882 bytes).
+Output written on ACC2016.pdf (7 pages, 781435 bytes).
 PDF statistics:
- 631 PDF objects out of 1000 (max. 8388607)
- 422 compressed objects within 5 object streams
+ 522 PDF objects out of 1000 (max. 8388607)
+ 356 compressed objects within 4 object streams
  0 named destinations out of 1000 (max. 500000)
- 153 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 63 words of extra memory for PDF output out of 10000 (max. 10000000)
 
