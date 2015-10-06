@@ -1,0 +1,88 @@
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9) (preloaded format=pdftex 2013.12.17)  29 JUL 2014 19:51
+entering extended mode
+**E:/my*files/TortoiseHg/Papers/DSCC*2014/references.bib
+("E:/my files/TortoiseHg/Papers/DSCC 2014/references.bib"
+Overfull \hbox (1.02274pt too wide) in paragraph at lines 41--51
+[]\tenrm @articletisdale2009autonomous, ti-tle=Autonomous UAV path plan-ning an
+d es-ti-ma-tion, au-thor=Tisdale,|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm a
+.\tenrm r
+.\tenrm t
+.etc.
+
+
+Overfull \hbox (12.8838pt too wide) in paragraph at lines 79--88
+[]\tenrm @articlekalman1960new, ti-tle=A new ap-proach to lin-ear fil-ter-ing a
+nd pre-dic-tion prob-lems, au-thor=Kalman,|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm a
+.\tenrm r
+.\tenrm t
+.etc.
+
+
+Overfull \hbox (5.41261pt too wide) in paragraph at lines 134--142
+\tenrm au-thor=Schumacher, Corey and Chan-dler, Phillip and Pachter, Meir and P
+achter, Lior, book-ti-tle=Proceedings|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\tenrm a
+.\tenrm u
+.\discretionary
+..\tenrm -
+.\tenrm t
+.\tenrm h
+.etc.
+
+
+Overfull \hbox (11.9127pt too wide) in paragraph at lines 151--159
+[]\tenrm @inproceedingsponda2012distributed, ti-tle=Distributed chance-constrai
+ned task al-lo-ca-tion for au-tonomous|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm i
+.\tenrm n
+.\tenrm p
+.etc.
+
+
+Overfull \hbox (8.27164pt too wide) in paragraph at lines 151--159
+\tenrm multi-agent teams, au-thor=Ponda, Sameera S and John-son, Luke B and How
+, Jonathan P, book-ti-tle=American|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\tenrm m
+.\kern-0.27779
+.\tenrm u
+.\tenrm l
+.\tenrm t
+.etc.
+
+[1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}]
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.197 @phdthesis{karami_
+                        decision_2011,
+? 
+! Emergency stop.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.197 @phdthesis{karami_
+                        decision_2011,
+End of file on the terminal!
+
+!  ==> Fatal error occurred, no output PDF file produced!
