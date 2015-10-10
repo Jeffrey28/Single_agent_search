@@ -1,0 +1,97 @@
+\begin{thebibliography}{10}
+
+\bibitem{lau2006probabilistic}
+Lau, H., Huang, S., and Dissanayake, G., 2006.
+\newblock ``Probabilistic search for a moving target in an indoor
+  environment''.
+\newblock In Intelligent Robots and Systems, 2006 IEEE/RSJ International
+  Conference on, IEEE, pp.~3393--3398.
+
+\bibitem{furukawa2006recursive}
+Furukawa, T., Bourgault, F., Lavis, B., and Durrant-Whyte, H.~F., 2006.
+\newblock ``Recursive bayesian search-and-tracking using coordinated uavs for
+  lost targets''.
+\newblock In Robotics and Automation, 2006. ICRA 2006. Proceedings 2006 IEEE
+  International Conference on, IEEE, pp.~2521--2526.
+
+\bibitem{chung2009probabilistic}
+Chung, T.~H., Kress, M., and Royset, J.~O., 2009.
+\newblock ``Probabilistic search optimization and mission assignment for
+  heterogeneous autonomous agents''.
+\newblock In Robotics and Automation, 2009. ICRA'09. IEEE International
+  Conference on, IEEE, pp.~939--945.
+
+\bibitem{bourgault2006optimal}
+Bourgault, F., Furukawa, T., and Durrant-Whyte, H.~F., 2006.
+\newblock ``Optimal search for a lost target in a bayesian world''.
+\newblock In Field and service robotics, Springer, pp.~209--222.
+
+\bibitem{tisdale2009autonomous}
+Tisdale, J., Kim, Z., and Hedrick, J.~K., 2009.
+\newblock ``Autonomous uav path planning and estimation''.
+\newblock {\em Robotics \& Automation Magazine, IEEE, \textbf{ 16}}(2),
+  pp.~35--42.
+
+\bibitem{ryan2010particle}
+Ryan, A., and Hedrick, J.~K., 2010.
+\newblock ``Particle filter based information-theoretic active sensing''.
+\newblock {\em Robotics and Autonomous Systems, \textbf{ 58}}(5), pp.~574--584.
+
+\bibitem{kulich2014single}
+Kulich, M., Preucil, L., and Bront, J. J.~M., 2014.
+\newblock ``Single robot search for a stationary object in an unknown
+  environment''.
+\newblock In Robotics and Automation (ICRA), 2014 IEEE International Conference
+  on, IEEE, pp.~5830--5835.
+
+\bibitem{bonnie2012modelling}
+Bonnie, D., Candido, S., Bretl, T., and Hutchinson, S., 2012.
+\newblock ``Modelling search with a binary sensor utilizing self-conjugacy of
+  the exponential family''.
+\newblock In Robotics and Automation (ICRA), 2012 IEEE International Conference
+  on, IEEE, pp.~3975--3982.
+
+\bibitem{bertuccelli2006search}
+Bertuccelli, L.~F., and How, J.~P., 2006.
+\newblock ``Search for dynamic targets with uncertain probability maps''.
+\newblock In American Control Conference, 2006, IEEE, pp.~6--pp.
+
+\bibitem{ferrer2014behavior}
+Ferrer, G., and Sanfeliu, A., 2014.
+\newblock ``Behavior estimation for a complete framework for human motion
+  prediction in crowded environments''.
+\newblock In Robotics and Automation (ICRA), 2014 IEEE International Conference
+  on, IEEE, pp.~5940--5945.
+
+\bibitem{bruce2004better}
+Bruce, A., and Gordon, G., 2004.
+\newblock ``Better motion prediction for people-tracking''.
+\newblock In Proc. of the Int. Conf. on Robotics \& Automation (ICRA),
+  Barcelona, Spain.
+
+\bibitem{kalman1960new}
+Kalman, R.~E., 1960.
+\newblock ``A new approach to linear filtering and prediction problems''.
+\newblock {\em Journal of Fluids Engineering, \textbf{ 82}}(1), pp.~35--45.
+
+\bibitem{harvey1990forecasting}
+Harvey, A.~C., 1990.
+\newblock {\em Forecasting, structural time series models and the Kalman
+  filter}.
+\newblock Cambridge university press.
+
+\bibitem{hoffmann2010mobile}
+Hoffmann, G.~M., and Tomlin, C.~J., 2010.
+\newblock ``Mobile sensor network control using mutual information methods and
+  particle filters''.
+\newblock {\em Automatic Control, IEEE Transactions on, \textbf{ 55}}(1),
+  pp.~32--47.
+
+\bibitem{bilmes1998gentle}
+Bilmes, J.~A., et~al., 1998.
+\newblock ``A gentle tutorial of the em algorithm and its application to
+  parameter estimation for gaussian mixture and hidden markov models''.
+\newblock {\em International Computer Science Institute, \textbf{ 4}}(510),
+  p.~126.
+
+\end{thebibliography}

@@ -1,0 +1,61 @@
+This is BibTeX, Version 0.99d (TeX Live 2014)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: ACC2016.aux
+The style file: IEEEtran.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: references.bib
+Repeated entry---line 332 of file references.bib
+ : @article{hlinka2012likelihood
+ :                              ,
+I'm skipping whatever remains of this entry
+-- IEEEtran.bst version 1.11 (2003/04/02) by Michael Shell.
+-- http://www.ctan.org/tex-archive/macros/latex/contrib/supported/IEEEtran/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+
+Done.
+You've used 25 entries,
+            3975 wiz_defined-function locations,
+            944 strings with 12129 characters,
+and the built_in function-call counts, 23208 in all, are:
+= -- 1902
+> -- 505
+< -- 258
++ -- 291
+- -- 70
+* -- 1136
+:= -- 3328
+add.period$ -- 61
+call.type$ -- 25
+change.case$ -- 25
+chr.to.int$ -- 609
+cite$ -- 25
+duplicate$ -- 1591
+empty$ -- 1809
+format.name$ -- 92
+if$ -- 5415
+int.to.chr$ -- 0
+int.to.str$ -- 25
+missing$ -- 247
+newline$ -- 95
+num.names$ -- 25
+pop$ -- 521
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 2
+skip$ -- 1801
+stack$ -- 0
+substring$ -- 1447
+swap$ -- 1419
+text.length$ -- 55
+text.prefix$ -- 0
+top$ -- 5
+type$ -- 0
+warning$ -- 0
+while$ -- 122
+width$ -- 27
+write$ -- 274
+(There was 1 error message)
