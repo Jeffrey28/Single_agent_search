@@ -6,10 +6,11 @@
 % (3) Strategy: (3.1) Observation Exchange strategy (Neighbourhood or Global-Exchange)
 %               (3.2) Probability Map Consensus strategy (single step or multi-step)
 %% 2015 June; All Copyright Reserved
+% Fixed topology case
 
 clear; clc; close all
 Selection1 = 5;    % select observaition exchange and fusion strategies
-max_EstStep = 200; % max step
+max_EstStep = 110; % max step
 switch Selection1
     case 1,  ObservExch='off'; ConsenStep=0;
     case 2,  ObservExch='off'; ConsenStep=10;
@@ -20,7 +21,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 1; % select the motion of agents and target
+Selection2 = 4; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -73,6 +74,7 @@ ConsenFigure=0; % if 1, draw the concensus steps
     
 
 %% Path Planning setup
+%{
 hor = 3; % planning horizon
 % desired distances among neighboring agents
 % desDist = 10*[0 1 sqrt(3) 0 sqrt(3) 1; 
@@ -99,30 +101,33 @@ all_comb = {};
 for ii = 1:hor
     all_comb = [all_comb;num2cell(nchoosek(1:hor,ii),2)];
 end
+%}
 
 %% Multi-Robot Setup
 NumOfRobot = 6;
 hf1=figure(1); set(hf1,'Position',[50,50,1000,600]); % for filtering cycle
 hf3 = figure(3);
 if ConsenFigure==1, hCon=figure(2); set(hCon,'Position',[200,50,1000,600]); end % for consensus cycle
-% x_set = 10*([0,sqrt(3)/2,sqrt(3)/2,0,-sqrt(3)/2,-sqrt(3)/2]+1);
-% y_set = 10*([1,1/2,-1/2,-1,-1/2,1/2]+2);
 switch Selection2
     case {1,2,3,4}
         x_set = [20,40,60,80,60,40];
         y_set = [50,20,20,50,80,80];
-%     case {3,4}
-%         x_set = linspace(5,fld.x-5,6);
-%         y_set = 10*ones(1,NumOfRobot);
 end
 
 for i=1:NumOfRobot
-    rbt(i).x = x_set(i)+0.1*rand(1,1); % sensor position.x
-    rbt(i).y = y_set(i)+0.1*rand(1,1); % sensor position.x
-    rbt(i).speedLimit = 0;
+    if r_move == 0
+        rbt(i).x = x_set(i); % sensor position.x
+        rbt(i).y = y_set(i); % sensor position.x
+    elseif r_move == 1
+        rbt(i).T = 5; % period of circling motion
+        rbt(i).center = [x_set(i);y_set(i)];
+        rbt(i).r = 10;
+        rbt(i).w = 2*pi/rbt(i).T;
+        rbt(i).x = x_set(i);
+        rbt(i).y = y_set(i)+rbt(i).r;
+    end
+    
     rbt(i).map = ones(fld.x,fld.y);
-%     rbt(i).map = zeros(fld.x,fld.y);
-%     rbt(i).map(fld.tx-5:fld.tx+5,fld.ty-5:fld.ty+5) = 1;
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
 %     if tar_move == 1
         rbt(i).talign_map = rbt(i).map; % store the prob_map for observations with same tiem index, i.e. P(x|z^1_1:k,...,z^N_1:k)
@@ -149,47 +154,12 @@ rbt(5).color = 'm';
 rbt(6).color = 'w';
 
 %% Communication structure
-rbt(1).top(1).neighbour=[2,6];
-rbt(2).top(1).neighbour=1;
-rbt(3).top(1).neighbour=4;
-rbt(4).top(1).neighbour=[3,5];
-rbt(5).top(1).neighbour=4;
-rbt(6).top(1).neighbour=1;
-
-rbt(1).top(2).neighbour=0;
-rbt(2).top(2).neighbour=3;
-rbt(3).top(2).neighbour=2;
-rbt(4).top(2).neighbour=0;
-rbt(5).top(2).neighbour=6;
-rbt(6).top(2).neighbour=5;
-
-% rbt(1).top(1).neighbour=6;
-% rbt(2).top(1).neighbour=0;
-% rbt(3).top(1).neighbour=5;
-% rbt(4).top(1).neighbour=0;
-% rbt(5).top(1).neighbour=3;
-% rbt(6).top(1).neighbour=1;
-% 
-% rbt(1).top(2).neighbour=2;
-% rbt(2).top(2).neighbour=1;
-% rbt(3).top(2).neighbour=0;
-% rbt(4).top(2).neighbour=5;
-% rbt(5).top(2).neighbour=4;
-% rbt(6).top(2).neighbour=0;
-% 
-% rbt(1).top(3).neighbour=0;
-% rbt(2).top(3).neighbour=3;
-% rbt(3).top(3).neighbour=2;
-% rbt(4).top(3).neighbour=0;
-% rbt(5).top(3).neighbour=6;
-% rbt(6).top(3).neighbour=5;
-
-% rbt(1).neighbour=[2,6];
-% rbt(2).neighbour=[1,3];
-% rbt(3).neighbour=[2,4];
-% rbt(4).neighbour=[3,5];
-% rbt(5).neighbour=[4,6];
-% rbt(6).neighbour=[1,5];
+rbt(1).neighbour=[2,6];
+rbt(2).neighbour=[1,3];
+rbt(3).neighbour=[2,4];
+rbt(4).neighbour=[3,5];
+rbt(5).neighbour=[4,6];
+rbt(6).neighbour=[1,5];
 
 %% Robot Buffer for Observation Exchange
 for i=1:NumOfRobot
@@ -212,20 +182,15 @@ err.time = [];
 err.rbt = [];
 while (1) %% Filtering Time Step
     figure(1); clf(hf1);
-    for i = 1:NumOfRobot
-        tmp_hf = figure(i+2); 
-        clf(tmp_hf);
-    end
+%     for i = 1:NumOfRobot
+%         tmp_hf = figure(i+2); 
+%         clf(tmp_hf);
+%     end
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Target Movement
-%     if rem(count,2) == 1
-        fld.tx = fld.tx + fld.target.speed * fld.target.dx;
-        fld.ty = fld.ty + fld.target.speed * fld.target.dy;
-%     else
-%         fld.tx = fld.tx - fld.target.speed * fld.target.dx;
-%         fld.ty = fld.ty - fld.target.speed * fld.target.dy;
-%     end
+    fld.tx = fld.tx + fld.target.speed * fld.target.dx;
+    fld.ty = fld.ty + fld.target.speed * fld.target.dy;
     
     %% Generate measurement and observation probability
     for i=1:NumOfRobot % Robot Iteration
@@ -273,28 +238,13 @@ while (1) %% Filtering Time Step
             if (Selection2 == 1) || (Selection2 == 3)
                 % static target
                 %% data transmission
-                % (1) sending/receive
-                % multi-step transmit of observation
-                if rem(count,2) == 1 % in odd round
-                    top_idx = 1; % use topology 1
-                else
-                    top_idx = 2; % use topology 2
-                end
-
-%                 if rem(count,3) == 1 % in odd round
-%                     top_idx = 1; % use topology 1
-%                 elseif rem(count,3) == 2
-%                     top_idx = 2; % use topology 2
-%                 else
-%                     top_idx = 3; % use topology 2
-%                 end
-                
+                % (1) sending/receive   
+                tempRbtBuffer = rbtBuffer;
                 for i=1:NumOfRobot % Robot Iteration
                     % for information from neighbours to compare whether it is
-                    % latest
-                    tempRbtBuffer{i}=rbtBuffer{i};
+                    % latest                   
                     for j=1:NumOfRobot
-                        for t=rbt(i).top(top_idx).neighbour
+                        for t=rbt(i).neighbour
                             if t == 0 % if no neighbors
                                 continue
                             end
@@ -344,13 +294,8 @@ while (1) %% Filtering Time Step
                 for i=1:NumOfRobot % Robot Iteration
                     for j=1:NumOfRobot
                         if (~isempty(rbtBuffer{i}.rbt(j).k)) && (~ismember(rbtBuffer{i}.rbt(j).k,rbt(i).rbt(j).used))
-%                         if (~isempty(rbtBuffer{i}.rbt(j).k)) && (rbtBuffer{i}.rbt(j).z == 1)
-%                             rbtBuffer{i}.rbt(j).prob = sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
                             rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
                             rbt(i).rbt(j).used = [rbt(i).rbt(j).used,rbtBuffer{i}.rbt(j).k];
-%                         elseif ~isempty(rbtBuffer{i}.rbt(j).k) && (rbtBuffer{i}.rbt(j).z == 0)
-%                             rbtBuffer{i}.rbt(j).prob = 1 - sensorProb(rbtBuffer{i}.rbt(j).x,rbtBuffer{i}.rbt(j).y,fld.x,fld.y,sigmaVal);
-%                             rbt(i).map=rbt(i).map.*rbtBuffer{i}.rbt(j).prob;
                         end
                     end
                     rbt(i).map=rbt(i).map/sum(sum(rbt(i).map));
@@ -486,27 +431,29 @@ while (1) %% Filtering Time Step
 %         rbt(i).entropy(count) =  integral2(fun,1,fld.x,1,fld.y);
         rbt(i).entropy(count) = sum(sum(dis_entropy));
     end
+    
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Plot Local PDFs for Each Sensor After Including Observations
     hf1 = figure (1); % handle for subplots 
-    for i=1:NumOfRobot 
-        subplot(2,3,i); contourf((rbt(i).map)'); hold on;
-        title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)],'FontSize',14);
-        for j=1:NumOfRobot
-            if i==j
-                plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
-            else
-                plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
-            end
-            plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
-            set(gca,'fontsize',14)
-        end
-    end
-    subplot(2,3,5); xlabel(['Step=',num2str(count)],'FontSize',14);
+%     for i=1:NumOfRobot 
+%         subplot(2,3,i); contourf((rbt(i).map)'); hold on;
+%         title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)],'FontSize',14);
+%         for j=1:NumOfRobot
+%             if i==j
+%                 plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
+%             else
+%                 plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
+%             end
+%             plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
+%             set(gca,'fontsize',14)
+%         end
+%     end
+%     subplot(2,3,5); xlabel(['Step=',num2str(count)],'FontSize',14);
     
     % plot single figure for the first robot
-    for k = 1:NumOfRobot
-        figure (k+2); % handle for plot of a single robot's target PDF
+    for k = 1%:NumOfRobot
+        tmp_hd = figure (k+2); % handle for plot of a single robot's target PDF
+        clf(tmp_hd);
         contourf((rbt(k).map)'); hold on;
         title(['Sensor ',1, ' Observ.= ',num2str(rbt(1).z)],'FontSize',16);
         for j=1:NumOfRobot
@@ -523,6 +470,7 @@ while (1) %% Filtering Time Step
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Probability Map Consensus
+    %{
     for i=1:NumOfRobot % Robot Iteration
         rbtCon(i).map=rbt(i).map;
     end
@@ -554,15 +502,18 @@ while (1) %% Filtering Time Step
     for i=1:NumOfRobot % Robot Iteration
         rbt(i).map=rbtCon(i).map;
     end
-         
+    %}
+    
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% robot moves
     if r_move == 1
-        x_tmp = unidrnd(fld.x-2,1,NumOfRobot)+1; % generate random number within 2:fld.x-1
-        y_tmp = unidrnd(fld.y-2,1,NumOfRobot)+1;
+%         x_tmp = unidrnd(fld.x-2,1,NumOfRobot)+1; % generate random number within 2:fld.x-1
+%         y_tmp = unidrnd(fld.y-2,1,NumOfRobot)+1;
         for i=1:NumOfRobot % Robot Iteration
-            rbt(i).x = x_tmp(i);
-            rbt(i).y = y_tmp(i);
+            tmp_angl = calAngle([rbt(i).x;rbt(i).y]-rbt(i).center);
+            tmp_angl = tmp_angl+rbt(i).w;
+            rbt(i).x = rbt(i).r*cos(tmp_angl)+rbt(i).center(1);
+            rbt(i).y = rbt(i).r*sin(tmp_angl)+rbt(i).center(2);
         end
     end
     
@@ -581,12 +532,12 @@ while (1) %% Filtering Time Step
 %         file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s',tag,count,datestr(now,1));
 %         saveas(hf1,file_name1,'fig')
 %         saveas(hf1,file_name1,'jpg')
-        for k = 1:NumOfRobot
-            tmp_hf = figure(k+2);
-            file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%d_%s',tag,k,count,datestr(now,1));
-            saveas(tmp_hf,file_name2,'fig')
-            saveas(tmp_hf,file_name2,'jpg')
-        end
+%         for k = 1:NumOfRobot
+%             tmp_hf = figure(k+2);
+%             file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%d_%s',tag,k,count,datestr(now,1));
+%             saveas(tmp_hf,file_name2,'fig')
+%             saveas(tmp_hf,file_name2,'jpg')
+%         end
     end
     %}
     
@@ -597,7 +548,6 @@ while (1) %% Filtering Time Step
     if count > max_EstStep
         break
     end
-    
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
