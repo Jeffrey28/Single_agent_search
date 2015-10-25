@@ -29,21 +29,28 @@ switch Selection2
     case 4,  r_move= 1; tar_move=1;
     otherwise, error('No selection.');
 end
+% the set of robots whose pdf will be drawn
+if r_move == 0
+    sim_r_idx = [1,3,5];
+else
+    sim_r_idx = [2,4,6];
+end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Field Setup
 fld.x = 100; fld.y = 100;  % Field size
 fld.map = ones(fld.x,fld.y)/(fld.x*fld.y);
 [xpt,ypt] = meshgrid(1:fld.x,1:fld.y);
+fld.traj = []; % trajectory of traget
 
 %% Target Setup
 switch Selection2
     case {1,3} 
-        fld.tx = 50; 
-        fld.ty = 50;% Target position, but unknown to estimator
+        fld.tx = 45; 
+        fld.ty = 45;% Target position, but unknown to estimator
     case {2,4} 
-        fld.tx = 50; 
-        fld.ty = 15;% Target position, but unknown to estimator
+        fld.tx = 20; 
+        fld.ty = 20;% Target position, but unknown to estimator
 end
 
 fld.target.speed = 1;
@@ -52,7 +59,7 @@ if tar_move == 0
     fld.target.dx= 0;
     fld.target.dy= 0;
 elseif tar_move == 1
-    fld.target.dx= 0;
+    fld.target.dx= 1;
     fld.target.dy= 1;
 end
 
@@ -72,7 +79,6 @@ ConsenFigure=0; % if 1, draw the concensus steps
         end
     end
     
-
 %% Path Planning setup
 %{
 hor = 3; % planning horizon
@@ -119,14 +125,15 @@ for i=1:NumOfRobot
         rbt(i).x = x_set(i); % sensor position.x
         rbt(i).y = y_set(i); % sensor position.x
     elseif r_move == 1
-        rbt(i).T = 5; % period of circling motion
+        rbt(i).T = 20; % period of circling motion
         rbt(i).center = [x_set(i);y_set(i)];
-        rbt(i).r = 10;
+        rbt(i).r = 15;
         rbt(i).w = 2*pi/rbt(i).T;
         rbt(i).x = x_set(i);
         rbt(i).y = y_set(i)+rbt(i).r;
     end
     
+    rbt(i).traj = [];
     rbt(i).map = ones(fld.x,fld.y);
     rbt(i).map = rbt(i).map/sum(sum(rbt(i).map));
 %     if tar_move == 1
@@ -182,16 +189,13 @@ err.time = [];
 err.rbt = [];
 while (1) %% Filtering Time Step
     figure(1); clf(hf1);
-%     for i = 1:NumOfRobot
-%         tmp_hf = figure(i+2); 
-%         clf(tmp_hf);
-%     end
     
-    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Target Movement
-    fld.tx = fld.tx + fld.target.speed * fld.target.dx;
-    fld.ty = fld.ty + fld.target.speed * fld.target.dy;
+    for ii = 1:NumOfRobot
+       rbt(ii).traj = [rbt(ii).traj,[rbt(ii).x;rbt(ii).y]];
+    end
+    fld.traj = [fld.traj,[fld.tx;fld.ty]];
     
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     %% Generate measurement and observation probability
     for i=1:NumOfRobot % Robot Iteration
         rbt(i).z = sensorSim(rbt(i).x,rbt(i).y,fld.tx,fld.ty,sigmaVal);
@@ -434,7 +438,7 @@ while (1) %% Filtering Time Step
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Plot Local PDFs for Each Sensor After Including Observations
-    hf1 = figure (1); % handle for subplots 
+%     hf1 = figure (1); % handle for subplots 
 %     for i=1:NumOfRobot 
 %         subplot(2,3,i); contourf((rbt(i).map)'); hold on;
 %         title(['Sensor ',num2str(i), ' Observ.= ',num2str(rbt(i).z)],'FontSize',14);
@@ -451,21 +455,60 @@ while (1) %% Filtering Time Step
 %     subplot(2,3,5); xlabel(['Step=',num2str(count)],'FontSize',14);
     
     % plot single figure for the first robot
-    for k = 1%:NumOfRobot
+    for k = sim_r_idx
         tmp_hd = figure (k+2); % handle for plot of a single robot's target PDF
         clf(tmp_hd);
-        contourf((rbt(k).map)'); hold on;
-        title(['Sensor ',1, ' Observ.= ',num2str(rbt(1).z)],'FontSize',16);
+        shading interp
+        contourf((rbt(k).map)','LineColor','none'); 
+        load('MyColorMap','mymap')
+        colormap(mymap);
+        colorbar
+%         surfl((rbt(k).map)','light'); 
+        hold on;
+%         title(['Sensor ',1, ' Observ.= ',num2str(rbt(1).z)],'FontSize',16);
         for j=1:NumOfRobot
+            
+            % draw robot trajectory
             if j==k
-                plot(rbt(j).x, rbt(j).y, 's','Color',rbt(j).color,'MarkerSize',10,'LineWidth',3);
+                line_hdl = line(rbt(j).traj(1,:), rbt(j).traj(2,:));
+                set(line_hdl,'Marker','.','Color','r','MarkerSize',3,'LineWidth',2);
+                plot(rbt(j).traj(1,end), rbt(j).traj(2,end), 's','Color','r','MarkerSize',10,'LineWidth',3);
             else
-                plot(rbt(j).x, rbt(j).y, 'p','Color',rbt(j).color,'MarkerSize',10,'LineWidth',1.5);
+                line_hdl = line(rbt(j).traj(1,:), rbt(j).traj(2,:));
+                set(line_hdl,'Marker','.','Color','g','MarkerSize',3,'LineWidth',2);
+                plot(rbt(j).traj(1,end), rbt(j).traj(2,end), 'p','Color','g','MarkerSize',10,'LineWidth',1.5);
             end
-            plot(fld.tx, fld.ty, 'c+','MarkerSize',10,'LineWidth',3);
+            
+            % draw traget trajectory
+            line_hdl = line(fld.traj(1,:), fld.traj(2,:));
+            set(line_hdl,'Marker','.','Color','k','MarkerSize',3,'LineWidth',2);
+            plot(fld.tx, fld.ty, 'k+','MarkerSize',10,'LineWidth',3);
+%             plot3([fld.tx, fld.tx], [fld.ty, fld.ty],[0,0.05])
             set(gca,'fontsize',16)
         end
-        xlabel(['Step=',num2str(count)],'FontSize',16);
+        xlabel(['Step=',num2str(count)],'FontSize',16);        
+    end
+    
+    % save plots
+    if (count == 1) || (count == 3) || (count == 5) || (count == 7) ||...
+            (count == 10) || (count == 20) || (count == 30) || (count == 40)...
+            || (count == 50) || (count == 60) || (count == 70) || (count == 80)...
+            || (count == 90) || (count == 100)
+        switch Selection2
+            case 1,  tag = 'sta_sen_sta_tar';
+            case 2,  tag = 'sta_sen_mov_tar';
+            case 3,  tag = 'mov_sen_sta_tar';
+            case 4,  tag = 'mov_sen_mov_tar';
+        end
+%         file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s',tag,count,datestr(now,1));
+%         saveas(hf1,file_name1,'fig')
+%         saveas(hf1,file_name1,'jpg')
+        for k = sim_r_idx
+            tmp_hf = figure(k+2);
+            file_name2 = sprintf('./figures/data_exchange/%s_single_%d_%d_%s',tag,k,count,datestr(now,1));
+            saveas(tmp_hf,file_name2,'fig')
+            saveas(tmp_hf,file_name2,'jpg')
+        end
     end
     
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -511,36 +554,20 @@ while (1) %% Filtering Time Step
 %         y_tmp = unidrnd(fld.y-2,1,NumOfRobot)+1;
         for i=1:NumOfRobot % Robot Iteration
             tmp_angl = calAngle([rbt(i).x;rbt(i).y]-rbt(i).center);
-            tmp_angl = tmp_angl+rbt(i).w;
+%             if ismember(i,[1,2,6])
+                tmp_angl = tmp_angl+rbt(i).w;
+%             elseif ismember(i,[3,4,5])
+%                 tmp_angl = tmp_angl-rbt(i).w;
+%             end
             rbt(i).x = rbt(i).r*cos(tmp_angl)+rbt(i).center(1);
             rbt(i).y = rbt(i).r*sin(tmp_angl)+rbt(i).center(2);
         end
     end
     
-    % save plots
-    %
-    if (count == 1) || (count == 3) || (count == 5) || (count == 7) ||...
-            (count == 10) || (count == 20) || (count == 30) || (count == 40)...
-            || (count == 50) || (count == 60) || (count == 70) || (count == 80)...
-            || (count == 90) || (count == 100) 
-        switch Selection2
-            case 1,  tag = 'sta_sen_sta_tar';
-            case 2,  tag = 'sta_sen_mov_tar';
-            case 3,  tag = 'mov_sen_sta_tar';
-            case 4,  tag = 'mov_sen_mov_tar';
-        end
-%         file_name1 = sprintf('./figures/data_exchange_switch/%s_%d_%s',tag,count,datestr(now,1));
-%         saveas(hf1,file_name1,'fig')
-%         saveas(hf1,file_name1,'jpg')
-%         for k = 1:NumOfRobot
-%             tmp_hf = figure(k+2);
-%             file_name2 = sprintf('./figures/data_exchange_switch/%s_single_%d_%d_%s',tag,k,count,datestr(now,1));
-%             saveas(tmp_hf,file_name2,'fig')
-%             saveas(tmp_hf,file_name2,'jpg')
-%         end
-    end
-    %}
-    
+    %% Target Moves
+    fld.tx = fld.tx + fld.target.speed * fld.target.dx;
+    fld.ty = fld.ty + fld.target.speed * fld.target.dy;
+        
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Terminate Time Cycle
     count = count+1;
@@ -575,8 +602,8 @@ switch Selection2
     case 4,  tag = 'mov_sen_mov_tar';
 end
 file_name2 = sprintf('./figures/data_exchange/%s_entropy_%s',tag,datestr(now,1));
-% saveas(hf2,file_name2,'fig')
-% saveas(hf2,file_name2,'jpg')
+saveas(hf2,file_name2,'fig')
+saveas(hf2,file_name2,'jpg')
 
 %% save robot structure
 file_name3 = sprintf('./figures/data_exchange/%s_robot.mat_%s',tag,datestr(now,1));
