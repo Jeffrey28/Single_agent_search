@@ -541,7 +541,7 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.47\textwidth]{figures/DBF_demo}
+	\includegraphics[width=0.45\textwidth]{figures/DBF_demo}
 	\caption{Example of LIFO-DBF for $1^\text{st}$ robot at time $k$. 	 
 		Networked robots take a line topology, shown in the top. 
 		The stored individual PDF is $ P^1_{pdf}(k-N)$.
@@ -923,7 +923,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_30}
 		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_5_4}
 	\end{subfigure}
-	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e) All robots' individual PDFs at time $30$. The square denotes the current robot and stars represent other robots. The cross stands for the target.}
+	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e)-(h) The $3^\text{rd}$ robot's individual PDFs at different times; (i)-(l) The $5^\text{th}$ robot's individual PDFs at different times. Robots are numbered counterclockwise, with the left-most robot being the $1^\text{st}$. The square denotes the current robot and stars represent other robots. The cross stands for the target position.}
 	\label{fig:sta_sen_sta_tar}
 \end{figure}
 
@@ -943,7 +943,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 	\end{subfigure}	
 	\begin{subfigure}[b]{0.19\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_2_30}
-		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing_2_4}
+		\caption{Step 30}\label{fig:mov_sen_mov_tar_sing_2_4}
 	\end{subfigure}
 	
 	\begin{subfigure}[b]{0.19\textwidth}
@@ -960,7 +960,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 	\end{subfigure}	
 	\begin{subfigure}[b]{0.19\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_4_30}
-		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing_4_4}
+		\caption{Step 30}\label{fig:mov_sen_mov_tar_sing_4_4}
 	\end{subfigure}
 	
 	\begin{subfigure}[b]{0.19\textwidth}
@@ -977,10 +977,10 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 	\end{subfigure}	
 	\begin{subfigure}[b]{0.19\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_6_30}
-		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing_6_4}
+		\caption{Step 30}\label{fig:mov_sen_mov_tar_sing_6_4}
 	\end{subfigure}
 	
-	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e) All robots' individual PDFs at time $40$.}
+	\caption{(a)-(d) The $2^\text{nd}$ robot's individual PDFs at different times; (e)-(h) The $4\text{th}$ robot's individual PDFs at different times; (i)-(l) The $6^\text{th}$ robot's individual PDFs at different times. Robots moves in circles and the trajectories are shown in red and green. The square and starts denote the current positions of robots. The target trajectory is shown as the black line.}
 	\label{fig:mov_sen_mov_tar}
 \end{figure}
 
@@ -1016,8 +1016,10 @@ The networked robots use a ring communication topology that each robot can commu
 \cref{fig:sta_sen_sta_tar} shows the estimation results of the static target. 
 After the initial observation, each robot forms a circular individual PDF, centered at its own position.
 %\cref{fig:sta_sen_sta_tar_sing1} shows the individual PDF after initial observation for $1^\text{st}$ robot.
-The circular PDF happens because the Gaussian sensor model (\Cref{eqn:gauss_sensor}) only depends on the distance between robot and target.
-As more observations are used, the posterior individual PDF concentrates to the true location of the target (\cref{fig:sta_sen_sta_tar_sing4}), which accords with the consistency of LIFO-DBF.
+The circular PDF happens because the Gaussian sensor model (\Cref{eqn:gauss_sensor}) only depends on the distance between robot and target, not the bearing angle.
+As more observations are fused, the posterior individual PDF concentrates to the true location of the target, which accords with the consistency of LIFO-DBF.
+\cref{fig:sta_sen_sta_tar_entropy} shows the decreasing entropy of target PDF over time.
+This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of target position.
 %In fact, with the Guassian sensor model (\Cref{eqn:gauss_sensor}), all positions with equal distance to a robot belong to the same equi-parameter set of the robot.
 %Considering the system of six robots located separately, the equi-parameter set that contains the actual target position only contains one element.
 %\cref{fig:entropy} (a) shows the decrease of the entropy of each robot's individual PDF, indicating the reduction of the uncertainty in PDF estimation.
@@ -1072,8 +1074,9 @@ where $v$ is the constant velocity of the target; $\Delta T$ is the sampling tim
 
 The LIFO-DBF described in \cref{subsec:LIFO-dbf-mov-tar} is utilized for target localization.
 \cref{fig:mov_sen_mov_tar} shows the estimation results of the moving target. 
-It is interesting to notice that the posterior individual PDFs concentrate to the true target location at each time, even when the target constantly moves.
-%\cref{fig:entropy} (b) shows the decrease of the entropy of the posterior distribution.
+It is interesting to notice that the posterior individual PDFs concentrate to the true target location even when the target constantly moves.
+\cref{fig:sta_sen_sta_tar_entropy} shows the decreasing entropy of target PDF over time.
+%This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of target position.%\cref{fig:entropy} (b) shows the decrease of the entropy of the posterior distribution.
 
 %\begin{figure}%[thpb]
 %	\centering
@@ -1084,15 +1087,15 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 
 \begin{figure}%[thpb]
 	\centering
-	\begin{subfigure}[b]{0.2\textwidth}
+	\begin{subfigure}[b]{0.23\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_entropy}
 		\caption{}\label{fig:sta_sen_sta_tar_entropy}
 	\end{subfigure}	
-	\begin{subfigure}[b]{0.2\textwidth}
+	\begin{subfigure}[b]{0.23\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_entropy}
 		\caption{}\label{fig:mov_sen_mov_tar_entropy}
 	\end{subfigure}
-\caption{(a) Change of entropy of target PDF using static robots; (b) Change of entropy of target PDF using moving robots.}
+\caption{(a) Entropy of target PDF using static robots; (b) Entropy of target PDF using moving robots.}
 \end{figure}
 
 \section{CONCLUSION}\label{sec:conclu}
