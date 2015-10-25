@@ -145,21 +145,26 @@ end
 %}
 
 %% save figures to pdf
-%{
+%
 clear
 close all
-% file_name_list = cell(12,1);
 cnt = 1;
-folder_path = ('/Users/changliu/Documents/TortoiseHg/multi-agent_search/remultiagentsearch/Paper/ACC2016/figures');
+folder_path = ('/Users/changliu/Documents/Git/Autonomous_agent_search/multi_agent_search/figures/data_exchange');
 a = dir(folder_path);
+file_name_list = {};
 
-% process the probability maps
-%
+%%% process the probability maps
+%{
 % read sta_sen_sta_tar_xxx.fig, mov_sen_sta_tar_xxx.fig, mov_sen_mov_tar_xxx.fig 
 for ii = 1:size(a,1)
-    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar_2_single')) && ~isempty(strfind(a(ii).name,'fig'))
-        if ~isempty(strfind(a(ii).name,'1')) || ~isempty(strfind(a(ii).name,'5'))...
-                || ~isempty(strfind(a(ii).name,'20')) || ~isempty(strfind(a(ii).name,'50'))
+    if ~isempty(strfind(a(ii).name,'sta_sen_sta_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))
+        if ~isempty(strfind(a(ii).name,'1_1_')) || ~isempty(strfind(a(ii).name,'2_1_')) ||...
+                ~isempty(strfind(a(ii).name,'3_1_')) || ~isempty(strfind(a(ii).name,'4_1_')) ||...
+                ~isempty(strfind(a(ii).name,'5_1_')) || ~isempty(strfind(a(ii).name,'6_1_')) ||...
+                ~isempty(strfind(a(ii).name,'1_5_')) || ~isempty(strfind(a(ii).name,'2_5_')) || ...
+                ~isempty(strfind(a(ii).name,'3_5_')) || ~isempty(strfind(a(ii).name,'4_5_')) || ...
+                ~isempty(strfind(a(ii).name,'5_5_')) || ~isempty(strfind(a(ii).name,'6_5_')) ...
+                || ~isempty(strfind(a(ii).name,'_10_')) || ~isempty(strfind(a(ii).name,'_30_'))
             file_name_list{cnt} = a(ii).name;
             cnt = cnt+1;
         end
@@ -167,8 +172,16 @@ for ii = 1:size(a,1)
 %         file_name_list{cnt} = a(ii).name;
 %         cnt = cnt+1;
     elseif ~isempty(strfind(a(ii).name,'mov_sen_mov_tar_single')) && ~isempty(strfind(a(ii).name,'fig'))   
-%         file_name_list{cnt} = a(ii).name;
-%         cnt = cnt+1;
+        if ~isempty(strfind(a(ii).name,'1_1_')) || ~isempty(strfind(a(ii).name,'2_1_')) ||...
+                ~isempty(strfind(a(ii).name,'3_1_')) || ~isempty(strfind(a(ii).name,'4_1_')) ||...
+                ~isempty(strfind(a(ii).name,'5_1_')) || ~isempty(strfind(a(ii).name,'6_1_')) ||...
+                ~isempty(strfind(a(ii).name,'1_5_')) || ~isempty(strfind(a(ii).name,'2_5_')) || ...
+                ~isempty(strfind(a(ii).name,'3_5_')) || ~isempty(strfind(a(ii).name,'4_5_')) || ...
+                ~isempty(strfind(a(ii).name,'5_5_')) || ~isempty(strfind(a(ii).name,'6_5_')) ...
+                || ~isempty(strfind(a(ii).name,'_10_')) || ~isempty(strfind(a(ii).name,'_30_'))
+            file_name_list{cnt} = a(ii).name;
+            cnt = cnt+1;
+        end
     end
 end
 
@@ -196,8 +209,9 @@ for jj = 1:length(file_name_list)
 end
 %}
 
-% process the entropy
-%{
+%%% process the entropy
+%
+file_name_list = {};
 % read xxx_entropy_xxx.fig
 for ii = 1:size(a,1)
     if ~isempty(strfind(a(ii).name,'entropy')) && ~isempty(strfind(a(ii).name,'fig'))
@@ -216,15 +230,16 @@ for jj = 1:length(file_name_list)
     % use 'load' for .mat, 'hgload' for .fig
     h = openfig(file_name);
     box on
-    legend off
+%     legend off
     hline = findobj(h,'type','line');
-    nLines = length(hline);
+%     nLines = length(hline);
+    nLines = 6; % totoal number of lines in plot (excluding the ones in legend)
     
     for iterLine = 1:nLines
         mInd = nLines-iterLine+1;
         set(hline(mInd),'LineWidth',2,'Marker',line_marker{iterLine},'MarkerSize',2)
     end
-    legend show
+%     legend show
 
 %     % pile figures into single subplot
 %     h_ax = findobj(h,'type','axes'); % get handle to axes of figure
@@ -254,6 +269,8 @@ end
 %}
 
 %% save the colormap
+%{
 ax = gca;
 mymap = colormap(ax);
 save('MyColorMap','mymap');
+%}

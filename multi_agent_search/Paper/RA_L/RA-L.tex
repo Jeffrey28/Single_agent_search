@@ -270,7 +270,7 @@ All of them are undirected and connected topologies.
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.47\textwidth]{figures/com_topo2}
+	\includegraphics[width=0.47\textwidth]{figures/com_topo}
 	\caption{Three types of topologies: (a) ring topology; (b) line topology; (c) star topology}
 	\label{fig:com_topo}
 \end{figure}
@@ -456,7 +456,7 @@ The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.48\textwidth]{figures/data_exchange2}
+	\includegraphics[width=0.48\textwidth]{figures/data_exchange}
 	\caption{Example of LIFO with three robots using line communication topology}
 	\label{fig:LIFO}
 \end{figure}
@@ -541,7 +541,7 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 
 \begin{figure}%[thpb]
 	\centering
-	\includegraphics[width=0.47\textwidth]{figures/DBF_demo2}
+	\includegraphics[width=0.47\textwidth]{figures/DBF_demo}
 	\caption{Example of LIFO-DBF for $1^\text{st}$ robot at time $k$. 	 
 		Networked robots take a line topology, shown in the top. 
 		The stored individual PDF is $ P^1_{pdf}(k-N)$.
@@ -873,25 +873,55 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \section{Simulation}\label{sec:sim}
 \begin{figure}%[thpb]
 	\centering
+	\begin{subfigure}[b]{0.2\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_1}
+		\caption{Step 1}\label{fig:sta_sen_sta_tar_sing_1_1}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.2\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_5}
+		\caption{Step 5}\label{fig:sta_sen_sta_tar_sing_1_2}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.2\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_10}
+		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_1_3}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.2\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1_30}
+		\caption{Step 30}\label{fig:sta_sen_sta_tar_single_1_4}
+	\end{subfigure}
+	
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_1}
-		\caption{Step 1}\label{fig:sta_sen_sta_tar_sing1}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_3_1}
+		\caption{Step 1}\label{fig:sta_sen_sta_tar_sing_3_1}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5}
-		\caption{Step 5}\label{fig:sta_sen_sta_tar_sing2}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_3_5}
+		\caption{Step 5}\label{fig:sta_sen_sta_tar_sing_3_2}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_10}
-		\caption{Step 10}\label{fig:sta_sen_sta_tar_sing3}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_3_10}
+		\caption{Step 10}\label{fig:sta_sen_sta_tar_sing_3_3}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_30}
-		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing4}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_3_30}
+		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_3_4}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.4\textwidth}
-		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_30}
-		\caption{Step 30}\label{fig:sta_sen_sta_tar_all}
+	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_1}
+		\caption{Step 1}\label{fig:sta_sen_sta_tar_sing_5_1}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_5}
+		\caption{Step 5}\label{fig:sta_sen_sta_tar_sing_5_2}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_10}
+		\caption{Step 10}\label{fig:sta_sen_sta_tar_sing_5_3}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_30}
+		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_5_4}
 	\end{subfigure}
 	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e) All robots' individual PDFs at time $30$. The square denotes the current robot and stars represent other robots. The cross stands for the target.}
 	\label{fig:sta_sen_sta_tar}
@@ -900,25 +930,56 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \begin{figure}%[thpb]
 	\centering
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_1}
-		\caption{Step 1}\label{fig:mov_sen_mov_tar_sing1}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_2_1}
+		\caption{Step 1}\label{fig:mov_sen_mov_tar_sing_2_1}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_5}
-		\caption{Step 5}\label{fig:mov_sen_mov_tar_sing2}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_2_5}
+		\caption{Step 5}\label{fig:mov_sen_mov_tar_sing_2_2}
 	\end{subfigure}	
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_10}
-		\caption{Step 10}\label{fig:mov_sen_mov_tar_sing3}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_2_10}
+		\caption{Step 10}\label{fig:mov_sen_mov_tar_sing_2_3}
 	\end{subfigure}	
 	\begin{subfigure}[b]{0.19\textwidth}
-		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_40}
-		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing4}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_2_30}
+		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing_2_4}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.4\textwidth}
-		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_40}
-		\caption{Step 40}\label{fig:mov_sen_mov_tar_all}
+	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_4_1}
+		\caption{Step 1}\label{fig:mov_sen_mov_tar_sing_4_1}
 	\end{subfigure}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_4_5}
+		\caption{Step 5}\label{fig:mov_sen_mov_tar_sing_4_2}
+	\end{subfigure}	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_4_10}
+		\caption{Step 10}\label{fig:mov_sen_mov_tar_sing_4_3}
+	\end{subfigure}	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_4_30}
+		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing_4_4}
+	\end{subfigure}
+	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_6_1}
+		\caption{Step 1}\label{fig:mov_sen_mov_tar_sing_6_1}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_6_5}
+		\caption{Step 5}\label{fig:mov_sen_mov_tar_sing_6_2}
+	\end{subfigure}	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_6_10}
+		\caption{Step 10}\label{fig:mov_sen_mov_tar_sing_6_3}
+	\end{subfigure}	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_single_6_30}
+		\caption{Step 40}\label{fig:mov_sen_mov_tar_sing_6_4}
+	\end{subfigure}
+	
 	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e) All robots' individual PDFs at time $40$.}
 	\label{fig:mov_sen_mov_tar}
 \end{figure}
@@ -1020,6 +1081,19 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 %	\caption{Entropy of individual PDFs over time: (a) static robots and static target; (b) moving robots and moving target.}
 %	\label{fig:entropy}
 %\end{figure}
+
+\begin{figure}%[thpb]
+	\centering
+	\begin{subfigure}[b]{0.2\textwidth}
+		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_entropy}
+		\caption{}\label{fig:sta_sen_sta_tar_entropy}
+	\end{subfigure}	
+	\begin{subfigure}[b]{0.2\textwidth}
+		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_entropy}
+		\caption{}\label{fig:mov_sen_mov_tar_entropy}
+	\end{subfigure}
+\caption{(a) Change of entropy of target PDF using static robots; (b) Change of entropy of target PDF using moving robots.}
+\end{figure}
 
 \section{CONCLUSION}\label{sec:conclu}
 This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-robot network, utilizing the Latest-In-and-Full-Out (LIFO) protocol for observation exchange.

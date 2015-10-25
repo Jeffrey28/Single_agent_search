@@ -21,7 +21,7 @@ switch Selection1
     otherwise, error('No selection.');
 end
 
-Selection2 = 4; % select the motion of agents and target
+Selection2 = 1; % select the motion of agents and target
 switch Selection2
     case 1,  r_move= 0; tar_move=0;
     case 2,  r_move= 0; tar_move=1;
@@ -36,6 +36,7 @@ else
     sim_r_idx = [2,4,6];
 end
 
+save_file = 0; % choose whether to save simulation results
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Field Setup
 fld.x = 100; fld.y = 100;  % Field size
@@ -506,8 +507,10 @@ while (1) %% Filtering Time Step
         for k = sim_r_idx
             tmp_hf = figure(k+2);
             file_name2 = sprintf('./figures/data_exchange/%s_single_%d_%d_%s',tag,k,count,datestr(now,1));
-            saveas(tmp_hf,file_name2,'fig')
-            saveas(tmp_hf,file_name2,'jpg')
+            if save_file == 1
+                saveas(tmp_hf,file_name2,'fig')
+                saveas(tmp_hf,file_name2,'jpg')
+            end
         end
     end
     
@@ -588,6 +591,7 @@ for i=1:NumOfRobot
     xlim([0,count-1])
 end
 title('Entropy of the Target PDF','FontSize',16);
+set(gca,'fontsize',16)
 xlabel('Time','FontSize',16);
 ylabel('Entropy','FontSize',16);
 
@@ -602,9 +606,13 @@ switch Selection2
     case 4,  tag = 'mov_sen_mov_tar';
 end
 file_name2 = sprintf('./figures/data_exchange/%s_entropy_%s',tag,datestr(now,1));
-saveas(hf2,file_name2,'fig')
-saveas(hf2,file_name2,'jpg')
+if save_file == 1
+    saveas(hf2,file_name2,'fig')
+    saveas(hf2,file_name2,'jpg')
+end
 
 %% save robot structure
-file_name3 = sprintf('./figures/data_exchange/%s_robot.mat_%s',tag,datestr(now,1));
-save(file_name3,'rbt')
+if save_file == 1
+    file_name3 = sprintf('./figures/data_exchange/%s_robot.mat_%s',tag,datestr(now,1));
+    save(file_name3,'rbt')
+end
