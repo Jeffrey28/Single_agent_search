@@ -2,14 +2,15 @@
 %2345678901234567890123456789012345678901234567890123456789012345678901234567890
 %        1         2         3         4         5         6         7         8
 
-\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+%\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+\documentclass[journal]{IEEEtran}  % Comment this line out if you need a4paper
 
 %\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
 
 \IEEEoverridecommandlockouts                              % This command is only needed if 
                                                           % you want to use the \thanks command
 
-\overrideIEEEmargins                                      % Needed to meet printer requirements.
+%\overrideIEEEmargins                                      % Needed to meet printer requirements.
 
 % See the \addtolength command later in the file to balance the column lengths
 % on the last page of the document
@@ -22,7 +23,7 @@
 \usepackage[noadjust]{cite}
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
-\usepackage{amsmath,amssymb,amsfonts} % assumes amsmath package installed
+\usepackage{amsmath,amssymb,amsfonts,amsthm} % assumes amsmath package installed
 \usepackage{algorithm,algpseudocode}
 %\usepackage{booktabs}
 
@@ -80,12 +81,21 @@
 Distributed Bayesian Filters for Multi-Robot Network by Using Latest-In-and-Full-Out Exchange Protocol of Observations}
 
 
-\author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
-\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}% <-this % stops a space
-\thanks{$^{1}$Chang Liu is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu}}%
-\thanks{$^{2}$Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He is currently working at Department of Mechanical Engineering, University of California, Berkeley as a visiting scholar. Email: {\tt\small lisb04@gmail.com}}%
-\thanks{$^{3}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
-}
+\author{Chang~Liu,~\IEEEmembership{Student Member,~IEEE,}
+	Shengbo~Eben~Li,%~\IEEEmembership{Fellow,~OSA,}
+	and~J.~Karl~Hedrick,%~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
+	\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}
+	\thanks{Chang Liu and J. Karl Hedrick are with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu, khedrick@me.berkeley.edu.}}% <-this % stops a space
+	\thanks{Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. Email: {\tt\small lisb04@gmail.com.}}
+}% <-this % stops a space
+	%\thanks{Manuscript received April 19, 2005; revised January 11, 2007.}}
+
+%\author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
+%\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}% <-this % stops a space
+%\thanks{$^{1}$Chang Liu is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu}}%
+%\thanks{$^{2}$Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He is currently working at Department of Mechanical Engineering, University of California, Berkeley as a visiting scholar. Email: {\tt\small lisb04@gmail.com}}%
+%\thanks{$^{3}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
+%}
 
 
 \begin{document}
@@ -239,10 +249,12 @@ For the purpose of simplicity, we will not explicitly write $x^{R,i}_k$ when no 
 The commonly used likelihood functions for binary sensor include Gaussian function \cite{bonnie2012modelling} and step function \cite{djuric2008target}.
 
 \begin{rem}
+	\normalfont
 	Given the knowledge of current target and robot positions, current observation of each robot is conditionally independent from its own past observations and those of other robots.
 \end{rem}
 
 \begin{rem} 
+	\normalfont
 	The proposed LIFO protocol to be described in \cref{sec:LIFO-dbf} is applicable for both homogeneous and heterogeneous binary sensors. 
 	A homogeneous model can simplify the analysis of completeness, while a heterogeneous model is more close to real sensing characteristics.
 	In addition, it also works for other types of sensors, such as laser scanners and cameras.
@@ -466,6 +478,7 @@ The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 Two facts can be noticed in \cref{fig:LIFO}: (1) all robot CBs are filled within 3 steps, which means under LIFO each robot has a maximum delay of 2 steps for receiving observations from other robots; (2) after filled, CBs are updated non-intermittently, which means each robot continuously receives new observations of other robots. Extending the two facts to a network of $N$ robots, we have the following proposition:
 \medskip
 \begin{prop}\label{prop1}
+	\normalfont
 For a fixed and undirected network of $N$ robots, LIFO uses the shortest path(s) between $i^\text{th}$ and $j^\text{th}$ robot to exchange observation, the length of which is the delay $\tau_{i,j}$ between these two robots.
 \end{prop}
 \begin{proof} 
@@ -487,6 +500,7 @@ This proves the \Cref{prop1} for $d(j,i)=s+1$.
 %\vspace{\baselineskip}
 \medskip
 \begin{cor}\label{cor1}
+	\normalfont
 For the same topology in \Cref{prop1}, all elements in $\mathbf{z}^{CB,i}_k$ under LIFO become filled when $k\geq N$, i.e., $\mathcal{Q}_i = \left\lbrace1,\dots,N \right\rbrace \setminus \left\lbrace i\right\rbrace $.	
 \end{cor}
 \begin{proof}
@@ -494,6 +508,7 @@ In a network of $N$ robots, the maximal length of shortest paths is no greater t
 \end{proof}
 \medskip
 \begin{cor}\label{cor2}
+	\normalfont
 For the same topology in \Cref{prop1}, once all elements in $\mathbf{z}^{CB,i}_k$ are filled, the updating of each element is non-intermittent. 	
 \end{cor}
 \begin{proof}
@@ -502,6 +517,7 @@ Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of e
 \end{proof}
 \medskip
 \begin{rem}
+	\normalfont
 	Compared to statistics dissemination, LIFO is generally more communication-efficient for distributed filtering. 
 	To be specific, consider an $M\times M$ grid environment with a network of $N$ robots, the transmitted data of LIFO between each pair of robots are only the CB of each robot and the corresponding robot positions where observations were made, the length of which is $O(N)$. 
 	On the contrary, the length of transmitted data for a statistics dissemination approach that transmits unparameterized posterior distributions or likelihood functions is $O(M^2)$, which is in the order of environmental size. 
@@ -607,6 +623,7 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 %The individual PDF of $i^\text{th}$ robot at time $k$ is $P^i_{virt}(x^T_k)$.
 \medskip
 \begin{rem}
+	\normalfont
 	For the static target, each robot only needs current step CB to update individual PDFs. 
 	Therefore, besides storing individual PDFs, only current-step CB is stored in robot memory and all historical CBs can be discarded, which means that the size of occupied memory is $O(N)$. 
 	On the contrary, for the moving target, each robot needs to store a triangular matrix of historical observation 
@@ -820,6 +837,7 @@ Here, the main idea is to classify robot observation positions into two disjoint
 %, as $k\rightarrow\infty$.
 Before stating main theorem, the following lemma is introduced.
 \begin{lem}\label{lem1}
+	\normalfont
 	For a set of robots moving within a collection of finite positions, each robot has at least one position where infinite observations are made as $k$ tends to infinity.
 \end{lem}
 
@@ -829,6 +847,7 @@ Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ p
 \medskip
 %The main theory of consistency of LIFO-DBF for moving robots is stated as follows:
 \begin{thm}\label{thm:LIFO-dbf-mov-tar}
+	\normalfont
 	If robots move within a collection of finite positions, the estimated target position converges to the true position of target in probability using LIFO-DBF, i.e.,
 %	the probability of estimated target position belonging to $ X^T_{eq}$ converges to one, i.e.,
 %	the set of estimated target position of each robot converges to $X^T_{eq}$ in probability using LIFO-DBF when the number of observations tends to infinity, i.e.,
@@ -860,6 +879,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 \end{proof}
 \medskip
 \begin{rem}
+	\normalfont
 %	When $X^T_{eq}$ only contains $x^{T^{*}}$, consistency means the estimated target position converges to true target position in probability. Additionally, 
 	Consistency implies that all individual PDFs converge to the same distribution (true target PDF), thus the consensus is also guaranteed.
 	It must be noted that traditional statistics dissemination-based methods only ensure consensus of individual PDFs \cite{bandyopadhyay2014distributed,julian2012distributed}. 
@@ -923,7 +943,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_30}
 		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_5_4}
 	\end{subfigure}
-	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e)-(h) The $3^\text{rd}$ robot's individual PDFs at different times; (i)-(l) The $5^\text{th}$ robot's individual PDFs at different times. Robots are numbered counterclockwise, with the left-most robot being the $1^\text{st}$. The square denotes the current robot and stars represent other robots. The cross stands for the target position.}
+	\caption{(a)-(d) The $1^\text{st}$ robot's individual PDFs at different times; (e)-(h) The $3^\text{rd}$ robot's individual PDFs at different times; (i)-(l) The $5^\text{th}$ robot's individual PDFs at different times. Robots are numbered counterclockwise, with the left-most robot being the $1^\text{st}$. The square denotes the current robot and stars represent other robots. The cross stands for the target.}
 	\label{fig:sta_sen_sta_tar}
 \end{figure}
 
