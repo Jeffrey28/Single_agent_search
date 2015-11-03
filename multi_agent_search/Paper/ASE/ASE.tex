@@ -566,6 +566,46 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 	\label{fig:LIFO-DBF}
 \end{figure}
 
+\begin{algorithm}
+	\caption{LIFO-DBF Algorithm for Moving Target}\label{alg:lifo-dbf}
+	\begin{algorithmic}
+		\State For $i^\text{th}$ robot at $k^\text{th}$ step:
+		\State After updating CB by \cref{alg:lifo},	
+		\State \textbf{(1)} The stored individual PDF for time $(k-N)$ is:
+		\small\begin{equation*}
+			P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+		\end{equation*}\normalsize		
+		\State\textbf{(2)} Initialize a virtual PDF by assigning the individual PDF to it:
+		\small\begin{equation*}
+			P^i_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
+		\end{equation*}\normalsize		
+		\State\textbf{(3)} From $\xi=1$ to $N$, repeat two steps of Bayesian filtering:
+		%	\begin{enumerate}
+		%		\item 
+		
+		\State(3.1) Prediction 
+		\small\begin{align*}
+			&P_{virt}^{pre}(x^T_{k-N+\xi})\\=&\int P(x^T_{k-N+\xi}|x^T_{k-N+\xi-1})P^i_{virt}(x^T_{k-N+\xi-1})dx^T_{k-N+\xi-1}
+		\end{align*} \normalsize
+		
+		%		\item 
+		\State(3.2) Updating
+		\small\begin{gather*}
+			P^i_{virt}(x^T_{k-N+\xi})=K_\xi P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})\\
+			K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
+		\end{gather*} \normalsize
+		%	\end{enumerate}
+		
+		\State(3.3) When $\xi=1$, store the virtual PDF as the individual PDF for time $(k-N+1)$
+		\begin{equation*}
+			P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P^i_{virt}(x^T_{k-N+1}).
+		\end{equation*}
+		
+		\State\textbf{(4)} Individual PDF of $i^\text{th}$ robot at time $k$ is
+		$P^i_{pdf}(x^T_{k}|\mathbf{z}^{i}_{1:k})=P^i_{virt}(x^T_k)$.		
+	\end{algorithmic}
+\end{algorithm}
+
 %\begin{enumerate}
 %For $i^\text{th}$ robot at $k^\text{th}$ step:
 %
@@ -662,46 +702,6 @@ The proof of LIFO-DBF for moving target is similar to that of static target by c
 %	However, by using high-fidelity sensors, such as cameras and laser scanners, and multiple observations from different robot placements, equi-location set can be reduced to only contain true location of target.
 	
 %\end{rem}
-
-\begin{algorithm}
-	\caption{LIFO-DBF Algorithm}\label{alg:lifo-dbf}
-	\begin{algorithmic}
-		\State For $i^\text{th}$ robot at $k^\text{th}$ step:
-		\State After updating CB by \cref{alg:lifo},	
-		\State \textbf{(1)} The stored individual PDF for time $(k-N)$ is:
-		\small\begin{equation*}
-		P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
-		\end{equation*}\normalsize		
-		\State\textbf{(2)} Initialize a virtual PDF by assigning the individual PDF to it:
-		\small\begin{equation*}
-		P^i_{virt}(x^T_{k-N})=P^i_{pdf}(x^T_{k-N}|z^1_{1:k-N},\dots,z^N_{1:k-N})
-		\end{equation*}\normalsize		
-		\State\textbf{(3)} From $\xi=1$ to $N$, repeat two steps of Bayesian filtering:
-		%	\begin{enumerate}
-		%		\item 
-		
-		\State(3.1) Prediction 
-		\small\begin{align*}
-		&P_{virt}^{pre}(x^T_{k-N+\xi})\\=&\int P(x^T_{k-N+\xi}|x^T_{k-N+\xi-1})P^i_{virt}(x^T_{k-N+\xi-1})dx^T_{k-N+\xi-1}
-		\end{align*} \normalsize
-		
-		%		\item 
-		\State(3.2) Updating
-		\small\begin{gather*}
-		P^i_{virt}(x^T_{k-N+\xi})=K_\xi P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})\\
-		K_\xi=1/\int P_{virt}^{pre}(x^T_{k-N+\xi})\prod\limits_{j\in\Omega^i_{\xi}}P(z^j_{k-N+\xi}|x^T_{k-N+\xi})dx^T_{k-N+\xi}
-		\end{gather*} \normalsize
-		%	\end{enumerate}
-		
-		\State(3.3) When $\xi=1$, store the virtual PDF as the individual PDF for time $(k-N+1)$
-		\begin{equation*}
-		P^i_{pdf}(x^T_{k-N+1}|z^1_{1:k-N+1},\dots,z^N_{1:k-N+1})=P^i_{virt}(x^T_{k-N+1}).
-		\end{equation*}
-		
-		\State\textbf{(4)} Individual PDF of $i^\text{th}$ robot at time $k$ is
-		$P^i_{pdf}(x^T_{k}|\mathbf{z}^{i}_{1:k})=P^i_{virt}(x^T_k)$.		
-	\end{algorithmic}
-\end{algorithm}
 
 \subsection{Proof for static robots}
 Considering $S$ is finite and $x^{T^*}$ is the true location of target, the consistency of LIFO-DBF for static robots is stated as follows: 
@@ -1099,11 +1099,12 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 
 \begin{figure}%[thpb]
 	\centering
-	\begin{subfigure}[b]{0.23\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_entropy}
 		\caption{}\label{fig:sta_sen_sta_tar_entropy}
 	\end{subfigure}	
-	\begin{subfigure}[b]{0.23\textwidth}
+	~
+	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_entropy}
 		\caption{}\label{fig:mov_sen_mov_tar_entropy}
 	\end{subfigure}
@@ -1164,8 +1165,9 @@ The switching topology, including package loss, can lead to unpredictable delay 
 
 \section*{ACKNOWLEDGMENT}
 %This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.
-The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. This work is also partially supported by NSF China with grant 51575293.
-They would also like to thank Yuting Wei in the Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
+The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
+This work is also partially supported by NSF China with grant 51575293.
+They would also like to thank Dr. Thierry Peynot from Queensland University of Technology, Australia for the fruitful discussion on distributed estimation and acknowledge Yuting Wei from the Department of Statistics, UC Berkeley for her sincere help on the consistency proof.
 
 %The preferred spelling of the word Òacknowledgment?in America is without an Òe?after the Òg? Avoid the stilted expression, ÒOne of us (R. B. G.) thanks . . .? Instead, try ÒR. B. G. thanks? Put sponsor acknowledgments in the unnumbered footnote on the first page.
 
