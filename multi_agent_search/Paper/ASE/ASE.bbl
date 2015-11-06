@@ -29,10 +29,11 @@ H.~Wang, H.~Lenz, A.~Szabo, J.~Bamberger, and U.~D. Hanebeck, ``Wlan-based
   \emph{Positioning, Navigation and Communication, 2007. WPNC'07. 4th Workshop
   on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2007, pp. 1--7.
 
-\bibitem{cao2008development}
-X.~Cao, J.~Chen, Y.~Zhang, and Y.~Sun, ``Development of an integrated wireless
-  sensor network micro-environmental monitoring system,'' \emph{ISA
-  transactions}, vol.~47, no.~3, pp. 247--255, 2008.
+\bibitem{pandey2015dynamic}
+P.~Pandey, D.~Pompili, and J.~Yi, ``Dynamic collaboration between networked
+  robots and clouds in resource-constrained environments,'' \emph{Automation
+  Science and Engineering, IEEE Transactions on}, vol.~12, no.~2, pp. 471--480,
+  2015.
 
 \bibitem{2005distributed}
 R.~Olfati-Saber, ``Distributed kalman filter with embedded consensus filters,''
@@ -167,5 +168,16 @@ M.~Kulich, L.~Preucil, and J.~J. Miranda~Bront, ``Single robot search for a
 J.~Tisdale, Z.~Kim, and J.~K. Hedrick, ``Autonomous uav path planning and
   estimation,'' \emph{Robotics \& Automation Magazine, IEEE}, vol.~16, no.~2,
   pp. 35--42, 2009.
+
+\bibitem{sujit2011self}
+P.~Sujit and D.~Ghose, ``Self assessment-based decision making for multiagent
+  cooperative search,'' \emph{Automation Science and Engineering, IEEE
+  Transactions on}, vol.~8, no.~4, pp. 705--719, 2011.
+
+\bibitem{7225186}
+A.~Adler, M.~de~Berg, D.~Halperin, and K.~Solovey, ``Efficient multi-robot
+  motion planning for unlabeled discs in simple polygons,'' \emph{Automation
+  Science and Engineering, IEEE Transactions on}, vol.~12, no.~4, pp.
+  1309--1317, Oct 2015.
 
 \end{thebibliography}

@@ -7,7 +7,8 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-Database file #1: references.bib
+Database file #1: IEEEabrv.bib
+Database file #2: references.bib
 Repeated entry---line 332 of file references.bib
  : @article{hlinka2012likelihood
  :                              ,
@@ -17,45 +18,45 @@ I'm skipping whatever remains of this entry
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 27 entries,
+You've used 29 entries,
             3975 wiz_defined-function locations,
-            958 strings with 12696 characters,
-and the built_in function-call counts, 24880 in all, are:
-= -- 2029
-> -- 557
-< -- 271
-+ -- 317
-- -- 80
-* -- 1219
-:= -- 3571
-add.period$ -- 66
-call.type$ -- 27
-change.case$ -- 27
-chr.to.int$ -- 639
-cite$ -- 27
-duplicate$ -- 1711
-empty$ -- 1948
-format.name$ -- 104
-if$ -- 5804
+            1363 strings with 20672 characters,
+and the built_in function-call counts, 26768 in all, are:
+= -- 2193
+> -- 596
+< -- 294
++ -- 341
+- -- 85
+* -- 1313
+:= -- 3847
+add.period$ -- 70
+call.type$ -- 29
+change.case$ -- 29
+chr.to.int$ -- 690
+cite$ -- 29
+duplicate$ -- 1841
+empty$ -- 2079
+format.name$ -- 111
+if$ -- 6243
 int.to.chr$ -- 0
-int.to.str$ -- 27
-missing$ -- 270
-newline$ -- 101
-num.names$ -- 27
-pop$ -- 578
+int.to.str$ -- 29
+missing$ -- 289
+newline$ -- 107
+num.names$ -- 29
+pop$ -- 610
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1925
+skip$ -- 2074
 stack$ -- 0
-substring$ -- 1519
-swap$ -- 1516
-text.length$ -- 58
+substring$ -- 1640
+swap$ -- 1641
+text.length$ -- 64
 text.prefix$ -- 0
 top$ -- 5
 type$ -- 0
 warning$ -- 0
-while$ -- 132
-width$ -- 29
-write$ -- 293
+while$ -- 141
+width$ -- 31
+write$ -- 315
 (There was 1 error message)

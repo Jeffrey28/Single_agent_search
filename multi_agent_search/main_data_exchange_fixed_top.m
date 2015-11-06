@@ -590,14 +590,14 @@ for i=1:NumOfRobot
     plot(1:count-2,rbt(i).entropy(1:count-2),line_clr(i),'LineWidth',2,'Marker',line_marker{i},'MarkerSize',2); hold on;
     xlim([0,count-1])
 end
-title('Entropy of the Target PDF','FontSize',16);
-set(gca,'fontsize',16)
-xlabel('Time','FontSize',16);
-ylabel('Entropy','FontSize',16);
+title('Entropy of the Target PDF','FontSize',30);
+set(gca,'fontsize',30)
+xlabel('Time','FontSize',30);
+ylabel('Entropy','FontSize',30);
 
 [hleg1, hobj1] = legend('Robot 1','Robot 2','Robot 3','Robot 4','Robot 5','Robot 6');
 textobj = findobj(hobj1, 'type', 'text');
-set(textobj, 'fontsize', 15);
+set(textobj, 'fontsize', 24);
 
 switch Selection2
     case 1,  tag = 'sta_sen_sta_tar';

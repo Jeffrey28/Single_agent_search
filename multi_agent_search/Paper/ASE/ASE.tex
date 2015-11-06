@@ -24,7 +24,9 @@
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
 \usepackage{amsmath,amssymb,amsfonts,amsthm} % assumes amsmath package installed
-\usepackage{algorithm,algpseudocode}
+\usepackage{algorithm,algpseudocode} % algorithm environemnt
+\usepackage[usenames, dvipsnames]{color} % color text
+\usepackage{flushend}
 %\usepackage{booktabs}
 
 % format for theorems etc.
@@ -33,6 +35,11 @@
 \newtheorem{cor}{\bfseries Corollary}
 \newtheorem{prop}{\bfseries Proposition}
 \newtheorem{rem}{\bfseries Remark}
+
+\newcommand\ntpname{Note to Practitioners}
+\newenvironment{ntp}
+{\renewcommand\abstractname{\ntpname}\begin{abstract}}
+	{\end{abstract}}
 
 % format for argmin, argmax
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
@@ -78,25 +85,16 @@
 
 
 \title{\LARGE \bf
-Distributed Bayesian filters for multi-robot network using latest-in-and-full-out exchange protocol of observations}
-
+Distributed Bayesian Filters for Multirobot Network Using Latest-In-and-Full-Out Exchange Protocol of Observations}
 
 \author{Chang~Liu,~\IEEEmembership{Student Member,~IEEE,}
 	Shengbo~Eben~Li,~\IEEEmembership{Member,~IEEE,}
 	and~J.~Karl~Hedrick%~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
-	\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research. }
+	\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research. Please direct all correspondence to S. Li.}
 	\thanks{Chang Liu and J. Karl Hedrick are with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu, khedrick@me.berkeley.edu.}}% <-this % stops a space
 	\thanks{S. Eben Li is with State Key Lab of Automotive Safety and Energy, Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He was with  Department of Mechanical Engineering, University of California, Berkeley, as a visiting scholar. Email: {\tt\small lisb04@gmail.com.}}
 }% <-this % stops a space
 	%\thanks{Manuscript received April 19, 2005; revised January 11, 2007.}}
-
-%\author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
-%\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}% <-this % stops a space
-%\thanks{$^{1}$Chang Liu is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu}}%
-%\thanks{$^{2}$Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He is currently working at Department of Mechanical Engineering, University of California, Berkeley as a visiting scholar. Email: {\tt\small lisb04@gmail.com}}%
-%\thanks{$^{3}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
-%}
-
 
 \begin{document}
 
@@ -126,10 +124,23 @@ The consistency and consensus of LIFO-based DBF are proved that estimated target
 The effectiveness of this method is demonstrated by numerical simulations.
 \end{abstract}
 
+\begin{ntp}
+Deploying swarms of robots for collecting environment information is receiving increasing interest in both military and civilian applications, such as surveillance, reconnaissance, search and rescue.
+This work focuses on distributed estimation of the position of a hidden target in the environment.
+One key challenge for effective estimation is limited communication range and resource of robots.
+Traditional methods usually incur large transmission burden or assume that all robots can communicate with each other.
+This paper presents a distributed estimation scheme, called distributed Bayesian filtering, that is based on local exchange of sensor measurements among neighboring robots.
+The proposed scheme can significantly reduce transmission burden and only rely on communication among neighboring robots, which is suitable for realistic applications.
+In addition, theoretical analysis ensures that all robots can correctly localize the true position of the target, when enough observations are obtained.
+Simulations using a team of robots for localizing static and moving target are conducted to demonstrate the effectiveness of the proposed method.
+\end{ntp}
 
+\begin{IEEEkeywords}
+Distributed filtering, multiagent system, consistency of estimation, consensus.
+\end{IEEEkeywords}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
-Distributed filtering that focuses on using a group of networked robots to collectively infer environment status has been used for various applications, such as intruder detection \cite{chamberland2007wireless}, pedestrian tracking \cite{wang2007wlan} and micro-environmental monitoring \cite{cao2008development}. 
+\IEEEPARstart{D}{istributed} filtering that focuses on using a group of networked robots to collectively infer environment status has been used for various applications, such as intruder detection \cite{chamberland2007wireless}, pedestrian tracking \cite{wang2007wlan} and \textcolor{blue}{underwater environmental monitoring \cite{pandey2015dynamic}}. 
 Several techniques have been developed for distributed filtering.
 For example, Olfati-Saber (2005) proposed a distributed Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}.
 Each DKF used additional low-pass and band-pass consensus filters to compute the average of weighted measurements and inverse-covariance matrices.
@@ -1078,7 +1089,7 @@ This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of targe
 %\end{figure}
 
 \subsection{Moving Robots, Moving Target}
-In this scenario, the six robots are controlled to move in circular trajectories periodically while the target moves linearly. Readers interested in motion planning of robots can refer to \cite{tisdale2009autonomous}. %,furukawa2006recursive
+In this scenario, the six robots are controlled to move in circular trajectories periodically while the target moves linearly. Readers interested in motion planning of robots can refer to \textcolor{blue}{\cite{tisdale2009autonomous,sujit2011self,7225186}}. %,furukawa2006recursive
 The target dynamics is given by a single-integrator model: $x^T(k+1)=x^T(k)+v\Delta T$,
 %\small\begin{equation*}
 %x^T(k+1)=x^T(k)+v\Delta T
@@ -1101,14 +1112,14 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 	\centering
 	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_entropy}
-		\caption{}\label{fig:sta_sen_sta_tar_entropy}
+		\label{fig:sta_sen_sta_tar_entropy}
 	\end{subfigure}	
 	~
 	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_entropy}
-		\caption{}\label{fig:mov_sen_mov_tar_entropy}
+		\label{fig:mov_sen_mov_tar_entropy}
 	\end{subfigure}
-\caption{(a) Entropy of target PDF using static robots; (b) Entropy of target PDF using moving robots.}
+\caption{Top figure: entropy of target PDF using static robots. Bottom figure: entropy of target PDF using moving robots.}
 \end{figure}
 
 \section{CONCLUSION}\label{sec:conclu}
@@ -1176,6 +1187,6 @@ They would also like to thank Dr. Thierry Peynot from Queensland University of T
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{IEEEtran}
 %\bibliographystyle{bibtex}
-\bibliography{references}
+\bibliography{IEEEabrv,references}
 
 \end{document}
