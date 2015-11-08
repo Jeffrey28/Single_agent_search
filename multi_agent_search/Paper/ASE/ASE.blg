@@ -13,6 +13,10 @@ Repeated entry---line 332 of file references.bib
  : @article{hlinka2012likelihood
  :                              ,
 I'm skipping whatever remains of this entry
+Repeated entry---line 411 of file references.bib
+ : @inproceedings{rosencrantz2002decentralized
+ :                                            ,
+I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.11 (2003/04/02) by Michael Shell.
 -- http://www.ctan.org/tex-archive/macros/latex/contrib/supported/IEEEtran/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
@@ -20,37 +24,37 @@ I'm skipping whatever remains of this entry
 Done.
 You've used 29 entries,
             3975 wiz_defined-function locations,
-            1363 strings with 20672 characters,
-and the built_in function-call counts, 26768 in all, are:
-= -- 2193
-> -- 596
-< -- 294
-+ -- 341
-- -- 85
-* -- 1313
-:= -- 3847
+            1364 strings with 20763 characters,
+and the built_in function-call counts, 26903 in all, are:
+= -- 2202
+> -- 606
+< -- 295
++ -- 346
+- -- 87
+* -- 1322
+:= -- 3857
 add.period$ -- 70
 call.type$ -- 29
 change.case$ -- 29
-chr.to.int$ -- 690
+chr.to.int$ -- 693
 cite$ -- 29
-duplicate$ -- 1841
-empty$ -- 2079
-format.name$ -- 111
-if$ -- 6243
+duplicate$ -- 1849
+empty$ -- 2086
+format.name$ -- 114
+if$ -- 6276
 int.to.chr$ -- 0
 int.to.str$ -- 29
-missing$ -- 289
+missing$ -- 291
 newline$ -- 107
 num.names$ -- 29
-pop$ -- 610
+pop$ -- 617
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 2074
+skip$ -- 2083
 stack$ -- 0
-substring$ -- 1640
-swap$ -- 1641
+substring$ -- 1648
+swap$ -- 1650
 text.length$ -- 64
 text.prefix$ -- 0
 top$ -- 5
@@ -59,4 +63,4 @@ warning$ -- 0
 while$ -- 141
 width$ -- 31
 write$ -- 315
-(There was 1 error message)
+(There were 2 error messages)

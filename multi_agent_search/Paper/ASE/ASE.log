@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  5 NOV 2015 19:03
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  7 NOV 2015 16:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -793,12 +793,12 @@ File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 
 
 ]
-LaTeX Font Info:    Try loading font information for U+msa on input line 232.
+LaTeX Font Info:    Try loading font information for U+msa on input line 235.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 232.
+LaTeX Font Info:    Try loading font information for U+msb on input line 235.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -807,16 +807,16 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 File: figures/com_topo.pdf Graphic file (type pdf)
 
 <use figures/com_topo.pdf>
-Package pdftex.def Info: figures/com_topo.pdf used on input line 295.
+Package pdftex.def Info: figures/com_topo.pdf used on input line 298.
 (pdftex.def)             Requested size: 242.52063pt x 65.03207pt.
 
-Underfull \hbox (badness 2617) in paragraph at lines 316--321
+Underfull \hbox (badness 2617) in paragraph at lines 319--324
  \OT1/ptm/m/it/10 1) Pre-dic-tion: [][] \OT1/ptm/m/n/10 At time $\OML/cmm/m/it/
 10 k$\OT1/ptm/m/n/10 , the prior in-di-vid-ual PDF
  []
 
 
-Underfull \hbox (badness 4316) in paragraph at lines 360--362
+Underfull \hbox (badness 4316) in paragraph at lines 362--364
 \OT1/ptm/m/n/10 and $\OML/cmm/m/it/10 P[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]\
 OMS/cmsy/m/n/10 j\OT1/cmr/bx/n/10 z[]\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 is call
 ed pos-te-rior in-di-vid-ual PDF;
@@ -826,7 +826,7 @@ ed pos-te-rior in-di-vid-ual PDF;
 File: figures/data_exchange.pdf Graphic file (type pdf)
 
 <use figures/data_exchange.pdf>
-Package pdftex.def Info: figures/data_exchange.pdf used on input line 481.
+Package pdftex.def Info: figures/data_exchange.pdf used on input line 484.
 (pdftex.def)             Requested size: 247.6778pt x 199.8143pt.
  [3 <./figures/com_topo.pdf> <./figures/data_exchange.pdf
 
@@ -836,17 +836,17 @@ clusion: multiple pdfs with page group included in a single page
 File: figures/DBF_demo.pdf Graphic file (type pdf)
 
 <use figures/DBF_demo.pdf>
-Package pdftex.def Info: figures/DBF_demo.pdf used on input line 570.
+Package pdftex.def Info: figures/DBF_demo.pdf used on input line 573.
 (pdftex.def)             Requested size: 232.19843pt x 170.5712pt.
 
-Overfull \hbox (0.96536pt too wide) detected at line 613
+Overfull \hbox (0.96536pt too wide) detected at line 616
 \OML/cmm/m/it/10 P[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]\OMS/cmsy/m/n/10 j\OML
 /cmm/m/it/10 z[]; [] ; z[]\OT1/cmr/m/n/10 ) = \OML/cmm/m/it/10 P[]\OT1/cmr/m/n/
 10 (\OML/cmm/m/it/10 x[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 :
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 742--747
+Underfull \hbox (badness 10000) in paragraph at lines 745--750
 
  []
 
@@ -856,7 +856,7 @@ File: figures/sta_sen_sta_tar_single_1_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_1.pdf used on input l
-ine 907.
+ine 910.
 (pdftex.def)             Requested size: 103.19843pt x 81.13936pt.
 
 <figures/sta_sen_sta_tar_single_1_5.pdf, id=109, 501.6055pt x 394.58458pt>
@@ -864,7 +864,7 @@ File: figures/sta_sen_sta_tar_single_1_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_5.pdf used on input l
-ine 911.
+ine 914.
 (pdftex.def)             Requested size: 103.19843pt x 81.17935pt.
 
 <figures/sta_sen_sta_tar_single_1_10.pdf, id=110, 501.6055pt x 394.585pt>
@@ -872,7 +872,7 @@ File: figures/sta_sen_sta_tar_single_1_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_10.pdf used on input 
-line 915.
+line 918.
 (pdftex.def)             Requested size: 103.19843pt x 81.17944pt.
 
 <figures/sta_sen_sta_tar_single_1_30.pdf, id=111, 501.7057pt x 379.62326pt>
@@ -880,7 +880,7 @@ File: figures/sta_sen_sta_tar_single_1_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_1_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_1_30.pdf used on input 
-line 919.
+line 922.
 (pdftex.def)             Requested size: 103.19843pt x 78.08394pt.
 
 <figures/sta_sen_sta_tar_single_3_1.pdf, id=112, 501.66302pt x 394.44864pt>
@@ -888,7 +888,7 @@ File: figures/sta_sen_sta_tar_single_3_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_3_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_3_1.pdf used on input l
-ine 924.
+ine 927.
 (pdftex.def)             Requested size: 98.04126pt x 77.0887pt.
 
 <figures/sta_sen_sta_tar_single_3_5.pdf, id=113, 501.6055pt x 394.58458pt>
@@ -896,7 +896,7 @@ File: figures/sta_sen_sta_tar_single_3_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_3_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_3_5.pdf used on input l
-ine 928.
+ine 931.
 (pdftex.def)             Requested size: 98.04126pt x 77.12129pt.
 
 <figures/sta_sen_sta_tar_single_3_10.pdf, id=114, 501.7057pt x 379.62326pt>
@@ -904,7 +904,7 @@ File: figures/sta_sen_sta_tar_single_3_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_3_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_3_10.pdf used on input 
-line 932.
+line 935.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/sta_sen_sta_tar_single_3_30.pdf, id=115, 501.7057pt x 379.62326pt>
@@ -912,7 +912,7 @@ File: figures/sta_sen_sta_tar_single_3_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_3_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_3_30.pdf used on input 
-line 936.
+line 939.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/sta_sen_sta_tar_single_5_1.pdf, id=116, 501.66302pt x 394.44864pt>
@@ -920,7 +920,7 @@ File: figures/sta_sen_sta_tar_single_5_1.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5_1.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_1.pdf used on input l
-ine 941.
+ine 944.
 (pdftex.def)             Requested size: 98.04126pt x 77.0887pt.
 
 <figures/sta_sen_sta_tar_single_5_5.pdf, id=117, 501.6055pt x 394.58458pt>
@@ -928,7 +928,7 @@ File: figures/sta_sen_sta_tar_single_5_5.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5_5.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_5.pdf used on input l
-ine 945.
+ine 948.
 (pdftex.def)             Requested size: 98.04126pt x 77.12129pt.
 
 <figures/sta_sen_sta_tar_single_5_10.pdf, id=118, 501.7057pt x 379.62326pt>
@@ -936,7 +936,7 @@ File: figures/sta_sen_sta_tar_single_5_10.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5_10.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_10.pdf used on input 
-line 949.
+line 952.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/sta_sen_sta_tar_single_5_30.pdf, id=119, 501.7057pt x 379.62326pt>
@@ -944,7 +944,7 @@ File: figures/sta_sen_sta_tar_single_5_30.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_single_5_30.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_single_5_30.pdf used on input 
-line 953.
+line 956.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/mov_sen_mov_tar_single_2_1.pdf, id=120, 501.57413pt x 394.5532pt>
@@ -952,7 +952,7 @@ File: figures/mov_sen_mov_tar_single_2_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_2_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_2_1.pdf used on input l
-ine 963.
+ine 966.
 (pdftex.def)             Requested size: 98.04126pt x 77.12119pt.
 
 <figures/mov_sen_mov_tar_single_2_5.pdf, id=121, 501.60547pt x 394.58452pt>
@@ -960,7 +960,7 @@ File: figures/mov_sen_mov_tar_single_2_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_2_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_2_5.pdf used on input l
-ine 967.
+ine 970.
 (pdftex.def)             Requested size: 98.04126pt x 77.12128pt.
 
 <figures/mov_sen_mov_tar_single_2_10.pdf, id=122, 501.7057pt x 379.62326pt>
@@ -968,7 +968,7 @@ File: figures/mov_sen_mov_tar_single_2_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_2_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_2_10.pdf used on input 
-line 971.
+line 974.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/mov_sen_mov_tar_single_2_30.pdf, id=123, 501.7057pt x 379.62326pt>
@@ -976,7 +976,7 @@ File: figures/mov_sen_mov_tar_single_2_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_2_30.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_2_30.pdf used on input 
-line 975.
+line 978.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/mov_sen_mov_tar_single_4_1.pdf, id=124, 501.66302pt x 394.44864pt>
@@ -984,7 +984,7 @@ File: figures/mov_sen_mov_tar_single_4_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_4_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_4_1.pdf used on input l
-ine 980.
+ine 983.
 (pdftex.def)             Requested size: 98.04126pt x 77.0887pt.
 
 <figures/mov_sen_mov_tar_single_4_5.pdf, id=125, 501.57413pt x 394.5532pt>
@@ -992,7 +992,7 @@ File: figures/mov_sen_mov_tar_single_4_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_4_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_4_5.pdf used on input l
-ine 984.
+ine 987.
 (pdftex.def)             Requested size: 98.04126pt x 77.12119pt.
 
 <figures/mov_sen_mov_tar_single_4_10.pdf, id=126, 501.6055pt x 394.58458pt>
@@ -1000,7 +1000,7 @@ File: figures/mov_sen_mov_tar_single_4_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_4_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_4_10.pdf used on input 
-line 988.
+line 991.
 (pdftex.def)             Requested size: 98.04126pt x 77.12129pt.
 
 <figures/mov_sen_mov_tar_single_4_30.pdf, id=127, 501.7057pt x 379.62326pt>
@@ -1008,7 +1008,7 @@ File: figures/mov_sen_mov_tar_single_4_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_4_30.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_4_30.pdf used on input 
-line 992.
+line 995.
 (pdftex.def)             Requested size: 98.04126pt x 74.17973pt.
 
 <figures/mov_sen_mov_tar_single_6_1.pdf, id=128, 501.66302pt x 394.44864pt>
@@ -1016,7 +1016,7 @@ File: figures/mov_sen_mov_tar_single_6_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_6_1.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_6_1.pdf used on input l
-ine 997.
+ine 1000.
 (pdftex.def)             Requested size: 98.04126pt x 77.0887pt.
 
 <figures/mov_sen_mov_tar_single_6_5.pdf, id=129, 501.57413pt x 394.5532pt>
@@ -1024,7 +1024,7 @@ File: figures/mov_sen_mov_tar_single_6_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_6_5.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_6_5.pdf used on input l
-ine 1001.
+ine 1004.
 (pdftex.def)             Requested size: 98.04126pt x 77.12119pt.
 
 <figures/mov_sen_mov_tar_single_6_10.pdf, id=130, 501.6055pt x 394.58458pt>
@@ -1032,7 +1032,7 @@ File: figures/mov_sen_mov_tar_single_6_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_6_10.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_6_10.pdf used on input 
-line 1005.
+line 1008.
 (pdftex.def)             Requested size: 98.04126pt x 77.12129pt.
 
 <figures/mov_sen_mov_tar_single_6_30.pdf, id=131, 561.09625pt x 420.57124pt>
@@ -1040,7 +1040,7 @@ File: figures/mov_sen_mov_tar_single_6_30.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_6_30.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_single_6_30.pdf used on input 
-line 1009.
+line 1012.
 (pdftex.def)             Requested size: 98.04126pt x 73.48555pt.
  [6] [7 <./figures/sta_sen_sta_tar_single_1_1.pdf> <./figures/sta_sen_sta_tar_s
 ingle_1_5.pdf
@@ -1140,7 +1140,7 @@ File: figures/sta_sen_sta_tar_entropy.pdf Graphic file (type pdf)
 
 <use figures/sta_sen_sta_tar_entropy.pdf>
 Package pdftex.def Info: figures/sta_sen_sta_tar_entropy.pdf used on input line
- 1114.
+ 1118.
 (pdftex.def)             Requested size: 232.19843pt x 196.98642pt.
 
 <figures/mov_sen_mov_tar_entropy.pdf, id=3436, 614.8025pt x 519.56915pt>
@@ -1148,7 +1148,7 @@ File: figures/mov_sen_mov_tar_entropy.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_entropy.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_entropy.pdf used on input line
- 1119.
+ 1123.
 (pdftex.def)             Requested size: 232.19843pt x 196.22534pt.
  [8 <./figures/sta_sen_sta_tar_entropy.pdf> <./figures/mov_sen_mov_tar_entropy.
 pdf
@@ -1164,12 +1164,12 @@ Output:174.0pt
  [10] (./ASE.aux) ) 
 Here is how much of TeX's memory you used:
  18220 strings out of 493117
- 356441 string characters out of 6135433
- 421844 words of memory out of 5000000
+ 356448 string characters out of 6135433
+ 423844 words of memory out of 5000000
  21307 multiletter control sequences out of 15000+600000
  50771 words of font info for 102 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 62i,14n,75p,787b,537s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 62i,15n,75p,787b,537s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.
 enc}</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.p
 fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb
@@ -1196,7 +1196,7 @@ st/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
 ype1/urw/times/utmbi8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/
 times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on ASE.pdf (10 pages, 2977729 bytes).
+Output written on ASE.pdf (10 pages, 2979393 bytes).
 PDF statistics:
  3631 PDF objects out of 4296 (max. 8388607)
  2397 compressed objects within 24 object streams

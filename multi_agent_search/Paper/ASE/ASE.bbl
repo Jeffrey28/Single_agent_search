@@ -114,11 +114,11 @@ J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
   International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
   2012, pp. 3857--3860.
 
-\bibitem{coates2004distributed}
-M.~Coates, ``Distributed particle filters for sensor networks,'' in
-  \emph{Proceedings of the 3rd international symposium on Information
-  processing in sensor networks}.\hskip 1em plus 0.5em minus 0.4em\relax ACM,
-  2004, pp. 99--107.
+\bibitem{rosencrantz2002decentralized}
+M.~Rosencrantz, G.~Gordon, and S.~Thrun, ``Decentralized sensor fusion with
+  distributed particle filters,'' in \emph{Proceedings of the Nineteenth
+  conference on Uncertainty in Artificial Intelligence}.\hskip 1em plus 0.5em
+  minus 0.4em\relax Morgan Kaufmann Publishers Inc., 2002, pp. 493--500.
 
 \bibitem{ribeiro2006bandwidth}
 A.~Ribeiro and G.~B. Giannakis, ``Bandwidth-constrained distributed estimation

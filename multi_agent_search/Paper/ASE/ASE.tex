@@ -125,14 +125,15 @@ The effectiveness of this method is demonstrated by numerical simulations.
 \end{abstract}
 
 \begin{ntp}
-Deploying swarms of robots for collecting environment information is receiving increasing interest in both military and civilian applications, such as surveillance, reconnaissance, search and rescue.
-This work focuses on distributed estimation of the position of a hidden target in the environment.
-One key challenge for effective estimation is limited communication range and resource of robots.
+Deploying teams of robots for collecting environment information has received increasing interest in both military and civilian applications, such as surveillance, reconnaissance, search and rescue.
+This work focuses on distributed estimation of hidden target position in the environment.
+One major challenge for effective distributed estimation is the limited communication range and resource of robots.
 Traditional methods usually incur large transmission burden or assume that all robots can communicate with each other.
-This paper presents a distributed estimation scheme, called distributed Bayesian filtering, that is based on local exchange of sensor measurements among neighboring robots.
-The proposed scheme can significantly reduce transmission burden and only rely on communication among neighboring robots, which is suitable for realistic applications.
-In addition, theoretical analysis ensures that all robots can correctly localize the true position of the target, when enough observations are obtained.
-Simulations using a team of robots for localizing static and moving target are conducted to demonstrate the effectiveness of the proposed method.
+This paper presents a distributed estimation scheme that is based on local exchange of sensor measurements among neighboring robots.
+The proposed scheme significantly reduces transmission burden and only rely on local communication, therefore suitable for applications in realistic situations.
+In addition, under the condition that communication between robots are bidirectional and unchanged, the proposed method ensures that all robots correctly localize the true position of the target, when enough observations are obtained.
+Simulations using a team of robots for localizing static and moving target are conducted to demonstrate the effectiveness of the proposed method. 
+In future research, we will address the distributed estimation when communication between robots is time-variant and unidirectional.
 \end{ntp}
 
 \begin{IEEEkeywords}
@@ -202,8 +203,10 @@ Such a manipulation, however, increases the computation burden for each robot an
 One potential remedy is to disseminate measurement instead of statistics among neighbors, which has not been fully exploited in robotic community so far.
 % strategy has been developed for NB-based DBFs, by which raw or quantized observations are exchanged among robots.
 %This study focuses on the strategy of exchanging observations in the neighborhood of each robot, called the \textit{measurement dissemination-based} strategy, for the purpose of achieving a consensus of the probability density function (PDF) of the tracked target.  
-One pioneering work was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}.
-Ribeiro et al. (2006) exchanged quantized observations along with error-variance limits considering more pragmatic signal models \cite{ribeiro2006bandwidth}.
+%One pioneering work was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}.
+\textcolor{blue}{One pioneering work was done by Rosencrantz et al. (2003), who proposed a selective communication scheme that enabled individual robots to communicate the most informative observation to other entities.
+However, the selection of transmitted observation requires exchange of posterior distributions, which can incur high communication cost \cite{rosencrantz2002decentralized}.}
+Ribeiro et al. (2006) \textcolor{blue}{proposed a distributed estimation method based on exchanging} quantized observations along with error-variance limits considering pragmatic signal models \cite{ribeiro2006bandwidth}.
 A recent work was conducted by Djuric et al. (2011), who proposed to broadcast raw measurements to other agents, and therefore each robot has a complete set of observations of other robots for executing particle filtering \cite{djuric2011non}. 
 %At each time instant, a subset of robots that are in proximity of the tracked targets share their observations for target position estimation.
 % to all the remaining agents and apply local particle filter for target tracking 
@@ -231,7 +234,7 @@ Simulation results are presented in \cref{sec:sim} and \cref{sec:conclu} conclud
 \section{PROBLEM FORMULATION}\label{sec:prob_form}
 Consider a network of $N$ robots in a bounded two-dimensional space $S$. 
 Each robot is equipped with a binary sensor for environmental perception. Due to the limit of communication range, each robot can only exchange observations with its neighbors. 
-The Bayesian filter is executed locally on each robot based on its own and received observations via single-hopping communication.
+The Bayesian filter is executed locally on each robot for target localization, based on its own and received observations via single-hopping communication.
 
 \subsection{Probabilistic Model of Binary Sensor}
 %In this paper, distributed Bayesian filter is used to estimate the true target position by a network of binary sensors.
@@ -324,8 +327,7 @@ P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})
 \end{equation}\normalsize
 where $P(x^T_k|x^T_{k-1})$ is a Markov motion model of the target, independent of robot states. 
 This model describes the state transition probability of the target from a prior state $x^T_{k-1}$ to posterior state $x^T_k$. 
-Note that the target is static in many search applications, such as the indoor search for stationary objects \cite{kulich2014single}. 
-For a static target, its Markov motion model is simplified to be
+\textcolor{blue}{Note that if the target is static, such as in the application of indoor search for stationary objects \cite{kulich2014single}, Markov motion model is simplified to be}
 \small\begin{equation*}
 P(x^T_k|x^T_{k-1})=\begin{cases}
 1 & \text{if}\; x^T_k=x^T_{k-1}\\
@@ -348,7 +350,7 @@ The $i^\text{th}$ individual PDF is then updated by Bayes' formula using the set
 P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k})
 =K_iP^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})P(\mathbf{z}^i_k|x^T_k),
 \end{equation}\normalsize
-where $K_i$ is a normalization factor:
+where $K_i$ is a normalizing factor:
 %\small\begin{align*}
 %K_i=1/\int P^i_{pdf}(x^T_k|z^i_{1:k-1},z^{\mathcal{Q}_i}_{1:k-1})P(z^i_k|x^T_k)\prod\limits_{j\in\mathcal{Q}_i}P(z^j_k|x^T_k)dx^T_k
 %\end{align*}\normalsize
@@ -410,8 +412,9 @@ The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 		
 		The $i^\text{th}$ robot updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i$. For all $j\neq i$,
 		\small\begin{align*}
-		l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,\;i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
-		z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_\text{latest}}_j},\; k^i_j=\left(k-1\right)^{l_\text{latest}}_j. 
+%		l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,\;i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
+		l_{\text{latest},j}&=\argmax_{l\in \mathcal{N}_i\cup \{i\}}\left\lbrace\left(k-1\right)^l_j  \right\rbrace\\
+		z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_{\text{latest,j},j}}_j},\; k^i_j=\left(k-1\right)^{l_{\text{latest},j}}_j. 
 		\end{align*} \normalsize
 		
 		\State (2.4) Sending Step:
@@ -494,7 +497,7 @@ For a fixed and undirected network of $N$ robots, LIFO uses the shortest path(s)
 \begin{proof} 
 Without loss of generality, assume that there is a unique shortest path between $i$ and $j$, denoted by $T^{j,i}_{n^*}=\left(v_1,\dots,v_{n^*}\right)$, with $v_1=j,v_{n^*}=i,v_{m+1}\in\mathcal{N}_{v_m}$. 
 Then, the distance between $i$ and $j$ is $d(j,i)=n^*-1$. 
-The following mathematical induction will prove \Cref{prop1}.
+The following mathematical induction proves \Cref{prop1}.
 
 Step (1): When $d(j,i)=1$, $j\in\mathcal{N}_i$ and $j$ can directly send $z^j_k$ to $i$. Then $z^j_k$ is stored in $i^\text{th}$ CB at time $k+1$, i.e., $\tau_{i,j}=1$. 
 \Cref{prop1} holds for $d(j,i)=1,\,\forall i,j\in\left\lbrace 1,\dots,N\right\rbrace $.
@@ -572,7 +575,7 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 		Networked robots take a line topology, shown in the top. 
 		The stored individual PDF is $ P^1_{pdf}(k-N)$.
 		The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. 
-		Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the target PDF estimation of $1^\text{st}$ robot at time $k$.
+		Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the individual PDF estimation of $1^\text{st}$ robot at time $k$.
 		In this example, $\Omega^1_{\xi}=\left\lbrace 1,2,\dots,N+1-\xi\right\rbrace $, $\xi=1,\dots,N$.}
 	\label{fig:LIFO-DBF}
 \end{figure}
@@ -675,7 +678,7 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 \begin{rem}
 	\normalfont
 	For the static target, each robot only needs current step CB to update individual PDFs. 
-	Therefore, besides storing individual PDFs, only current-step CB is stored in robot memory and all historical CBs can be discarded, which means that the size of occupied memory is $O(N)$. 
+	Therefore, besides storing individual PDF \textcolor{blue}{ with size $O(M^2)$}, only current-step CB is stored in robot memory and all historical CBs can be discarded, which means that the size of occupied memory is \textcolor{blue}{$O(N+M^2)$}. 
 	On the contrary, for the moving target, each robot needs to store a triangular matrix of historical observation 
 %	(except current step CB) 
 	with size of $O(N^2)$ and an individual PDF with size $O(M^2)$, which means that the size of occupied memory in each robot is $O(M^2+N^2)$.
@@ -852,7 +855,7 @@ Before stating main theorem, the following lemma is introduced.
 \end{lem}
 
 \begin{proof}
-Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ position up to time $k$. Then, $\sum\limits_{j} n^{i,k}_j=k$. It is straightforward to see that $\exists n^{i,k}_j,$ such that $n^{i,k}_j\rightarrow \infty,$ as $k\rightarrow \infty$.
+Let $n^{i,k}_j$ denote the times that $i^\text{th}$ robot visits $j^\text{th}$ position by time $k$. Then, $\sum\limits_{j} n^{i,k}_j=k$. It is straightforward to see that $\exists n^{i,k}_j,$ such that $n^{i,k}_j\rightarrow \infty,$ as $k\rightarrow \infty$.
 \end{proof}
 \medskip
 %The main theory of consistency of LIFO-DBF for moving robots is stated as follows:
@@ -953,7 +956,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_30}
 		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_5_4}
 	\end{subfigure}
-	\caption{Individual PDFs at different steps in ``static robots + static target'' scenario: $1^\text{st}$ robot (a)-(d); $3\text{rd}$ robot (e)-(h); $5^\text{th}$ robot (i)-(l). Robots are numbered counterclockwise, with the left-most one being the $1^\text{st}$. The square denotes this robot and stars represent other robots. The cross stands for the target.}
+	\caption{Individual PDFs at different steps in ``static robots + static target'' scenario: $1^\text{st}$ robot (a)-(d); $3^\text{rd}$ robot (e)-(h); $5^\text{th}$ robot (i)-(l). Robots are numbered counterclockwise, with the left-most one being the $1^\text{st}$. The square denotes the robot, \textcolor{blue}{whose individual PDF is plotted,} and stars represent other robots. The cross stands for the target.}
 	\label{fig:sta_sen_sta_tar}
 \end{figure}
 
@@ -1010,7 +1013,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 		\caption{Step 30}\label{fig:mov_sen_mov_tar_sing_6_4}
 	\end{subfigure}
 	
-	\caption{Individual PDFs at different steps in ``moving robots + moving target'' scenario: $2^\text{nd}$ robot (a)-(d); $4\text{th}$ robot (e)-(h); $6^\text{th}$ robot (i)-(l). Robots moves in circles shown in red (this robot) and green (other robots). The square and stars denote the current positions of robots. The trajectory of the target is represented by black line.}
+	\caption{Individual PDFs at different steps in ``moving robots + moving target'' scenario: $2^\text{nd}$ robot (a)-(d); $4^\text{th}$ robot (e)-(h); $6^\text{th}$ robot (i)-(l). Robots move in circles shown in red (the robot of focus) and green (other robots). The square and stars denote current positions of robots. The trajectory of the target is represented by the black line.}
 	\label{fig:mov_sen_mov_tar}
 \end{figure}
 
@@ -1047,7 +1050,7 @@ After the initial observation, each robot forms a circular individual PDF, cente
 %\cref{fig:sta_sen_sta_tar_sing1} shows the individual PDF after initial observation for $1^\text{st}$ robot.
 The circular PDF happens because the Gaussian sensor model (\Cref{eqn:gauss_sensor}) only depends on the distance between robot and target, not the bearing angle.
 As more observations are fused, the posterior individual PDF concentrates to the true location of the target, which accords with the consistency of LIFO-DBF.
-\cref{fig:sta_sen_sta_tar_entropy} shows the decreasing entropy of target PDF over time.
+\cref{fig:sta_sen_sta_tar_entropy} shows the decreasing entropy of individual PDFs over time.
 This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of target position.
 %In fact, with the Guassian sensor model (\Cref{eqn:gauss_sensor}), all positions with equal distance to a robot belong to the same equi-parameter set of the robot.
 %Considering the system of six robots located separately, the equi-parameter set that contains the actual target position only contains one element.
@@ -1089,7 +1092,8 @@ This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of targe
 %\end{figure}
 
 \subsection{Moving Robots, Moving Target}
-In this scenario, the six robots are controlled to move in circular trajectories periodically while the target moves linearly. Readers interested in motion planning of robots can refer to \textcolor{blue}{\cite{tisdale2009autonomous,sujit2011self,7225186}}. %,furukawa2006recursive
+In this scenario, the six robots are controlled to move in circular trajectories periodically while the target moves linearly. 
+Readers interested in motion planning of robots for target localization can refer to \cite{tisdale2009autonomous,sujit2011self,7225186}. %,furukawa2006recursive
 The target dynamics is given by a single-integrator model: $x^T(k+1)=x^T(k)+v\Delta T$,
 %\small\begin{equation*}
 %x^T(k+1)=x^T(k)+v\Delta T
