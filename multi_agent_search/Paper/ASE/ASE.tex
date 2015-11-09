@@ -85,7 +85,7 @@
 
 
 \title{\LARGE \bf
-Distributed Bayesian Filters for Multirobot Network Using Latest-In-and-Full-Out Exchange Protocol of Observations}
+Distributed Bayesian Filters for Multi-Robot Network Using Latest-In-and-Full-Out Exchange Protocol of Observations}
 
 \author{Chang~Liu,~\IEEEmembership{Student Member,~IEEE,}
 	Shengbo~Eben~Li,~\IEEEmembership{Member,~IEEE,}
@@ -108,7 +108,7 @@ Distributed Bayesian Filters for Multirobot Network Using Latest-In-and-Full-Out
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-
+The multi-robot network has attracted increasing interest in estimating environment states for various applications.
 This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) method for a multi-robot network by utilizing the Latest-In-and-Full-Out (LIFO) local exchange protocol of observations.
 % for target search and tracking.
 Different from statistics dissemination approaches that transmit posterior distributions or likelihood functions, each robot under LIFO only exchanges with neighboring robots a full communication buffer consisting of latest available measurements,
@@ -130,18 +130,18 @@ This work focuses on distributed estimation of hidden target position in the env
 One major challenge for effective distributed estimation is the limited communication range and resource of robots.
 Traditional methods usually incur large transmission burden or assume that all robots can communicate with each other.
 This paper presents a distributed estimation scheme that is based on local exchange of sensor measurements among neighboring robots.
-The proposed scheme significantly reduces transmission burden and only rely on local communication, therefore suitable for applications in realistic situations.
-In addition, under the condition that communication between robots are bidirectional and unchanged, the proposed method ensures that all robots correctly localize the true position of the target, when enough observations are obtained.
+The proposed scheme significantly reduces transmission burden and only relies on local communication, therefore suitable for applications in realistic situations.
+%In addition, under the condition that communication between robots are bidirectional and unchanged, the proposed method ensures that all robots correctly localize the true position of the target, when enough observations are obtained.
 Simulations using a team of robots for localizing static and moving target are conducted to demonstrate the effectiveness of the proposed method. 
 In future research, we will address the distributed estimation when communication between robots is time-variant and unidirectional.
 \end{ntp}
 
 \begin{IEEEkeywords}
-Distributed filtering, multiagent system, consistency of estimation, consensus.
+Robot, distributed estimation, multi-robot network, communication topology.
 \end{IEEEkeywords}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
-\IEEEPARstart{D}{istributed} filtering that focuses on using a group of networked robots to collectively infer environment status has been used for various applications, such as intruder detection \cite{chamberland2007wireless}, pedestrian tracking \cite{wang2007wlan} and \textcolor{blue}{underwater environmental monitoring \cite{pandey2015dynamic}}. 
+\IEEEPARstart{D}{istributed} filtering that focuses on using a group of networked robots to collectively infer environment status has been used for various applications, such as intruder detection \cite{schiff2006automated}, pedestrian tracking \cite{wang2007wlan} and \textcolor{black}{environmental monitoring \cite{song2005automating,pandey2015dynamic}}. 
 Several techniques have been developed for distributed filtering.
 For example, Olfati-Saber (2005) proposed a distributed Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}.
 Each DKF used additional low-pass and band-pass consensus filters to compute the average of weighted measurements and inverse-covariance matrices.
@@ -204,9 +204,9 @@ One potential remedy is to disseminate measurement instead of statistics among n
 % strategy has been developed for NB-based DBFs, by which raw or quantized observations are exchanged among robots.
 %This study focuses on the strategy of exchanging observations in the neighborhood of each robot, called the \textit{measurement dissemination-based} strategy, for the purpose of achieving a consensus of the probability density function (PDF) of the tracked target.  
 %One pioneering work was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}.
-\textcolor{blue}{One pioneering work was done by Rosencrantz et al. (2003), who proposed a selective communication scheme that enabled individual robots to communicate the most informative observation to other entities.
+\textcolor{black}{One pioneering work was done by Rosencrantz et al. (2003), who proposed a selective communication scheme that enabled individual robots to communicate the most informative observation to other entities.
 However, the selection of transmitted observation requires exchange of posterior distributions, which can incur high communication cost \cite{rosencrantz2002decentralized}.}
-Ribeiro et al. (2006) \textcolor{blue}{proposed a distributed estimation method based on exchanging} quantized observations along with error-variance limits considering pragmatic signal models \cite{ribeiro2006bandwidth}.
+Ribeiro et al. (2006) \textcolor{black}{proposed a distributed estimation method based on exchanging} quantized observations along with error-variance limits considering pragmatic signal models \cite{ribeiro2006bandwidth}.
 A recent work was conducted by Djuric et al. (2011), who proposed to broadcast raw measurements to other agents, and therefore each robot has a complete set of observations of other robots for executing particle filtering \cite{djuric2011non}. 
 %At each time instant, a subset of robots that are in proximity of the tracked targets share their observations for target position estimation.
 % to all the remaining agents and apply local particle filter for target tracking 
@@ -327,7 +327,7 @@ P^i_{pdf}(x^T_k|\mathbf{z}^i_{1:k-1})
 \end{equation}\normalsize
 where $P(x^T_k|x^T_{k-1})$ is a Markov motion model of the target, independent of robot states. 
 This model describes the state transition probability of the target from a prior state $x^T_{k-1}$ to posterior state $x^T_k$. 
-\textcolor{blue}{Note that if the target is static, such as in the application of indoor search for stationary objects \cite{kulich2014single}, Markov motion model is simplified to be}
+\textcolor{black}{Note that if the target is static, such as in the application of indoor search for stationary objects \cite{kulich2014single}, Markov motion model is simplified to be}
 \small\begin{equation*}
 P(x^T_k|x^T_{k-1})=\begin{cases}
 1 & \text{if}\; x^T_k=x^T_{k-1}\\
@@ -568,18 +568,6 @@ With a line topology, the record set of $1^\text{st}$ robot is shown as a triang
 Let $\Omega^i_{\xi}\,\left(\xi=1,\dots,N\right) $ denote the index set of robots whose observation at time $(k-N+\xi)$ is stored in $i^\text{th}$ robot's record set. 
 The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:lifo-dbf}.
 
-\begin{figure}%[thpb]
-	\centering
-	\includegraphics[width=0.45\textwidth]{figures/DBF_demo}
-	\caption{Example of LIFO-DBF for $1^\text{st}$ robot at time $k$. 	 
-		Networked robots take a line topology, shown in the top. 
-		The stored individual PDF is $ P^1_{pdf}(k-N)$.
-		The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. 
-		Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the individual PDF estimation of $1^\text{st}$ robot at time $k$.
-		In this example, $\Omega^1_{\xi}=\left\lbrace 1,2,\dots,N+1-\xi\right\rbrace $, $\xi=1,\dots,N$.}
-	\label{fig:LIFO-DBF}
-\end{figure}
-
 \begin{algorithm}
 	\caption{LIFO-DBF Algorithm for Moving Target}\label{alg:lifo-dbf}
 	\begin{algorithmic}
@@ -619,6 +607,18 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 		$P^i_{pdf}(x^T_{k}|\mathbf{z}^{i}_{1:k})=P^i_{virt}(x^T_k)$.		
 	\end{algorithmic}
 \end{algorithm}
+
+\begin{figure}%[thpb]
+	\centering
+	\includegraphics[width=0.45\textwidth]{figures/DBF_demo}
+	\caption{Example of LIFO-DBF for $1^\text{st}$ robot at time $k$. 	 
+		Networked robots take a line topology, shown in the top. 
+		The stored individual PDF is $ P^1_{pdf}(k-N)$.
+		The robot first calculates $ P^1_{virt}(k-N+1)$ using DBF and stores it as $ P^1_{pdf}(k-N+1)$. 
+		Repeating DBF until obtaining $ P^1_{pdf}(k)$, which is then used as the individual PDF estimation of $1^\text{st}$ robot at time $k$.
+		In this example, $\Omega^1_{\xi}=\left\lbrace 1,2,\dots,N+1-\xi\right\rbrace $, $\xi=1,\dots,N$.}
+	\label{fig:LIFO-DBF}
+\end{figure}
 
 %\begin{enumerate}
 %For $i^\text{th}$ robot at $k^\text{th}$ step:
@@ -678,16 +678,17 @@ The \textbf{LIFO-DBF algorithm} for moving target is then stated in \cref{alg:li
 \begin{rem}
 	\normalfont
 	For the static target, each robot only needs current step CB to update individual PDFs. 
-	Therefore, besides storing individual PDF \textcolor{blue}{ with size $O(M^2)$}, only current-step CB is stored in robot memory and all historical CBs can be discarded, which means that the size of occupied memory is \textcolor{blue}{$O(N+M^2)$}. 
+	Therefore, besides storing individual PDF \textcolor{black}{ with size $O(M^2)$}, only current-step CB is stored in robot memory and all historical CBs can be discarded, which means that the size of occupied memory is \textcolor{black}{$O(N+M^2)$}. 
 	On the contrary, for the moving target, each robot needs to store a triangular matrix of historical observation 
 %	(except current step CB) 
 	with size of $O(N^2)$ and an individual PDF with size $O(M^2)$, which means that the size of occupied memory in each robot is $O(M^2+N^2)$.
 \end{rem}
 
 \section{Proof of Consistency and Consensus}\label{sec:consist_proof}
-This section proves consistency and consensus of LIFO-DBF. 
-Only proofs for localizing static target are presented, including both static and moving robots.
-The proof of LIFO-DBF for moving target is similar to that of static target by considering the dynamic model of the target, which is omitted here. 
+%This section proves consistency and consensus of LIFO-DBF. 
+%Only proofs for localizing static target are presented, including both static and moving robots.
+%The proof of LIFO-DBF for moving target is similar to that of static target by considering the dynamic model of the target, which is omitted here. 
+This section proves consistency and consensus of LIFO-DBF for localizing static target are presented, including both static and moving robots.
 
 %Considering $S$ is finite and $x^{T^*}$ is the true location of target, define an \textit{equivalent-location} set $X^T_{eq}\subseteq S$ such that 
 %\small\begin{equation*}
@@ -956,7 +957,7 @@ Therefore, \Cref{eqn:cmp2} can be reduced to only consider infinite-observation 
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_single_5_30}
 		\caption{Step 30}\label{fig:sta_sen_sta_tar_sing_5_4}
 	\end{subfigure}
-	\caption{Individual PDFs at different steps in ``static robots + static target'' scenario: $1^\text{st}$ robot (a)-(d); $3^\text{rd}$ robot (e)-(h); $5^\text{th}$ robot (i)-(l). Robots are numbered counterclockwise, with the left-most one being the $1^\text{st}$. The square denotes the robot, \textcolor{blue}{whose individual PDF is plotted,} and stars represent other robots. The cross stands for the target.}
+	\caption{Individual PDFs at different steps in ``static robots + static target'' scenario: $1^\text{st}$ robot (a)-(d); $3^\text{rd}$ robot (e)-(h); $5^\text{th}$ robot (i)-(l). Robots are numbered counterclockwise, with the left-most one being the $1^\text{st}$. The square denotes the robot, \textcolor{black}{whose individual PDF is plotted,} and stars represent other robots. The cross stands for the target.}
 	\label{fig:sta_sen_sta_tar}
 \end{figure}
 
@@ -1050,6 +1051,11 @@ After the initial observation, each robot forms a circular individual PDF, cente
 %\cref{fig:sta_sen_sta_tar_sing1} shows the individual PDF after initial observation for $1^\text{st}$ robot.
 The circular PDF happens because the Gaussian sensor model (\Cref{eqn:gauss_sensor}) only depends on the distance between robot and target, not the bearing angle.
 As more observations are fused, the posterior individual PDF concentrates to the true location of the target, which accords with the consistency of LIFO-DBF.
+The entropy of individual PDF at $k$ is calculated using the following formula:
+\begin{equation*}
+H_k(x^T)=-\int P^i_\text{PDF}(x^T|z_{1:k})\log P^i_\text{PDF}(x^T|z_{1:k})dx^T.
+\end{equation*}
+
 \cref{fig:sta_sen_sta_tar_entropy} shows the decreasing entropy of individual PDFs over time.
 This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of target position.
 %In fact, with the Guassian sensor model (\Cref{eqn:gauss_sensor}), all positions with equal distance to a robot belong to the same equi-parameter set of the robot.
@@ -1093,8 +1099,8 @@ This confirms the effectiveness of LIFO-DBF in reducing the uncertainty of targe
 
 \subsection{Moving Robots, Moving Target}
 In this scenario, the six robots are controlled to move in circular trajectories periodically while the target moves linearly. 
-Readers interested in motion planning of robots for target localization can refer to \cite{tisdale2009autonomous,sujit2011self,7225186}. %,furukawa2006recursive
-The target dynamics is given by a single-integrator model: $x^T(k+1)=x^T(k)+v\Delta T$,
+Readers interested in motion planning of robots for target localization can refer to \cite{tisdale2009autonomous,sujit2011self,morbidi2011estimation}. %,furukawa2006recursive
+The target dynamics is given by a single-integrator model: $x^T_{k+1}=x^T_{k}+v\Delta T$,
 %\small\begin{equation*}
 %x^T(k+1)=x^T(k)+v\Delta T
 %\end{equation*}\normalsize
@@ -1114,16 +1120,15 @@ It is interesting to notice that the posterior individual PDFs concentrate to th
 
 \begin{figure}%[thpb]
 	\centering
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[b]{0.3\textwidth}
 		\includegraphics[width=\textwidth]{figures/sta_sen_sta_tar_entropy}
-		\label{fig:sta_sen_sta_tar_entropy}
+		\caption{Static robots}\label{fig:sta_sen_sta_tar_entropy}
 	\end{subfigure}	
-	~
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[b]{0.3\textwidth}
 		\includegraphics[width=\textwidth]{figures/mov_sen_mov_tar_entropy}
-		\label{fig:mov_sen_mov_tar_entropy}
+		\caption{Moving robots}\label{fig:mov_sen_mov_tar_entropy}
 	\end{subfigure}
-\caption{Top figure: entropy of target PDF using static robots. Bottom figure: entropy of target PDF using moving robots.}
+\caption{Entropy of target PDF.}
 \end{figure}
 
 \section{CONCLUSION}\label{sec:conclu}
