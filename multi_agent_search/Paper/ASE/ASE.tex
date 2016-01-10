@@ -195,12 +195,12 @@ Other examples can be found in \cite{julian2012distributed,beaudeau2012target}.
 %Each sensor generates state estimate based on that of the previous sensor and its own observation and sequentially passes the estimate to its neighbor.
 %who using the incremental Robbins-Monro gradient algorithm locally at each sensor.
 
-Despite the popularity of statistics dissemination strategy, exchanging statistics can consume high communication resources.
+Despite the popularity of statistics dissemination strategy, exchanging statistics can consume high communication resources \cite{chang2014communication}.
 Approximating statistics with parametric models, such as Gaussian Mixture Models \cite{sheng2005distributed}, can reduce communication burden to some extent.
 Such a manipulation, however, increases the computation burden for each robot and also sacrifices the filtering accuracy due to the approximation.
 %which can be infeasible in vast area or complex environment.
 % such as marine search, seismological rescue, etc. 
-One potential remedy is to disseminate measurement instead of statistics among neighbors, which has not been fully exploited in robotic community so far.
+One potential remedy is to disseminate measurement instead of statistics among neighbors, which has not been fully exploited in robotics community so far.
 % strategy has been developed for NB-based DBFs, by which raw or quantized observations are exchanged among robots.
 %This study focuses on the strategy of exchanging observations in the neighborhood of each robot, called the \textit{measurement dissemination-based} strategy, for the purpose of achieving a consensus of the probability density function (PDF) of the tracked target.  
 %One pioneering work was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}.
@@ -379,58 +379,6 @@ Note that under LIFO, $\mathcal{Q}_i=\left\lbrace 1,\dots,N\right\rbrace \setmin
 At time $k$, $z^j_{k^i_j}$ is received and stored in ${i^\text{th}}$ robot CB, in which $k^i_j$ is the latest observation time of ${j^\text{th}}$ robot available to ${i^\text{th}}$ robot. Due to the communication delay, $k^i_j<k, \forall j\neq i$ and $k^i_i=k$ always holds.
 The \textbf{LIFO protocol} is stated in \cref{alg:lifo}.
 
-\begin{algorithm}
-	\caption{LIFO Protocol}
-	\label{alg:lifo}
-	\begin{algorithmic}
-		\State \textbf{(1)} Initialization:
-		The CB of $i^\text{th}$ robot is initialized when $k=0$: 
-		\begin{equation*}
-		%$\begin{array}{c}
-		z^j_{k^i_j}=\varnothing,\; k^i_j=0,\;j=1,\dots,N. 
-		%\end{array}$\\
-		\end{equation*}
-		
-		\State \textbf{(2)} At $k^\text{th}$ step for $i^\text{th}$ robot :		
-		\State (2.1) Receiving Step:
-		
-		The $i^\text{th}$ robot receives all CBs of its direct neighborhood $\mathcal{N}_i$.
-		The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponds to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
-		The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
-		\begin{equation*}
-		\mathbf{z}^{CB,l}_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i.
-		\end{equation*}
-		
-		\State (2.2) Observation Step: 
-		
-		The $i^\text{th}$ robot updates $z^j_{k^i_j}\,(j=i)$ by its own observation at current step:
-		\begin{equation*}
-		z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
-		\end{equation*}
-		
-		\State (2.3) Comparison Step:
-		
-		The $i^\text{th}$ robot updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i$. For all $j\neq i$,
-		\small\begin{align*}
-%		l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,\;i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
-		l_{\text{latest},j}&=\argmax_{l\in \mathcal{N}_i\cup \{i\}}\left\lbrace\left(k-1\right)^l_j  \right\rbrace\\
-		z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_{\text{latest,j},j}}_j},\; k^i_j=\left(k-1\right)^{l_{\text{latest},j}}_j. 
-		\end{align*} \normalsize
-		
-		\State (2.4) Sending Step:
-		
-		The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors defined in $\mathcal{N}_i$.
-		%\bottomrule
-		%\end{tabular}
-				
-		\State \textbf{(3)} $k\leftarrow k+1$ until stop. %$\hfill\blacksquare$
-	\end{algorithmic}
-\end{algorithm}
-
-
-
-
-
 %The \textbf{LIFO protocol} is stated as follows:
 %
 %%\begin{tabular}{l}
@@ -536,6 +484,54 @@ Therefore, based on \Cref{prop1}, $\tau_{i,j}$ is constant and the updating of e
 	On the contrary, the length of transmitted data for a statistics dissemination approach that transmits unparameterized posterior distributions or likelihood functions is $O(M^2)$, which is in the order of environmental size. 
 	Since $M$ is generally much larger than $N$ in applications such as target localization, LIFO requires much less communication resources.
 \end{rem}
+
+\begin{algorithm}
+	\caption{LIFO Protocol}
+	\label{alg:lifo}
+	\begin{algorithmic}
+		\State \textbf{(1)} Initialization:
+		The CB of $i^\text{th}$ robot is initialized when $k=0$: 
+		\begin{equation*}
+			%$\begin{array}{c}
+			z^j_{k^i_j}=\varnothing,\; k^i_j=0,\;j=1,\dots,N. 
+			%\end{array}$\\
+		\end{equation*}
+		
+		\State \textbf{(2)} At $k^\text{th}$ step for $i^\text{th}$ robot :		
+		\State (2.1) Receiving Step:
+		
+		The $i^\text{th}$ robot receives all CBs of its direct neighborhood $\mathcal{N}_i$.
+		The received CBs are totally $|\mathcal{N}_i|$ groups, each of which corresponds to the (k-1)-step CB of a robot in $\mathcal{N}_i$. 
+		The received CB from $l^\text{th}$ ($l\in \mathcal{N}_i$) robot is denoted as
+		\begin{equation*}
+			\mathbf{z}^{CB,l}_{k-1}=\left[ z^1_{(k-1)^l_1},\dots,z^N_{(k-1)^l_N}\right],\; l\in\mathcal{N}_i.
+		\end{equation*}
+		
+		\State (2.2) Observation Step: 
+		
+		The $i^\text{th}$ robot updates $z^j_{k^i_j}\,(j=i)$ by its own observation at current step:
+		\begin{equation*}
+			z^j_{k^i_j}=z^i_k,\;k^i_j=k,\;\text{if }j=i.
+		\end{equation*}
+		
+		\State (2.3) Comparison Step:
+		
+		The $i^\text{th}$ robot updates other elements of its own CB, i.e., $z^j_{k^i_j}\,(j\neq i)$, by selecting the latest information among all received CBs from $\mathcal{N}_i$. For all $j\neq i$,
+		\small\begin{align*}
+			%		l_\text{latest}&=\argmax_{l\in \mathcal{N}_i,\;i}\left\lbrace\left(k-1\right)^i_j,\left(k-1\right)^l_j  \right\rbrace\\
+			l_{\text{latest},j}&=\argmax_{l\in \mathcal{N}_i\cup \{i\}}\left\lbrace\left(k-1\right)^l_j  \right\rbrace\\
+			z^j_{k^i_j}&=z^j_{\left(k-1\right)^{l_{\text{latest,j},j}}_j},\; k^i_j=\left(k-1\right)^{l_{\text{latest},j}}_j. 
+		\end{align*} \normalsize
+		
+		\State (2.4) Sending Step:
+		
+		The $i^\text{th}$ robot broadcasts its updated CB to all of its neighbors defined in $\mathcal{N}_i$.
+		%\bottomrule
+		%\end{tabular}
+		
+		\State \textbf{(3)} $k\leftarrow k+1$ until stop. %$\hfill\blacksquare$
+	\end{algorithmic}
+\end{algorithm}
 
 \subsection{Algorithm of LIFO-DBF for Static Target}\label{subsec:LIFO-dbf-sta-tar} 
 
@@ -1141,7 +1137,7 @@ Under the condition of fixed and undirected topology, LIFO can guarantee non-int
 %, with each robot non-intermittently receiving observations of all others.
 It is worth noting that LIFO is a general measurement exchange protocol and applicable to various sorts of sensors.
 Two types of LIFO-based DBF algorithms are proposed to estimate individual PDF for static and moving target, respectively. 
-For the static target, each robot locally fuses the newly received observations while for the moving target, a record set of historical observations is stored and updated. 
+For static target, each robot locally fuses the newly received observations while for moving target, a record set of historical observations is stored and updated. 
 %Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
 The consistency of LIFO-based DBF is proved by utilizing the law of large numbers, which ensures that estimated target position converges in probability to the true target position when the number of observations tends to infinity.
 %the agreement between robots' estimated target position and the actual position.
@@ -1163,7 +1159,7 @@ The switching topology, including package loss, can lead to unpredictable delay 
 %In addition, combining LIFO-DBF with robot motion planning is promising for more effective SAT of target.
 
 
-\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+%\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
                                   % on the last page of the document manually. It shortens
                                   % the textheight of the last page by a suitable amount.
                                   % This command does not take effect until the next page
@@ -1185,7 +1181,7 @@ The switching topology, including package loss, can lead to unpredictable delay 
 
 \section*{ACKNOWLEDGMENT}
 %This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.
-The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
+The authors gratefully acknowledges the ONR for supporting the research described in this paper. 
 This work is also partially supported by NSF China with grant 51575293.
 They would also like to thank Dr. Thierry Peynot from Queensland University of Technology, Australia for the fruitful discussion on distributed estimation and acknowledge Yuting Wei from the Department of Statistics, UC Berkeley for her sincere help on the consistency proof.
 

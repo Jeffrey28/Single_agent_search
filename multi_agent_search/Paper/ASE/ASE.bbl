@@ -121,6 +121,13 @@ J.~Beaudeau, M.~F. Bugallo, and P.~M. Djuric, ``Target tracking with
   International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
   2012, pp. 3857--3860.
 
+\bibitem{chang2014communication}
+C.-K. Chang, C.-H. Chang, and C.-C. Wang, ``Communication adaptive multi-robot
+  simultaneous localization and tracking via hybrid measurement and belief
+  sharing,'' in \emph{Robotics and Automation (ICRA), 2014 IEEE International
+  Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2014, pp.
+  5016--5023.
+
 \bibitem{rosencrantz2002decentralized}
 M.~Rosencrantz, G.~Gordon, and S.~Thrun, ``Decentralized sensor fusion with
   distributed particle filters,'' in \emph{Proceedings of the Nineteenth
