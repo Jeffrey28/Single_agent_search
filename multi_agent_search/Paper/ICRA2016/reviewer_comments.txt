@@ -1,0 +1,106 @@
+Reviewer 1 of ICRA 2016 submission 1528
+
+Comments to the author
+======================
+
+The paper presents a distributed Bayesian filtering (DBF)
+method based on measurement dissemination.  Using
+Latest-In-and-Full-Out (LIFO) approach, each robot only
+exchanges with neiboring robots a full communication buffer
+consisting of latest available measurement. 
+
+While some numerical techniques are described, there are a
+number of multi-robot filtering techniques developed to
+date.  Only results (two examples) are presented with no
+parametric studies and no comparison to other techniques. 
+Further the results are numerical only with no actual
+experiments.  
+
+Comparison to other techniques is indispensable for this
+paper as the multi-robot performance can be improved not
+only by the local communication but also by controlling
+many other parameters.	
+
+
+Reviewer 2 of ICRA 2016 submission 1528
+
+Comments to the author
+======================
+This paper offers a method for performing Bayesian
+filtering in a distributed, networked setting, and presents
+a discussion on the role of switching network topologies on
+the filtering process.
+
+While the topic area is of high interest to the robotics
+community, the contributions of this work in the context of
+the expansive literature on multi-agent distributed
+Bayesian filtering appear minimal. Research in robotics,
+signal processing, networked control, and operations
+research communities have extensively studied this problem
+area with substantial results, and the presented work does
+little to provide the context or comparison with the
+existing (and more substantive) work in the literature. 
+The problem formulation is not particularly novel, with
+much prior work in the areas of compressive sensing,
+distributed filtering with communication delays (where you
+may have packet ordering problems), and numerical
+approaches for computing and merging posterior
+distributions.
+
+The presentation is clean and offers a nice summary
+overview of the common formulations of such distributed
+Bayesian methods, including batch formulations of the
+update equations, but as stated previously, does not
+outright contribute new insights. 
+
+The presented numerical studies highlight the approach;
+however, the limited nature of the simulations with little
+to no quantification of performance, comparison with
+existing state-of-the-art approaches that already treat the
+issues proposed in this work, or even a discussion on
+sensitivity on system parameters (e.g., transmission
+lengths, number of robots/targets).  Such a limited study
+fails to convey the significance of the contribution and
+further prevents measurable comparisons and reproducible
+results by the community.
+
+
+----------------------------------------
+Comments on Video Attachment:
+
+
+
+Reviewer 3 of ICRA 2016 submission 1528
+
+Comments to the author
+======================
+
+In the paper, the authors propose a new measurement
+dissemination-based distributed Bayesian filtering (DBF)
+algorithm based on Latest-In-and-Full-Out (LIFO) exchange.
+The authors provide several proofs on the behavour of the
+algorithms, including proof of shortest path
+characteristics, as well as proof of consistency and
+consensus for both the moving robot case and static robot
+case when targets are static. The authors then provide
+simulation results showing the resulting information
+dessimination and estimation of targets for static robots,
+static targets as well as moving robots, moving targets.
+
+The paper is very well written. The description of the
+algorithms are relatively easy to follow, and the proofs,
+for the most part, are very thorough and detailed. The
+proofs show interesting characteristics of the authors'
+algorithms. I encourage the authors, in addition to
+exploring switching topologies, to explore effects of
+varying transmission lengths for the same topology. The
+authors implicitly assume that if two sensors are
+topologically connected, data can be transmitted in the
+same timestep whether the sensors are close by or far away.
+However, for highly dynamic systems coupled with poor
+communications, this assumption may not be valid, and there
+could be interesting theoretical consequences in varying
+the frequency of new data transmissions between systems,
+even for static topology.
+
+I recommend acceptance.

@@ -1,10 +1,19 @@
 %%% process the robot sensor and pose data
 
-%% Sonar
-% read sonar reading from csv file
+%% %%%%%%%%%%%%%%%%%%%%%% MobileSim analysis
+%{
 addpath('/Users/changliu/Documents/Git/Autonomous_agent_search/multi_agent_search/experiment/data');
 clear;
-[data_s,~] = readtext('r2_sonar_mobilesim_010416.csv');
+% choose the robot data
+r_idx = 2;
+if (r_idx == 1)
+    r_prefix = 'r1';
+elseif (r_idx == 2)
+    r_prefix = 'r2';
+end
+%% Sonar
+% read sonar reading from csv file
+[data_s,~] = readtext(sprintf('%s_sonar_mobilesim_010416.csv',r_prefix));
 sonar_rd = struct();
 sonar_rd.time = [data_s{2:end,1}]'; % this time seems to be the epoch time
 sonar_rd.stamp = [data_s{2:end,3}]'; % don't understand why stamp is different from time
@@ -32,7 +41,7 @@ end
 
 %% Pose
 % read pose reading from csv file
-[data_p,~] = readtext('r2_pose_mobilesim_010416.csv');
+[data_p,~] = readtext(sprintf('%s_pose_mobilesim_010416.csv',r_prefix));
 pose_rd = struct();
 pose_rd.time = [data_p{2:end,1}]'; % this time seems to be the epoch time
 pose_rd.stamp = [data_p{2:end,3}]'; % don't understand why stamp is different from time
@@ -85,7 +94,12 @@ psi_deg = psi/pi*180;
 % read pose readings
 % poses in data_p assumes the initial position of robot as (0,0,0), adding
 % the home position to data_p to get state in global coordinate.
-init_pos = [2;2;0];
+if (r_idx == 1)
+    init_pos = [2;2;0];
+elseif (r_idx == 2)
+    init_pos = [18;13;0];
+end
+
 pose_rd.pos = bsxfun(@plus,[[data_p{2:end,pos_x_idx}];[data_p{2:end,pos_y_idx}];psi'],init_pos); % [pos_x;pos_y;orientation]
 pose_rd.vel = [[data_p{2:end,vel_x_idx}];[data_p{2:end,vel_y_idx}];[data_p{2:end,vel_z_idx}]]; %[v_x;v_y;v_angular];
 
@@ -116,33 +130,13 @@ thrd = 0.3; % threshold for deciding if two values match
 
 % retrieve target measurement
 sonar_idx = 4; % retrieve a single sonar first
-% 1. remove measurements whose reading distance is greater than 5.1m
+% 1. remove measurements whose reading distance is greater than 5.1m (max distance is 5.162m)
 dis_thrd = 5.1; % threshold for deciding whether maximum distance is returned
 log_idx = (obj_dist(:,sonar_idx) <= dis_thrd); % logical indices for measurements that detect an object
 tmp_idx = (1:num)';
 tmp_idx(log_idx == 0) = [];
 
-%{
-% interleave x and y index
-det_idx = [2*(tmp_idx-1)+1,2*tmp_idx]';
-det_idx = det_idx(:);
-tmp_pos2 = obj_pos(det_idx,sonar_idx);
-
 % 2. remove measurements from walls
-tmp_idx2 = [];
-for jj = 1:size(tmp_pos2,1)/2
-    if (abs(tmp_pos2(2*(jj-1)+1)-wall_x(1)) < thrd) || (abs(tmp_pos2(2*(jj-1)+1)-wall_x(2)) < thrd)...
-            || (abs(tmp_pos2(2*jj)-wall_y(1)) < thrd) || (abs(tmp_pos2(2*jj)-wall_y(2)) < thrd)
-        continue
-    else
-        tmp_idx2 = [tmp_idx2;jj];
-    end
-end
-tar_idx = [2*(tmp_idx2-1)+1,2*tmp_idx2]';
-tar_idx = tar_idx(:);
-tar_pos = tmp_pos2(tar_idx); % retrieve the measurement for target
-%}
-
 % positions of object in global coordinate
 tmp_glb_pos = zeros(2*length(tmp_idx),1);
 tmp_idx2 = [];
@@ -154,6 +148,7 @@ for jj = 1:length(tmp_idx)
     % orientation of object in global coordinate    
     tmp_glb_ori = pose_rd.pos(3,tmp_idx(jj))+tmp_loc_ori;
     tmp_glb_pos(2*(jj-1)+1:2*jj) = pose_rd.pos(1:2,tmp_idx(jj))+tmp_obj_dist*[cos(tmp_glb_ori);sin(tmp_glb_ori)];
+    
     if (abs(tmp_glb_pos(2*(jj-1)+1)-wall_x(1)) < thrd) || (abs(tmp_glb_pos(2*(jj-1)+1)-wall_x(2)) < thrd)...
             || (abs(tmp_glb_pos(2*jj)-wall_y(1)) < thrd) || (abs(tmp_glb_pos(2*jj)-wall_y(2)) < thrd)
         continue
@@ -163,4 +158,98 @@ for jj = 1:length(tmp_idx)
 end
 tar_idx = [2*(tmp_idx2-1)+1,2*tmp_idx2]';
 tar_idx = tar_idx(:);
-tar_pos = tmp_glb_pos(tar_idx); % retrieve the measurement for target
+tar_pos = (reshape(tmp_glb_pos(tar_idx),2,length(tmp_idx2)))'; % retrieve the measurement for target
+
+plot(tar_pos(:,1),tar_pos(:,2));
+
+% full_obs = -1*ones(num,2); % full observed target position in global coordinate
+% tmp_idx3 = (1:num)';
+% tmp_idx3 = tmp_idx3(log_idx == 1);
+% tmp_idx3 = tmp_idx3(tmp_idx2);
+% full_obs(tmp_idx3,:) = tar_pos;
+
+% save measured target position
+% folder_path = '/Users/changliu/Documents/Git/Autonomous_agent_search/multi_agent_search/experiment/data';
+% file_name = sprintf('%s_tar_pos_mobilesim_010416',r_prefix);
+% save(fullfile(folder_path,file_name),'full_obs','pose_rd');
+
+%}
+
+%% %%%%%%%%%%%%%%%%%%%%%% experiment analysis
+%% process experiment data
+%
+% read sonar reading from csv file
+addpath('/Users/changliu/Documents/Git/Autonomous_agent_search/multi_agent_search/experiment/data');
+clear;
+name_set = {'0dot5','1dot0','2dot0','3dot0','4dot0'};
+nomi_dist = [0.5,1:4];% nominal distance
+dataset_num = length(name_set);
+sonar_m = zeros(2,dataset_num); % sonar mean for all dataset
+sonar_cov = zeros(2*dataset_num,2); % sonar covariance for all dataset
+sonar_offset_m = zeros(2,dataset_num); % sonar offset mean for all dataset
+sonar_offset_cov = zeros(2*dataset_num,2); % sonar offset covariance for all dataset
+
+for jj = 5%1:dataset_num
+    [data_s,~] = readtext(sprintf('sonar_exp_010916_%s.csv',name_set{jj}));
+    sonar_rd = struct();
+    sonar_rd.time = [data_s{2:end,1}]'; % this time seems to be the epoch time
+    sonar_rd.stamp = [data_s{2:end,3}]'; % don't understand why stamp is different from time
+    
+    % convert from epoch time to human-readable time
+    sonar_rd.time = sonar_rd.time * 1e-9;% # of seconds since 1970.1.1 0h 0m 0s. The original time is in nano-second.
+    % epoch time -> MATLAB datenum
+    dnum = datenum(1970,1,1,0,0,sonar_rd.time);
+    % split time into parts
+    [Y, M, D, H, MN, S] = datevec(dnum);
+    
+    sonar_rd.stamp = sonar_rd.stamp * 1e-9;
+    % epoch time -> MATLAB datenum
+    dnum2 = datenum(1970,1,1,0,0,sonar_rd.stamp);
+    % split time into parts
+    [Y2, M2, D2, H2, MN2, S2] = datevec(dnum2);
+    sonar_rd.sec_time = H2*3600+MN2*60+S2;% this is the time in seconds taking into account hour, min and second. not starting from 1970 but current day.
+    
+    sonar_rd.pts = zeros(size(data_s,1)-1,16);
+    % read readings from 8 front sonars
+    for ii = 1:8
+        sonar_rd.pts(:,2*(ii-1)+1) = [data_s{2:end,3*(ii-1)+5}];
+        sonar_rd.pts(:,2*ii) = [data_s{2:end,3*(ii-1)+6}];
+    end
+    
+    % Compute object distance
+    % compute measured distance
+    num = length(sonar_rd.time); % number of readings
+    sonar_ori = [90,50,30,10,-10,-30,-50,-90]/180*pi;
+    obj_pos = zeros(2*num,8); % there are 8 sonar readings [x1;y1;x2;y2;...;x8;y8]
+    offset_pos = zeros(size(obj_pos)); % offset of coordinates based on nominal distance
+    obj_dist = zeros(num,8); % there are 8 sonar readings [dis1,...,dis8]
+    obj_ori = zeros(num,8); % orientation relative to robot local cooridnate
+    for ii = 1:num
+        tmp_loc_pos = reshape(sonar_rd.pts(ii,:),2,8); % convert the local coordinate into 2*8 format instead of 1*16 format
+        obj_pos(2*(ii-1)+1:2*ii,:) = tmp_loc_pos;
+        obj_dist(ii,:) = sqrt(sum(tmp_loc_pos.^2,1));
+        obj_ori(ii,:) = atan2(tmp_loc_pos(2,:),tmp_loc_pos(1,:)); % check if this is close to 0 deg
+        offset_pos(2*(ii-1)+1:2*ii,:) = obj_pos(2*(ii-1)+1:2*ii,:)-nomi_dist(jj)*[cos(obj_ori(ii,:));sin(obj_ori(ii,:))];
+    end
+    
+    % MLE of bivariate Normal
+    sonar_idx = 4;
+    tmp_pos = (reshape(obj_pos(:,sonar_idx),2,num))';
+    tmp_offset = (reshape(offset_pos(:,sonar_idx),2,num))';
+    sonar_m(:,jj) = (mean(tmp_pos))';
+    sonar_cov(2*(jj-1)+1:2*jj,:) = cov(tmp_pos);
+    sonar_offset_m(:,jj) = (mean(tmp_offset))';
+    sonar_offset_cov(2*(jj-1)+1:2*jj,:) = cov(tmp_offset);
+    
+    % draw offset plots
+    figure(1)
+%     hold on
+    color_set = {'r','g','b','m','c'};
+    plot3(tmp_pos(:,1),tmp_pos(:,2),1:size(tmp_pos,1),color_set{1});
+    figure(2)
+    plot3(tmp_offset(:,1),tmp_offset(:,2),1:size(tmp_offset,1),color_set{jj});
+    figure(3)
+    plot(tmp_offset(:,1),tmp_offset(:,2),color_set{jj});
+end
+% legend('0.5','1','2','3','4');
+%}

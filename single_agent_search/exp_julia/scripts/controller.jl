@@ -50,6 +50,9 @@ sub = Subscriber{Float64MultiArray}("mpc_solver_feed", sub_state_callback, (z0,)
 
 ### Main loop
 while !is_shutdown()
+  ### update probability map
+
+
   ### Reference generation
   URef, ZRef = generateReference(z0, Map, tuning, mpc)
 
