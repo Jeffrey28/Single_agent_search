@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  1 MAR 2016 20:07
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  1 MAR 2016 20:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -635,8 +635,7 @@ Package: soul 2003/11/17 v2.4 letterspacing/underlining (mf)
 \SOUL@ttwidth=\dimen181
 \SOUL@uldp=\dimen182
 \SOUL@ulht=\dimen183
-)
-No file CDC2016.aux.
+) (./CDC2016.aux)
 \openout1 = `CDC2016.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 91.
@@ -651,6 +650,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 91.
 LaTeX Font Info:    ... okay on input line 91.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 91.
 LaTeX Font Info:    ... okay on input line 91.
+
 (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count145
@@ -733,159 +733,14 @@ LaTeX Font Info:    Try loading font information for OT1+pcr on input line 95.
 (/usr/local/texlive/2015/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-
-LaTeX Warning: Citation `chamberland2007wireless' on page 1 undefined on input 
-line 122.
-
-
-LaTeX Warning: Citation `wang2007wlan' on page 1 undefined on input line 122.
-
-
-LaTeX Warning: Citation `cao2008development' on page 1 undefined on input line 
-122.
-
-
-LaTeX Warning: Citation `2005distributed' on page 1 undefined on input line 124
-.
-
-
-LaTeX Warning: Citation `madhavan2004distributed' on page 1 undefined on input 
-line 126.
-
-
-LaTeX Warning: Citation `gu2007distributed' on page 1 undefined on input line 1
-28.
-
-
-LaTeX Warning: Citation `bandyopadhyay2014distributed' on page 1 undefined on i
-nput line 130.
-
-
-LaTeX Warning: Citation `julian2012distributed' on page 1 undefined on input li
-ne 130.
-
-
-LaTeX Warning: Citation `olfati2007consensus' on page 1 undefined on input line
- 135.
-
-
-LaTeX Warning: Citation `zuo2006bandwidth' on page 1 undefined on input line 13
-5.
-
-
-LaTeX Warning: Citation `vemula2006target' on page 1 undefined on input line 13
-5.
-
-
 Underfull \hbox (badness 1400) in paragraph at lines 133--146
 \OT1/ptm/m/n/10 which can be clas-si-fied into two types: fu-sion cen-ter
  []
-
-
-LaTeX Warning: Citation `hlinka2013distributed' on page 1 undefined on input li
-ne 151.
-
-
-LaTeX Warning: Citation `sheng2005distributed' on page 1 undefined on input lin
-e 157.
-
-
-LaTeX Warning: Citation `olfati2007consensus' on page 1 undefined on input line
- 163.
-
-
-LaTeX Warning: Citation `ren2005consensus' on page 1 undefined on input line 16
-3.
-
-
-LaTeX Warning: Citation `jadbabaie2003coordination' on page 1 undefined on inpu
-t line 163.
-
-
-LaTeX Warning: Citation `hlinka2012likelihood' on page 1 undefined on input lin
-e 167.
-
-
-LaTeX Warning: Citation `bandyopadhyay2014distributed' on page 1 undefined on i
-nput line 168.
-
-
-LaTeX Warning: Citation `julian2012distributed' on page 1 undefined on input li
-ne 171.
-
-
-LaTeX Warning: Citation `beaudeau2012target' on page 1 undefined on input line 
-171.
 
 [1{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
-
-LaTeX Warning: Citation `sheng2005distributed' on page 2 undefined on input lin
-e 177.
-
-
-LaTeX Warning: Citation `coates2004distributed' on page 2 undefined on input li
-ne 184.
-
-
-LaTeX Warning: Citation `ribeiro2006bandwidth' on page 2 undefined on input lin
-e 185.
-
-
-LaTeX Warning: Citation `djuric2011non' on page 2 undefined on input line 186.
-
-
-LaTeX Warning: Reference `sec:prob_form' on page 1 undefined on input line 206.
-
-
-
-LaTeX Warning: Reference `sec:LIFO-dbf' on page 1 undefined on input line 207.
-
-
-LaTeX Warning: Reference `sec:consist_proof' on page 1 undefined on input line 
-207.
-
-
-LaTeX Warning: Reference `sec:sim' on page 1 undefined on input line 208.
-
-
-LaTeX Warning: Reference `sec:conclu' on page 1 undefined on input line 208.
-
-
-LaTeX Warning: Reference `eqn:bin_sensor1' on page 1 undefined on input line 23
-6.
-
-
-LaTeX Warning: Reference `eqn:bin_sensor0' on page 1 undefined on input line 23
-6.
-
-
-LaTeX Warning: Citation `bonnie2012modelling' on page 2 undefined on input line
- 239.
-
-
-LaTeX Warning: Citation `djuric2008target' on page 2 undefined on input line 23
-9.
-
-
-LaTeX Warning: Reference `sec:LIFO-dbf' on page 1 undefined on input line 246.
-
-
-LaTeX Warning: Reference `fig:com_topo' on page 1 undefined on input line 268.
-
-
-LaTeX Warning: Citation `lawton2003decentralized' on page 2 undefined on input 
-line 268.
-
-
-LaTeX Warning: Citation `liu2010simple' on page 2 undefined on input line 268.
-
-
-LaTeX Warning: Citation `thatte2008sensor' on page 2 undefined on input line 26
-8.
-
 <figures/com_topo.pdf, id=16, 4258.57748pt x 1410.01132pt>
 File: figures/com_topo.pdf Graphic file (type pdf)
 
@@ -893,30 +748,11 @@ File: figures/com_topo.pdf Graphic file (type pdf)
 Package pdftex.def Info: figures/com_topo.pdf used on input line 273.
 (pdftex.def)             Requested size: 212.47287pt x 70.33257pt.
  [2]
-
-LaTeX Warning: Citation `kulich2014single' on page 3 undefined on input line 30
-5.
-
-
-LaTeX Warning: Reference `eqn:bin_sensor1' on page 1 undefined on input line 33
-9.
-
-
-LaTeX Warning: Reference `eqn:bin_sensor0' on page 1 undefined on input line 33
-9.
-
-
 Underfull \hbox (badness 2213) in paragraph at lines 338--340
 \OT1/ptm/m/n/10 and $\OML/cmm/m/it/10 P[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]\
 OMS/cmsy/m/n/10 j\OT1/cmr/bx/n/10 z[]\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 is call
 ed pos-te-rior in-di-vid-ual PDF;
  []
-
-
-LaTeX Warning: Reference `cor1' on page 1 undefined on input line 354.
-
-
-LaTeX Warning: Reference `alg:lifo' on page 1 undefined on input line 356.
 
 <figures/data_exchange.pdf, id=29, 2104.33884pt x 1444.27568pt>
 File: figures/data_exchange.pdf Graphic file (type pdf)
@@ -924,73 +760,17 @@ File: figures/data_exchange.pdf Graphic file (type pdf)
 <use figures/data_exchange.pdf>
 Package pdftex.def Info: figures/data_exchange.pdf used on input line 459.
 (pdftex.def)             Requested size: 242.82503pt x 166.65018pt.
-
-
-LaTeX Warning: Reference `fig:LIFO' on page 1 undefined on input line 465.
-
-
-LaTeX Warning: Reference `fig:LIFO' on page 1 undefined on input line 466.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 474.
-
-[3 <./figures/com_topo.pdf> <./figures/data_exchange.pdf
+ [3 <./figures/com_topo.pdf> <./figures/data_exchange.pdf
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/data_exchange.pdf)
 : PDF inclusion: multiple pdfs with page group included in a single page
->]
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 477.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 479.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 481.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 485.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 490.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 493.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 497.
-
-
-LaTeX Warning: Reference `prop1' on page 1 undefined on input line 501.
-
-
-LaTeX Warning: Reference `cor2' on page 1 undefined on input line 515.
-
-
-LaTeX Warning: Reference `eqn:bayes_pred' on page 1 undefined on input line 534
-.
-
-
-LaTeX Warning: Reference `eqn:bayes_upd' on page 1 undefined on input line 534.
-
-
-
-LaTeX Warning: Reference `fig:LIFO-DBF' on page 1 undefined on input line 535.
-
-
-LaTeX Warning: Reference `alg:lifo-dbf' on page 1 undefined on input line 540.
-
-<figures/DBF_demo.pdf, id=57, 2441.32315pt x 1539.6867pt>
+>] <figures/DBF_demo.pdf, id=57, 2441.32315pt x 1539.6867pt>
 File: figures/DBF_demo.pdf Graphic file (type pdf)
 
 <use figures/DBF_demo.pdf>
 Package pdftex.def Info: figures/DBF_demo.pdf used on input line 544.
 (pdftex.def)             Requested size: 237.7689pt x 149.93677pt.
  [4]
-
-LaTeX Warning: Reference `alg:lifo' on page 1 undefined on input line 654.
-
-
 Overfull \hbox (7.24725pt too wide) detected at line 683
 \OML/cmm/m/it/10 P[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]\OMS/cmsy/m/n/10 j\OML
 /cmm/m/it/10 z[]; [] ; z[]\OT1/cmr/m/n/10 ) = \OML/cmm/m/it/10 P[]\OT1/cmr/m/n/
@@ -1004,18 +784,9 @@ Underfull \hbox (badness 7649) in paragraph at lines 685--687
  []
 
 
-LaTeX Warning: Reference `cor1' on page 1 undefined on input line 718.
-
-
-LaTeX Warning: Reference `cor2' on page 1 undefined on input line 718.
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 715--720
 
  []
-
-
-LaTeX Warning: Reference `eqn:cmp' on page 1 undefined on input line 726.
 
 
 Overfull \hbox (6.14972pt too wide) detected at line 729
@@ -1023,68 +794,6 @@ Overfull \hbox (6.14972pt too wide) detected at line 729
  []
 
 [5 <./figures/DBF_demo.pdf>]
-
-LaTeX Warning: Reference `eqn:cmp_lim2' on page 1 undefined on input line 755.
-
-
-LaTeX Warning: Reference `eqn:cmp_lim1' on page 1 undefined on input line 761.
-
-
-LaTeX Warning: Reference `eqn:cmp_lim2' on page 1 undefined on input line 761.
-
-
-LaTeX Warning: Reference `eqn:cmp_log' on page 1 undefined on input line 761.
-
-
-LaTeX Warning: Reference `eqn:lim' on page 1 undefined on input line 768.
-
-
-LaTeX Warning: Reference `eqn:lim2' on page 1 undefined on input line 775.
-
-
-LaTeX Warning: Reference `eqn:lim3' on page 1 undefined on input line 781.
-
-
-LaTeX Warning: Reference `eqn:lim4' on page 1 undefined on input line 790.
-
-
-LaTeX Warning: Reference `thm:LIFO-dbf-sta-tar' on page 1 undefined on input li
-ne 849.
-
-
-LaTeX Warning: Reference `eqn:cmp' on page 1 undefined on input line 854.
-
-
-LaTeX Warning: Reference `eqn:cmp2' on page 1 undefined on input line 854.
-
-
-LaTeX Warning: Reference `lem1' on page 1 undefined on input line 856.
-
-
-LaTeX Warning: Reference `eqn:lim' on page 1 undefined on input line 858.
-
-
-LaTeX Warning: Reference `thm:LIFO-dbf-sta-tar' on page 1 undefined on input li
-ne 858.
-
-
-LaTeX Warning: Reference `eqn:cmp2' on page 1 undefined on input line 858.
-
-
-LaTeX Warning: Reference `eqn:cmp2' on page 1 undefined on input line 859.
-
-
-LaTeX Warning: Reference `thm:LIFO-dbf-sta-tar' on page 1 undefined on input li
-ne 859.
-
-
-LaTeX Warning: Citation `bandyopadhyay2014distributed' on page 6 undefined on i
-nput line 865.
-
-
-LaTeX Warning: Citation `julian2012distributed' on page 6 undefined on input li
-ne 865.
-
 <figures/sta_sen_sta_tar_single_1.pdf, id=73, 481.94987pt x 456.18404pt>
 File: figures/sta_sen_sta_tar_single_1.pdf Graphic file (type pdf)
 
@@ -1117,21 +826,15 @@ Package pdftex.def Info: figures/sta_sen_sta_tar_single_30.pdf used on input li
 ne 889.
 (pdftex.def)             Requested size: 96.12033pt x 81.60922pt.
 
+<figures/sta_sen_sta_tar_30.pdf, id=77, 759.49211pt x 557.13321pt>
+File: figures/sta_sen_sta_tar_30.pdf Graphic file (type pdf)
 
-! LaTeX Error: File `figures/sta_sen_sta_tar_30' not found.
+<use figures/sta_sen_sta_tar_30.pdf>
+Package pdftex.def Info: figures/sta_sen_sta_tar_30.pdf used on input line 893.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.893 ...h=\textwidth]{figures/sta_sen_sta_tar_30}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+(pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
 
-<figures/mov_sen_mov_tar_single_1.pdf, id=77, 489.1769pt x 459.79752pt>
+<figures/mov_sen_mov_tar_single_1.pdf, id=78, 489.1769pt x 459.79752pt>
 File: figures/mov_sen_mov_tar_single_1.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_1.pdf>
@@ -1139,7 +842,7 @@ Package pdftex.def Info: figures/mov_sen_mov_tar_single_1.pdf used on input lin
 e 903.
 (pdftex.def)             Requested size: 96.12033pt x 90.34421pt.
 
-<figures/mov_sen_mov_tar_single_5.pdf, id=78, 489.1769pt x 459.79752pt>
+<figures/mov_sen_mov_tar_single_5.pdf, id=79, 489.1769pt x 459.79752pt>
 File: figures/mov_sen_mov_tar_single_5.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_5.pdf>
@@ -1147,7 +850,7 @@ Package pdftex.def Info: figures/mov_sen_mov_tar_single_5.pdf used on input lin
 e 907.
 (pdftex.def)             Requested size: 96.12033pt x 90.34421pt.
 
-<figures/mov_sen_mov_tar_single_10.pdf, id=79, 489.1769pt x 416.43553pt>
+<figures/mov_sen_mov_tar_single_10.pdf, id=80, 489.1769pt x 416.43553pt>
 File: figures/mov_sen_mov_tar_single_10.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_10.pdf>
@@ -1155,7 +858,7 @@ Package pdftex.def Info: figures/mov_sen_mov_tar_single_10.pdf used on input li
 ne 911.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
-<figures/mov_sen_mov_tar_single_40.pdf, id=80, 489.1769pt x 416.43553pt>
+<figures/mov_sen_mov_tar_single_40.pdf, id=81, 489.1769pt x 416.43553pt>
 File: figures/mov_sen_mov_tar_single_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_single_40.pdf>
@@ -1163,52 +866,15 @@ Package pdftex.def Info: figures/mov_sen_mov_tar_single_40.pdf used on input li
 ne 915.
 (pdftex.def)             Requested size: 96.12033pt x 81.82414pt.
 
-<figures/mov_sen_mov_tar_40.pdf, id=81, 759.49211pt x 557.13321pt>
+<figures/mov_sen_mov_tar_40.pdf, id=82, 759.49211pt x 557.13321pt>
 File: figures/mov_sen_mov_tar_40.pdf Graphic file (type pdf)
 
 <use figures/mov_sen_mov_tar_40.pdf>
 Package pdftex.def Info: figures/mov_sen_mov_tar_40.pdf used on input line 919.
 
 (pdftex.def)             Requested size: 202.3529pt x 148.4387pt.
-
-
-LaTeX Warning: Citation `bonnie2012modelling' on page 6 undefined on input line
- 928.
-
-[6]
-
-LaTeX Warning: Reference `fig:sta_sen_sta_tar' on page 1 undefined on input lin
-e 951.
-
-
-LaTeX Warning: Reference `fig:sta_sen_sta_tar' on page 1 undefined on input lin
-e 955.
-
-
-LaTeX Warning: Reference `eqn:gauss_sensor' on page 1 undefined on input line 9
-58.
-
-
-LaTeX Warning: Reference `fig:sta_sen_sta_tar_sing4' on page 1 undefined on inp
-ut line 959.
-
-
-LaTeX Warning: Reference `subsec:sim1' on page 1 undefined on input line 1000.
-
-
-LaTeX Warning: Citation `tisdale2009autonomous' on page 7 undefined on input li
-ne 1005.
-
-
-LaTeX Warning: Reference `subsec:LIFO-dbf-mov-tar' on page 1 undefined on input
- line 1012.
-
-
-LaTeX Warning: Reference `fig:mov_sen_mov_tar' on page 1 undefined on input lin
-e 1013.
-
-[7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_single_5
-.pdf
+ [6] [7 <./figures/sta_sen_sta_tar_single_1.pdf> <./figures/sta_sen_sta_tar_sin
+gle_5.pdf
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/sta_sen_sta_tar_si
 ngle_5.pdf): PDF inclusion: multiple pdfs with page group included in a single 
@@ -1223,6 +889,10 @@ ngle_10.pdf): PDF inclusion: multiple pdfs with page group included in a single
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/sta_sen_sta_tar_si
 ngle_30.pdf): PDF inclusion: multiple pdfs with page group included in a single
  page
+> <./figures/sta_sen_sta_tar_30.pdf
+
+pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/sta_sen_sta_tar_30
+.pdf): PDF inclusion: multiple pdfs with page group included in a single page
 > <./figures/mov_sen_mov_tar_single_1.pdf
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/mov_sen_mov_tar_si
@@ -1247,8 +917,7 @@ ngle_40.pdf): PDF inclusion: multiple pdfs with page group included in a single
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/mov_sen_mov_tar_40
 .pdf): PDF inclusion: multiple pdfs with page group included in a single page
->]
-No file CDC2016.bbl.
+>] (./CDC2016.bbl)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -1260,54 +929,46 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-[8
-
-] (./CDC2016.aux)
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
- ) 
+[8] (./CDC2016.aux) ) 
 Here is how much of TeX's memory you used:
- 17163 strings out of 493089
- 335572 string characters out of 6134842
- 393481 words of memory out of 5000000
- 20298 multiletter control sequences out of 15000+600000
- 51828 words of font info for 116 fonts, out of 8000000 for 9000
+ 17169 strings out of 493089
+ 335867 string characters out of 6134842
+ 394481 words of memory out of 5000000
+ 20311 multiletter control sequences out of 15000+600000
+ 52964 words of font info for 117 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  62i,14n,75p,642b,531s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2015/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
-exlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/te
-xlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texl
-ive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texli
-ve/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/local/te
-xlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/tex
-live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local/texli
-ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive
-/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2
-015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/201
-5/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2015/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2015/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dist/font
-s/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2015/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/p
-ublic/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-dist/fonts/typ
-e1/urw/courier/ucrr8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/t
-imes/utmb8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmbi
-8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></u
-sr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on CDC2016.pdf (8 pages, 600423 bytes).
+{/usr/local/texlive/2015/texmf-dist/fonts/enc/dvips/base/8
+r.enc}</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10
+.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.p
+fb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pf
+b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9
+.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pf
+b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb>
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></
+usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></us
+r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/
+local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/
+texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/tex
+live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texliv
+e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2
+015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/20
+15/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2015/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2015/texmf
+-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/t
+exmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2015/texmf-dis
+t/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/ty
+pe1/urw/times/utmbi8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/t
+imes/utmr8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmri
+8a.pfb>
+Output written on CDC2016.pdf (8 pages, 630486 bytes).
 PDF statistics:
- 336 PDF objects out of 1000 (max. 8388607)
- 229 compressed objects within 3 object streams
+ 344 PDF objects out of 1000 (max. 8388607)
+ 234 compressed objects within 3 object streams
  0 named destinations out of 1000 (max. 500000)
- 73 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 78 words of extra memory for PDF output out of 10000 (max. 10000000)
 
