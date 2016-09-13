@@ -1,3 +1,9 @@
+% 11/24/2014
+% this file is for the ME 290J course project
+
+% 3/2/2015
+% adjust the file for human-robot search scenario
+
 % 9/12/16
 % single-agent search. linear target motion model and linear observation
 % model. 
@@ -7,6 +13,7 @@ clear % clear global variables
 close all
 
 %% Setup
+% addpath('D:\Chang Liu\ipopt');
 % addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
 addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
 scale = 0.5; % scale the size of the field
@@ -72,14 +79,6 @@ tar_pos = [27;40];
 %}
 
 %%% Set field %%%
-% target info
-target.pos = [10;10];
-target.A = eye(2);
-target.Q = eye(2); % Covariance of process noise model for the target
-target.model_idx = 1;
-target.traj = target.pos;
-target.mode_num = mode_num;
-
 xLength = 50;%*scale; 
 yLength = 50;%*scale; 
 xMin = 0;
@@ -87,8 +86,11 @@ yMin = 0;
 xMax = xMin+xLength;
 yMax = yMin+yLength;
 grid_step = 0.5; % the side length of a probability cell
-inPara_fld = struct('fld_size',fld_size,'target',target,'tar_move',tar_move,'dt',dt);
-    fld = Field(inPara_fld);
+n_data = 3000;% number of randomly generated particles
+inPara_gc = struct('campus_type',campus_type,'scale',scale,'n_data',n_data,...
+    'xMin',xMin,'xMax',xMax,'yMin',yMin,'yMax',yMax,'grid_step',grid_step,...
+    'tar_pos',tar_pos,'xLength',xLength,'yLength',yLength);
+[campus,particles] = genCampus(inPara_gc);
 
 % draw agents on the initial environment
 figure(1)
