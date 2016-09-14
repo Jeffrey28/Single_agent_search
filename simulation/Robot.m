@@ -19,12 +19,13 @@ classdef Robot
         
         % filtering
         est_pos; % estimated target position
-        P; % matrix for Riccati equation
+        P; % estimation covariance
         
         % path planning
         mpc_hor;
         dt;
         optu;
+        gam; % coefficient for sigmoid function
         
         % performance metrics
         ml_pos;
@@ -39,7 +40,7 @@ classdef Robot
             this.v_ub = inPara.v_ub;
             this.w_lb = inPara.w_lb;
             this.w_ub = inPara.w_ub;
-            this.R = inPara.sen_cov;
+            this.R = inPara.R;
             this.C = inPara.C;
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
@@ -49,6 +50,7 @@ classdef Robot
             this.mpc_hor = inPara.mpc_hor;
             this.dt = inPara.dt;
             this.optu = [];
+            this.gam = inPara.gam;
         end
         
         % approximate straightline edge of sensor FOV based on current
@@ -59,15 +61,15 @@ classdef Robot
             y0 = st(2);
             alp1 = theta - this.theta0;
             alp2 = theta + this.theta0;
-            a = [sin(alp1),-cos(alp1);sin(alp2),-cos(alp2)]; % [a1;a2]
-            b = [-x0*sin(alp1)+y0*cos(alp1);-x0*sin(alp2)+y0*cos(alp2)];%[b1;b2];
+            a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
+            b = [-x0*sin(alp1)+y0*cos(alp1);x0*sin(alp2)-y0*cos(alp2)];%[b1;b2];
         end
         
         % determine if the target is in sensor FOV
         function flag = inFOV(this,tar_pos)
             [a,b] = this.FOV(this.state);
             flag = (a(1,:)*tar_pos-b(1) <= 0) && (a(2,:)*tar_pos-b(2) <= 0)...
-                && norm(tar_pos-this.state(1:2));
+                && (norm(tar_pos-this.state(1:2)) <= this.r);
         end
         
         % generate a random measurement
@@ -75,9 +77,9 @@ classdef Robot
             tar_pos = fld.target.pos;
             
             if this.inFOV(tar_pos)
-                y = tar_pos+mvnrnd([0;0],this.sen_cov);
+                y = tar_pos+mvnrnd([0;0],this.R);
             else
-                y = [-1;-1];
+                y = [-100;-100];
             end
         end
         
@@ -90,7 +92,7 @@ classdef Robot
             Q = tar.Q;
             
             % current estimation
-            x = this.est_tar;
+            x = this.est_pos;
             P = this.P;
             
             % sensor
@@ -102,7 +104,7 @@ classdef Robot
             P_pred = A*P*A'+Q;
             
             % update
-            if sum(y-[-1;-1]) ~= 0
+            if sum(y-[-100;-100]) ~= 0
                 % if an observation is obtained
                 K = P_pred*C'/(C*P_pred*C'+R);
                 x_next = x_pred+K*(y-C*x_pred);
@@ -112,15 +114,21 @@ classdef Robot
                 P_next = P_pred;
             end
             
-            this.est_tar = x_next;
+            this.est_pos = x_next;
             this.P = P_next;
         end
         
-        function [optz,optu] = Planner(this)
+        function [optz,optu] = Planner(this,fld)
             N = this.mpc_hor;
             dt = this.dt;
             C = this.C;
+            R = this.R;
             x_cur = this.est_pos;
+            gam = this.gam;
+            
+            tar = fld.target;
+            A = tar.A;
+            Q = tar.Q;
             
             % set up simulation
             % robot state and control
@@ -129,6 +137,8 @@ classdef Robot
             % estimation
             x = sdpvar(2,N+1);
             P = sdpvar(2,2*(N+1));
+            % auxiliary variable
+            tmp_M = sdpvar(2,2);
             
             % obj
             obj = P(1,end-1)+P(2,end); % trace of last covariance
@@ -148,21 +158,23 @@ classdef Robot
                     % KF update
                     alp1 = z(3,ii+1) - this.theta0;
                     alp2 = z(3,ii+1) + this.theta0;
-                    a = [sin(alp1),-cos(alp1);sin(alp2),-cos(alp2)]; % [a1;a2]
-                    b = [-z(1,ii+1)*sin(alp1)+z(2,ii+1)*cos(alp1);-z(1,ii+1)*sin(alp2)+z(2,ii+1)*cos(alp2)];%[b1;b2];
-                    delta = 1/((1+exp(beta*(a(1,:)*x(:,ii)-b(1))))*(1+exp(beta*(a(2,:)*x(:,ii)-b(2))))*...
-                        (1+exp(sum((tar_pos-this.state(1:2)).^2))));
+                    a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
+                    b = [-z(1,ii+1)*sin(alp1)+z(2,ii+1)*cos(alp1);z(1,ii+1)*sin(alp2)-z(2,ii+1)*cos(alp2)];%[b1;b2];
+                    delta = 1/((1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
+                        (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))));
                     
                     % prediction
-                    x_pred = A*x;
-                    P_pred = A*P*A'+Q;
+                    x_pred = A*x(:,ii);
+                    P_pred = A*P(:,2*(ii-1)+1:2*ii)*A'+Q;
                     
                     % update
-                    K = P_pred*C'*delta/(delta*C*P_pred*C'*delta+R)*delta;
+                    K = P_pred*C'*delta*tmp_M*delta;
                     constr = [constr,x(:,ii+1) == x_pred+K*(x(:,ii)-C*x_pred)];
-                    constr = [constr,P(:,2*(ii-1)+1:2*ii) == P_pred-K*C*P_pred];
+                    constr = [constr,P(:,2*ii+1:2*(ii+1)) == P_pred-K*C*P_pred];
+                    constr = [constr,(delta*C*P_pred*C'*delta+R)*tmp_M == eye(2)];
                 end
             end
+            constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.v_lb <= u(2,:) <= this.v_ub];
             
             opt = sdpsettings('solver','ipopt','verbose',1);
             
@@ -175,8 +187,7 @@ classdef Robot
             st = this.state;
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
-            st_next = st+[st(4)*cos(st(3));st(4)*sin(st(3));u]*dt;
-            this.state = st_next;
+            this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
         end
         
         function this = computeMetrics(this,fld,id)

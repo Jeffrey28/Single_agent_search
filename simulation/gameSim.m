@@ -34,6 +34,7 @@ inPara_rbt.theta0 = 35/180*pi;
 inPara_rbt.range = 4.5;
 inPara_rbt.init_pos = [50;50];
 inPara_rbt.init_P = [100 0; 0 100];
+inPara_rbt.gam = 1;
 rbt = Robot(inPara_rbt);
 
 %%% Set field %%%
@@ -87,10 +88,10 @@ for ii = 1:sim_len
     
     %% observe and update target estimation
     rbt.y = rbt.sensorGen(fld);
-    rbt = rbt.KF();
+    rbt = rbt.KF(fld);
     
     %% robot motion planning
-    [optz,optu] = rbt.Planner();
+    [optz,optu] = rbt.Planner(fld);
     rbt = rbt.updState(optu);
 end
 
