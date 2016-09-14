@@ -1,7 +1,7 @@
 classdef Field
     properties
-        map; % field map
-        fld_size; % length of x,y coordinate  
+%         map; % field map
+        fld_cor; % length of x,y coordinate  
         target; % a struct for target   
 %         tar_move; % indicator whether the target moves
         dt; % simulation time interval
@@ -9,7 +9,7 @@ classdef Field
     
     methods
         function this = Field(inPara)
-            this.fld_size = inPara.fld_size;
+            this.fld_cor = inPara.fld_cor;
 %             this.map = ones(this.fld_size(1),this.fld_size(2))/(this.fld_size(1)*this.fld_size(2));
             this.target = inPara.target;
 %             obj.tar_move = inPara.tar_move;
@@ -21,6 +21,7 @@ classdef Field
             A = tar.A; % A matrix
             Q = tar.Q; % covariance matrix of process noise
             tar.pos = A*tar.pos+mvnrnd([0,0],Q);
+            tar.traj = [tar.traj,tar,pos];
             this.target = tar;
         end
             
