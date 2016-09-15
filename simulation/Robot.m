@@ -120,9 +120,9 @@ classdef Robot
         
         function [optz,optu] = Planner(this,fld)
             N = this.mpc_hor;
-            dt = this.dt;
-            C = this.C;
-            R = this.R;
+            var_dt = this.dt;
+            var_C = this.C;
+            var_R = this.R;
             x_cur = this.est_pos;
             gam = this.gam;
             
@@ -132,51 +132,87 @@ classdef Robot
             
             % set up simulation
             % robot state and control
-            z = sdpvar(4,N+1);
-            u = sdpvar(2,N);
+            z = sdpvar(4,N+1,'full');
+            u = sdpvar(2,N,'full');
             % estimation
-            x = sdpvar(2,N+1);
-            P = sdpvar(2,2*(N+1));
+            x = sdpvar(2,N+1,'full');
+%             P = sdpvar(2,2,N+1);
+%             var_P = sdpvar(2,2,N+1,'full'); % symmetric matrix in first two dim
+            var_P = sdpvar(2,2*(N+1),'full'); % symmetric matrix in first two dim
             % auxiliary variable
-            tmp_M = sdpvar(2,2);
+            tmp_M = sdpvar(2,2,'full');
+            K = sdpvar(2,2,'full');
+            phi = sdpvar(2,2,'full');
+            
+            % debug purpose
+            x_pred = sdpvar(2,N,'full');
+%             P_pred = sdpvar(2,2,N,'full');
+            P_pred = sdpvar(2,2*N,'full');
             
             % obj
-            obj = P(1,end-1)+P(2,end); % trace of last covariance
+            obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
             
             % constraints
+            constr = [z(:,1) == this.state];
+            constr = [constr,x(:,1) == this.est_pos];
+            constr = [constr,var_P(:,1:2) == this.P];%[1 0;0 1]];
+%             constr = [constr,var_P(:,:,1) == [1 0;0 1]];%this.P];
+            
             for ii = 1:N
-                if ii == 1
-                    constr = [z(:,1) == this.state];
-                    constr = [constr,x(:,1) == this.est_pos];
-                    constr = [constr, P(:,1:2) == this.P];
-                else
-                    % robot state
-                    constr = [constr,z(:,ii+1) == z(:,ii)+...
-                        [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
-                        u(:,ii)]*dt];
-                    
-                    % KF update
-                    alp1 = z(3,ii+1) - this.theta0;
-                    alp2 = z(3,ii+1) + this.theta0;
-                    a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
-                    b = [-z(1,ii+1)*sin(alp1)+z(2,ii+1)*cos(alp1);z(1,ii+1)*sin(alp2)-z(2,ii+1)*cos(alp2)];%[b1;b2];
-                    delta = 1/((1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
-                        (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))));
-                    
-                    % prediction
-                    x_pred = A*x(:,ii);
-                    P_pred = A*P(:,2*(ii-1)+1:2*ii)*A'+Q;
-                    
-                    % update
-                    K = P_pred*C'*delta*tmp_M*delta;
-                    constr = [constr,x(:,ii+1) == x_pred+K*(x(:,ii)-C*x_pred)];
-                    constr = [constr,P(:,2*ii+1:2*(ii+1)) == P_pred-K*C*P_pred];
-                    constr = [constr,(delta*C*P_pred*C'*delta+R)*tmp_M == eye(2)];
-                end
+                obj = obj+var_P(1,2*ii+1)+var_P(2,2*ii+2);%var_P(1,1,ii+1)^2+var_P(2,2,ii+1)^2+sum(sum(phi.^2));
+                
+%                 constr = [constr,P(:,:,ii+1)>=0];
+                
+                % robot state
+                constr = [constr,z(:,ii+1) == z(:,ii)+...
+                    [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
+                    u(:,ii)]*var_dt];
+                
+                constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
+                    [fld.fld_cor(2);fld.fld_cor(4)]];
+                
+                % KF update
+%                 alp1 = z(3,ii+1) - this.theta0;
+%                 alp2 = z(3,ii+1) + this.theta0;
+%                 a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
+%                 b = [-z(1,ii+1)*sin(alp1)+z(2,ii+1)*cos(alp1);z(1,ii+1)*sin(alp2)-z(2,ii+1)*cos(alp2)];%[b1;b2];
+                delta = 1;%/((1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
+%                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))));
+%                 D = ...%(1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
+%                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2)));
+                
+                % prediction
+                x_pred(:,ii) = A*x(:,ii);
+%                 P_pred(:,:,ii) = A*var_P(:,:,ii)*A'+Q;
+                P_pred(:,2*ii-1:2*ii) = A*var_P(:,2*ii-1:2*ii)*A'+Q;
+                
+                % update
+% %                 K = P_pred*C'*delta*tmp_M*delta;
+% %                 constr = [constr,K == 1];
+% %                 constr = [constr,K*(var_C*P_pred(:,:,ii)*var_C'+var_R/delta^2)==P_pred(:,:,ii)*var_C'];
+%                 constr = [constr,K*(var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R/delta^2)==P_pred(:,2*ii-1:2*ii)*var_C'];
+% %                 constr = [constr,K*(C*P_pred(:,:,ii)*C'+R*D^2)==P_pred(:,:,ii)*C'];
+%                 constr = [constr,x(:,ii+1) == x_pred(:,ii)+K*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
+% %                 constr = [constr,x(:,ii+1) == x_pred+K*(C*x_cur-C*x_pred)];
+% %                 constr = [constr,var_P(:,:,ii+1) == P_pred(:,:,ii)-K*var_C*P_pred(:,:,ii)+phi];
+%                 constr = [constr,var_P(:,2*ii+1:2*ii+2) >= P_pred(:,2*ii-1:2*ii)-K*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
+% %                 constr = [constr,(delta*C*P_pred(:,:,ii)*C'*delta+R)*tmp_M == eye(2)];
+                
+                % test version of simplified constraint
+                T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R/delta^2;
+                a = T(1,1);
+                b = T(1,2);
+                c = T(2,1);
+                d = T(2,2);
+                t = a*d-b*c;
+                T2 = [d -b; -c a];
+                constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t == P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
+                constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*t...
+                    == -P_pred(:,2*ii-1:2*ii)*var_C*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
             end
             constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.v_lb <= u(2,:) <= this.v_ub];
             
-            opt = sdpsettings('solver','ipopt','verbose',1);
+            opt = sdpsettings('solver','ipopt','verbose',2);
             
             sol = optimize(constr,obj,opt);
             optz = value(z);

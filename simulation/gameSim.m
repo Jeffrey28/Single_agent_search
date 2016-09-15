@@ -8,7 +8,8 @@ close all
 
 %% Setup
 % addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
-addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
+% addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
+addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
@@ -28,7 +29,7 @@ inPara_rbt.w_lb = -pi/2;
 inPara_rbt.w_ub = pi/2;
 inPara_rbt.R = eye(2);
 inPara_rbt.C = eye(2);
-inPara_rbt.mpc_hor = 10;
+inPara_rbt.mpc_hor = 5;
 inPara_rbt.dt = dt;
 inPara_rbt.theta0 = 35/180*pi;
 inPara_rbt.range = 4.5;
@@ -40,13 +41,13 @@ rbt = Robot(inPara_rbt);
 %%% Set field %%%
 % target info
 target.pos = [30;30];
-target.A = 0.1*eye(2);
+target.A = eye(2);
 target.Q = eye(2); % Covariance of process noise model for the target
 target.model_idx = 1;
 target.traj = target.pos;
 
-xLength = 50;%*scale; 
-yLength = 50;%*scale; 
+xLength = 100;%*scale; 
+yLength = 100;%*scale; 
 xMin = 0;
 yMin = 0;
 xMax = xMin+xLength;
@@ -58,27 +59,27 @@ fld = Field(inPara_fld);
 % draw agents on the initial environment
 
 %% %%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%% 
-for ii = 1:sim_len
+for ii = 1%:sim_len
     %% draw plot
     figure(1)
     hold on
-    hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',2);
+    hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',5);
     set(hdl1,'MarkerFaceColor','r');
     set(hdl1,'MarkerEdgeColor','r');
     set(hdl1,'Color','r');
     set(hdl1,'LineStyle','-');
     set(hdl1,'Marker','o');    
     
-    hdl2 = plot(fld.target.pos(1),fld.target.pos(2),'b','markers',2);
+    hdl2 = plot(fld.target.pos(1),fld.target.pos(2),'b','markers',5);
     set(hdl2,'MarkerFaceColor','b');
     set(hdl2,'MarkerEdgeColor','b');
     set(hdl2,'Color','b');
 %     set(hdl2,'LineStyle','-');
     set(hdl2,'Marker','*');    
     
-    hdl3 = plot(rbt.est_pos(1),rbt.est_pos(2),'g','markers',2);
-    set(hdl3,'MarkerFaceColor','b');
-    set(hdl3,'MarkerEdgeColor','b');
+    hdl3 = plot(rbt.est_pos(1),rbt.est_pos(2),'g','markers',5);
+    set(hdl3,'MarkerFaceColor','g');
+    set(hdl3,'MarkerEdgeColor','g');
     set(hdl3,'Color','b');
 %     set(hdl2,'LineStyle','-');
     set(hdl3,'Marker','s');    
