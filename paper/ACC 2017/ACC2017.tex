@@ -1,0 +1,377 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
+
+\IEEEoverridecommandlockouts                              % This command is only needed if 
+                                                          % you want to use the \thanks command
+
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphicx}
+\usepackage{graphics} % for pdf, bitmapped graphics files
+\usepackage{epsfig} % for postscript graphics files
+\usepackage{subcaption}
+\usepackage[noadjust]{cite}
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath,amssymb,amsfonts} % assumes amsmath package installed
+\usepackage{algorithm,algpseudocode}
+%\usepackage{booktabs}
+\usepackage{dsfont}
+
+% format for theorems etc.
+\newtheorem{thm}{\bfseries Theorem}
+\newtheorem{lem}{\bfseries Lemma}
+\newtheorem{cor}{\bfseries Corollary}
+\newtheorem{prop}{\bfseries Proposition}
+\newtheorem{rem}{\bfseries Remark}
+
+% format for argmin, argmax
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
+% format for cross-reference
+\usepackage[capitalize]{cleveref}
+\crefname{equation}{eq.}{eq.}
+\Crefname{equation}{Eq.}{Eq.}
+\crefname{thm}{theorem}{theorems}
+\Crefname{thm}{Theorem}{Theorems}
+\crefname{lem}{lemma}{lemmas}
+\Crefname{lem}{Lemma}{Lemmas}
+\crefname{cor}{corollary}{corollaries}
+\Crefname{cor}{Corollary}{Corollaries}
+\crefname{prop}{proposition}{propositions}
+\Crefname{prop}{Proposition}{Propositions}
+\crefname{rem}{remark}{remarks}
+\Crefname{rem}{Remark}{Remarks}
+
+%=====todonotes===== %
+\usepackage{todonotes}
+\usepackage{soul}
+\definecolor{smoothgreen}{rgb}{0.7,1,0.7}
+\sethlcolor{smoothgreen}
+
+\newcommand{\todopara}[1]{\vspace{0px} %
+	\todo[inline, color=black!10]{\textbf{[Paragraph:]} {#1}} %
+}
+\newcommand{\todonote}[1]{\vspace{0px} %
+	\todo[inline, color=green!30]{\textbf{[Note:]} {#1}} %
+}
+\newcommand{\todoQ}[1]{\vspace{0px} %
+	\todo[inline, color=orange!50]{\textbf{[Note:]} {#1}} %
+}
+\newcommand{\todohere}[1]{\hl{(\textbf{TODO:} #1)}}
+
+\newcommand{\hidetodos}{
+	\renewcommand{\todopara}[1]{}
+	\renewcommand{\todonote}[1]{}
+	\renewcommand{\todoQ}[1]{}
+	\renewcommand{\todohere}[1]{}
+	}
+
+
+\title{\LARGE \bf
+Distributed Bayesian Filters for Multi-Vehicle Network by Using Latest-In-and-Full-Out Exchange Protocol of Observations}
+
+
+\author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
+\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}% <-this % stops a space
+\thanks{$^{1}$Chang Liu is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu}}%
+\thanks{$^{2}$Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He has worked at Department of Mechanical Engineering, University of California, Berkeley as a visiting scholar. Email: {\tt\small lisb04@gmail.com}}%
+\thanks{$^{3}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
+}
+
+
+\begin{document}
+
+%\hidetodos % hide all todos 
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+%\setlength{\belowcaptionskip}{-10pt} % set the spacing between figure and text
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) approach for a network of unmanned ground vehicles (UGVs).
+The DBF utilizes the Latest-In-and-Full-Out (LIFO) local exchange protocol of sensor measurements for data communication within the network.
+% for target search and tracking.
+Different from existing statistics dissemination-based approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only exchanges with neighboring UGVs a full communication buffer consisting of latest available measurements,
+%receives the latest available measurements and then broadcasts full communication buffer to its neighborhood, 
+which significantly reduces the transmission burden between each pair of UGVs to scale linearly with the size of the network.
+Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time.
+%, with each robot non-intermittently receiving observations of all others.
+Two types of LIFO-based DBF algorithms are then derived to estimate individual probability density function (PDF) for a static target and for a moving target, respectively. 
+For the static target, each UGV locally fuses the newly received observations while for the moving target, a set of historical observations is stored and sequentially fused. 
+%Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
+The consistency of LIFO-based DBF is proved that the estimated target position converges in probability to the true target position.
+% when the number of observations tends to infinity.
+%the agreement between robots' estimated target position and the actual position.
+The effectiveness of this method is demonstrated by comparing with consensus-based distributed filters and a centralized filter in simulations of target localization.
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{INTRODUCTION}
+Distributed filtering that focuses on using a group of networked UGVs to collectively infer environment status has been used for various applications, such as intruder detection \cite{chamberland2007wireless}, pedestrian tracking \cite{wang2007wlan} and micro-environmental monitoring \cite{cao2008development}. 
+Several techniques have been developed for distributed filtering.
+For example, Olfati-Saber (2005) proposed a distributed Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}.
+Each DKF used additional low-pass and band-pass consensus filters to compute the average of weighted measurements and inverse-covariance matrices.
+Madhavan et al. (2004) presented a distributed extended Kalman filter for nonlinear systems \cite{madhavan2004distributed}.
+This filter was used to generate local terrain maps by using pose estimates to combine elevation gradient and vision-based depth with environmental features.
+Gu (2007) proposed a distributed particle filter for Markovian target tracking over an undirected sensor network \cite{gu2007distributed}. 
+Gaussian mixture models (GMM) were adopted to approximate the posterior distribution from weighted particles and the parameters of GMM were exchanged via average consensus filter.
+As a generic filtering scheme for nonlinear systems and arbitrary noise distributions, distributed Bayesian filters (DBF) have received increasing interest during past years \cite{bandyopadhyay2014distributed,julian2012distributed}, which is the focus of this study.
+%This study focuses on developing a distributed Bayesian filter (DBF) that is applicable for state estimation of general nonlinear systems and the proposed DBF is applied to search and tracking (SAT) of both static and moving targets.
+
+The design of distributed filtering algorithms depends on the communication topology of multi-UGV network, which can be classified into two types: fusion center (FC)-based and neighborhood (NB)-based.
+In FC-based approaches, each UGV uses a filter to estimate local statistics of environment status based on its own measurement.
+The local statistics is then transmitted (possibly via multi-hopping) to a single FC, where a global posterior distribution (or statistical moments in DKF \cite{olfati2007consensus}) is calculated at each filtering cycle after receiving all local information \cite{zuo2006bandwidth}. %,vemula2006target
+%At each filtering cycle, fusion center calculates the global state estimate only after receiving latest local estimates of all robots \cite{zuo2006bandwidth,vemula2006target}.
+% has been a common structure for distributed filtering, in which local information collected by robots is transmitted (possibly via multi-hopping) to the fusion center for forming global estimation \cite{zuo2006bandwidth,ribeiro2006bandwidth}. 
+%FC-based DBF is efficient for estimation in that it can collectively utilize all robots' information and thus useful for applications that only require information at a single central unit, such as in environmental monitoring.
+%However, FC-based DBF requires constant communication link between each robot and the center, which is challenging for applications of robots in vast or complex areas.
+In NB-based approaches, a set of UGVs execute distributed filters to estimate individual posterior distribution. 
+Consensus of individual estimates is achieved by solely communicating statistics and/or observations within local neighbors of these UGVs.
+%Only communication between neighboring agents is allowed.
+The NB-based methods have become popular in recent years since such approaches do not require complex routing protocols or global knowledge of the network and therefore are robust to changes in network topology and to link failures.
+%, and thus suitable for networks with mobile agents.
+%Besides, filtering is locally conducted on each robot, which requires less computation power compared to that in the fusion center.
+
+%instead of communicating with a fusion center, each robot only exchanges information with neighboring robots and forms local estimation of the environment state. 
+%NB-based DBF is advantageous over FC-based DBF in that no central unit is required, thus suitable for applications in which maintaining communication link between robots and center is challenging, such as in disaster situations.
+%Besides, state estimation is locally conducted on each robot, which requires less computation power compared to that in the fusion center.
+
+So far, most studies on NB-based distributed filtering have mainly focused on the so-called \textit{statistics dissemination} strategy that each UGV actually exchanges statistics, including posterior distributions and likelihood functions, with neighboring UGVs \cite{hlinka2013distributed}.
+%\todohere{concern: this categorization is based on Hlinka's survery. Will this cause trouble? Besides, the name statistics dissemination and measurement dissemination are also from this survey. Any issues?}
+This strategy can be further categorized into two types: leader-based and consensus-based. 
+In the former, statistics is sequentially passed and updated along a path formed by active UGVs, called leaders.
+Only leaders perform filtering based on its own measurement and received measurements from local neighbors.
+%\todohere{mention leader-based and consensus-based. 2 examples for leader-based and 3 examples for consensus-based.}
+For example, Sheng et al. (2005) proposed a multiple leader-based distributed particle filter with Gaussian Mixer for target tracking \cite{sheng2005distributed}.
+% to track multiple moving targets. 
+Sensors are grouped into multiple uncorrelated cliques, in each of which a leader is assigned to perform particle filtering and the particle information is then exchanged among leaders.
+%Distributed filters were run on a set of leader agents in uncorrelated sensor cliques and the particles were approximated as GMMs, the parameters of which were then exchanged among leaders for global estimation.
+%In \cite{ram2007stochastic}, a circular topology that each sensor could only communicate with a fixed neighboring sensor was deployed for parameter estimation of a spatial field. 
+%State estimates were updated using by sensors when passed along the circular topology Each sensor generates  based on that of the previous sensor and its own observation and sequentially passes the estimate to its neighbor.
+In consensus-based distributed filters, every UGV diffuses statistics among neighbors, via which global agreement of the statistics is achieved by using consensus protocols \cite{olfati2007consensus,ren2005consensus,jadbabaie2003coordination}.
+% by which all UGVs exchange statistics and executes consensus algorithms with neighbors, as proposed in , for fusion of statistics.
+%For example, \todohere{find example on likelihood exchange} Julian et al. (2012) proposed a weighted-linear-average algorithm for fusing\todohere{find a more detailed word} posterior functions of environment status \cite{julian2012distributed}.
+% consensus-based distributed particle filter (DPF) that uses linear average consensus approach for fusing posterior functions of environment status. .
+For example, Hlinka et al. (2012) proposed a distributed method for computing an approximation of the joint (all-sensors) likelihood function by means of weighted-linear-average consensus algorithm when local likelihood functions belong to the exponential family of distributions \cite{hlinka2012likelihood}.
+Saptarshi et al. (2014) presented a Bayesian consensus filter that uses logarithmic opinion pool for fusing posterior distributions of the tracked target \cite{bandyopadhyay2014distributed}. 
+%The proposed BCF can incorporate non-Gaussian uncertainties and nonlinearity in target dynamic models and measurement models.  
+%The DPF can work even when the network diameter, the maximum in/out degree, and the number of UGVs are unknown.
+Other examples can be found in \cite{julian2012distributed,beaudeau2012target}.
+%There are other types of variants, for example, in \cite{ram2007stochastic}, a circular topology that each sensor can only communicate with a fixed neighboring sensor is deployed for parameter estimation of a spatial field. 
+%Each sensor generates state estimate based on that of the previous sensor and its own observation and sequentially passes the estimate to its neighbor.
+%who using the incremental Robbins-Monro gradient algorithm locally at each sensor.
+
+Despite the popularity of statistics dissemination strategy, exchanging statistics can consume high communication resources.
+%Approximating statistics with parametric models, such as Gaussian Mixture Models \cite{sheng2005distributed}, can significantly reduce communication burden.
+%However, such manipulation increases the computation burden for each UGV and sacrifices accuracy of filtering due to the approximation.
+%which can be infeasible in vast area or complex environment.
+% such as marine search, seismological rescue, etc. 
+One promising remedy is to disseminate measurement instead of statistics among neighbors, which, however, has not been fully exploited.
+% strategy has been developed for NB-based DBFs, by which raw or quantized observations are exchanged among UGVs.
+%This study focuses on the strategy of exchanging observations in the neighborhood of each UGV, called the \textit{measurement dissemination-based} strategy, for the purpose of achieving a consensus of the probability density function (PDF) of the tracked target.  
+One pioneering work was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}.
+Ribeiro et al. (2006) exchanged quantized observations along with error-variance limits considering more pragmatic signal models \cite{ribeiro2006bandwidth}.
+A recent work was conducted by Djuric et al. (2011), who proposed to broadcast raw measurements to other agents, and therefore each UGV has a complete set of observations of other UGVs for executing particle filtering \cite{djuric2011non}. 
+%At each time instant, a subset of UGVs that are in proximity of the tracked targets share their observations for target position estimation.
+% to all the remaining agents and apply local particle filter for target tracking 
+%Another example can be found in \cite{rosencrantz2002decentralized}, in which both observations and statistics were exchanged among sensors for distributed surveillance of the environment.
+A shortcoming of aforementioned works is that their communication topologies are assumed to be a complete graph that every pair of distinct UGVs is directly connected by a unique edge, which is not always feasible in reality.
+
+This paper extends existing works by introducing a Latest-In-and-Full-Out (LIFO) protocol into distributed Bayesian filters (DBF) for networked UGVs. 
+Each UGV is only allowed to broadcast observations to its neighbors by using single-hopping and then implements individual Bayesian filter locally after receiving transmitted observations.
+The main benefit of using LIFO is on the reduction of communication burden, with the transmission data volume scaling linearly with the UGV number, while a statistics dissemination-based strategy can suffer from the order of environmental size.
+%In addition, LIFO spreads all UGVs' observations among the network via multi-hopping, ensuring each UGV's access to all others' historical observations.
+%After receiving observations from neighbors, each UGV runs Bayesian filter locally for environment state estimation. 
+The proposed LIFO-based DBF has following properties:
+(1)	For a fixed and undirected network, LIFO guarantees the global dissemination of observations over the network in a non-intermittent manner.
+%, with each UGV non-intermittently receiving (delayed) observations of all other UGVs via local communication.
+(2)	The corresponding DBF ensures the consistency of estimated target position, i.e., the estimated position converges in probability to the true target position when the number of observations tends to infinity.
+%, which also implies the consensus of target PDFs.
+%which refers to the agreement between UGVs' estimates of target position and the true position of the target. 
+%Moreover, consistency implies the consensus of UGVs' target PDFs.
+%In this study, the consistency and consensus using LIFO-DBF is formally proved.
+
+The rest of this paper is organized as follows: 
+The problem of distributed Bayesian filtering is formulated in \cref{sec:prob_form}.
+%The LIFO-based DBF algorithm is described in \cref{sec:LIFO-dbf}, followed by the proof of consistency and consensus in \cref{sec:consist_proof}.
+The LIFO-based DBF algorithm is described in \cref{sec:LIFO-dbf}, followed by the proof of consistency in \cref{sec:consist_proof}.
+Simulation results are presented in \cref{sec:sim} and \cref{sec:conclu} concludes the paper.
+
+\section{PROBLEM FORMULATION}\label{sec:prob_form}
+Let $\mathit{S}=\left\lbrace x|x\in \mathbb{R}^2\right\rbrace $ denote a two-dimensional planar space containing a target to be localized.
+%The exact target location is unknown but its probability map in $S$ is available.
+An autonomous ground robot equipped with a camera sensor is tasked with localizing the target.
+
+
+%Here we adopt the probabilisitc search framework, which will be descbribed in following sections.
+
+\subsection{Robot and Target Motion Model}
+%\todonote{it may be better to directly write the model using y}
+We consider a discrete-time unicycle motion model for the robot:
+%as shown in \cref{eqn:r_kinematics}:
+%\begin{subequations}\label{eqn:r_kinematics}
+\begin{equation}
+x^R_{k+1}=f(x^R_k,u^R_k),
+\end{equation}
+where
+	\begin{align}
+%		y^R_{k+1}&=f(y^R_k,u^R_k),\\
+%		\text{where}\\		
+		f(x^R_k,u^R_k)&=x^R_{k}+
+		\begin{bmatrix}
+			\cos{\theta^R_{k}}\Delta t & 0\\
+			\sin{\theta^R_{k}}\Delta t & 0\\
+			\Delta t & 0\\
+			0 & \Delta t
+		\end{bmatrix}u^R_{k}\nonumber.
+	\end{align}
+%\end{subequations}
+The robot state $x^R_k=[x^R_{1,k},x^R_{2,k},\theta^R_k,v^R_k]$ consists of robot position, heading angle and speed at time $k$.
+The control input $u^R_k=[w^R_k,a^R_k]$ includes angular velocity and linear acceleration.
+
+We assume a stochastic single integrator model for the target:
+\begin{equation}
+x^t_{k+1}=Ax^t_k+w_k,\;w_t\sim \mathcal{N}(0,Q)
+\end{equation}
+with a zero-mean Gaussian noise.
+The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]$ include its position. $Q$ is the covariance matrix for Gaussian distribution.
+
+%Define 
+%\begin{subequations}
+%	\begin{align}
+%	
+%	\end{align}
+%\end{subequations} as the robot state at time $k$.
+%The control input $u^R_k$ consist of the velocity $V^R_k$ and the angular velocity $w^R_k$ of the robot:
+%\begin{equation}
+%	u^R_k = [V^R_k,\theta^R_k]
+%\end{equation}
+%Considering the actuator saturation, the control input is bounded by
+%\begin{equation*}
+%	u_m\le u^R_{k}\le u_M,
+%\end{equation*}
+%where $u_m$ and $u_M$ stand for the lower and upper bounds of the input, respectively.
+
+\subsection{Sensor Model}
+Due to the fact that the target position is unknown a-priori and thus the target may not be within the FOV at the beginning of the search process, the sensor model needs to account for the cases that the target is within and out of FOV.
+We adopt the linear measurement model from Schenato et. al. that considers the missing measurements:
+%When the target is within the FOV, a linear measurement model is used:
+\begin{equation}
+y_{k+1}=Cx^t_k+v_t,\;v_t\sim
+\begin{cases}
+\mathcal{N}(0,R) & \text{if } x^t_k\in\mathcal{F}_k\\
+\mathcal{N}(0,\sigma^2 I) & \text{if } x^t_k\notin\mathcal{F}_k
+\end{cases},
+\end{equation}
+where a Gaussian white noise with covariance $R$ is added when the target is within the FOV $\mathcal{F}_k$ of the sensor.
+Once the target is outside of FOV, the measurement is equivalent to receiving a measurement containing a white noise of infinite covariant, i.e. $\sigma\rightarrow\infty$.
+
+\section{MPC-based Informative Path Planning}
+\subsection{kalman Filter with Limited FOV}
+According to Schenato paper, a discrete-time kalman filter with intermittent measurement can be formulated as:
+\begin{subequations}
+	\begin{align}
+	\hat{x}^t_{k+1|k}&=A\hat{x}^t_{k|k}\\
+	P_{k+1|k}&=AP_{k|k}A'+Q\\
+	K_{k+1}&=P_{k+1|k}C(CP_{k+1|k}C'+R)^{-1}\\
+	\hat{x}^t_{k+1|k+1}&=\hat{x}^t_{k+1|k}+\gamma_{k+1}K_{k+1}(y_{k+1}-C\hat{x}^t_{k+1|k})\\
+	P_{k+1|k+1}&=P_{k+1|k}-\gamma_{k+1}K_{k+1}CP_{k+1|k}
+	\end{align}
+\end{subequations}
+where $\gamma_{k+1}$ takes a binary value ($1$ or $0$), corresponding to situation that a measurement is obtained or not obtained.
+Such Kalman filter provides a unifying a framework for handling different measurement results. However, $\gamma_{k+1}$ is a discontinuous function of the robot and target states, which is inconvenient for formulating an optimization problem. 
+Here we use a sigmoid function to approximate $\gamma_{k+1}$.
+To be specific, we assume that the sensor can always obtain a measurement when the target is inside its FOV and no measurement if outside of FOV. 
+Therefore, $\gamma_{k+1}=\mathds{1}_{x^t_{k+1}\in\mathcal{F}_{k+1}}$, which is an indicator function specifying whether the target is inside the sensor's FOV.
+
+A typical camera sensor FOV can be modeled as a sector (\cref{fig:FOV}).
+We use a sigmoid function to approximate its boundary:
+\begin{equation}
+\gamma_{k}\approx \frac{d(x^t_k,e_i)}{1+d(x^t_k,e_i)^2},
+\end{equation}
+where $d$ 
+Since the sigmoid function is differentiable, it can be utilized in the MPC framework.
+
+\subsection{Informative Path Planning}
+A model predictive control problem with planning horizon $N$ can be formulated as:
+\begin{subequations}
+	\begin{align*}
+	\min_{u_{1:N}}\; & J(b_{1:N+1})\\
+	\text{s.t. }\; & x^R_{k+1}=f(x^R_k,u_k),\\
+	& b_{k+1}=g(b_k,u_k),\\
+	& x^R_{k+1}\in\mathcal{X}, \, u_{k+1}\in\mathcal{U},\\
+	& k=1,\dots,N,
+	\end{align*}
+\end{subequations}
+where $\mathcal{X}$ and $\mathcal{U}$ are feasible set of robot state and control input, respectively.
+
+To drive the robot to configurations in which the sensor can obtain information about the target, we want to maximize the entropy reduction, $H(\hat{x}^t_1)-H(\hat{x}^t_{k+1})$, for the planning horizon. Since $H(\hat{x}^t_1)$ depends only on the target estimation at the current time and is not affected by control input of the robot, it is equivalently to minimizing $H(\hat{x}^t_{k+1})$.
+For a multivariate normal distribution, such entropy is equivalent to $\frac{k}{2} (1 + \ln (2\pi)) + \frac{1}{2} \ln |P_{N+1|N+1} |$.
+Minimizing a determinant can be troublesome for optimization problem. Utilizing the relation that
+$det(A)^{\frac{1}{n}}\leq \frac{1}{n}tr(A)$ for a positive definite matrix $A$, we define the objective function of the MPC problem as:
+\begin{align*}
+J(b_{1:N+1})&=tr(P_{N+1|N+1}).
+\end{align*}
+
+
+
+\section{Simulation}
+
+\subsection{Static Target}
+
+\subsection{Moving Target}
+
+
+\section{CONCLUSION}\label{sec:conclu}
+
+
+\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+                                  % on the last page of the document manually. It shortens
+                                  % the textheight of the last page by a suitable amount.
+                                  % This command does not take effect until the next page
+                                  % so it should come on the page before the last. Make
+                                  % sure that you do not shorten the textheight too much.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section*{APPENDIX}
+%
+%Appendixes should appear before the acknowledgment.
+
+%\section*{ACKNOWLEDGMENT}
+%%This work is supported by the Embedded Humans: Provably Correct Decision Making for Networks of Humans and Unmanned Systems project, a MURI project funded by the Office of Naval Research.
+%The authors gratefully acknowledges the Office of Naval Research for supporting the research described in this paper. 
+%They would also like to thank Yuting Wei in the Department of Statistics, UC Berkeley for her sincere help and fruitful discussion on the consistency proof.
+
+%The preferred spelling of the word ÒacknowledgmentÓ in America is without an ÒeÓ after the ÒgÓ. Avoid the stilted expression, ÒOne of us (R. B. G.) thanks . . .Ó  Instead, try ÒR. B. G. thanksÓ. Put sponsor acknowledgments in the unnumbered footnote on the first page.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{IEEEtran}
+%\bibliographystyle{bibtex}
+\bibliography{references}
+
+\end{document}

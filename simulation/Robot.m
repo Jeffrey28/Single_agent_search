@@ -123,6 +123,7 @@ classdef Robot
             var_dt = this.dt;
             var_C = this.C;
             var_R = this.R;
+            st = this.state;
             x_cur = this.est_pos;
             gam = this.gam;
             
@@ -174,13 +175,32 @@ classdef Robot
                 % KF update
 %                 alp1 = z(3,ii+1) - this.theta0;
 %                 alp2 = z(3,ii+1) + this.theta0;
+                alp1 = st(3) - this.theta0;
+                alp2 = st(3) + this.theta0;
+                a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
+                b = [-z(1,ii+1)*sin(alp1)+z(2,ii+1)*cos(alp1);z(1,ii+1)*sin(alp2)-z(2,ii+1)*cos(alp2)];%[b1;b2];
+                
+%                 alp1 = st(3) - this.theta0;
+%                 alp2 = st(3) + this.theta0;
 %                 a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
-%                 b = [-z(1,ii+1)*sin(alp1)+z(2,ii+1)*cos(alp1);z(1,ii+1)*sin(alp2)-z(2,ii+1)*cos(alp2)];%[b1;b2];
-                delta = 1;%/((1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
+%                 b = [-st(1)*sin(alp1)+st(2)*cos(alp1);st(1)*sin(alp2)-st(2)*cos(alp2)];%[b1;b2];
+                
+%                 delta = 1;%/((1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
 %                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))));
+%                 delta_rcp = (1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
+%                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2)));
 %                 D = ...%(1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
 %                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2)));
+%                 dist_prod = (gam*(a(1,:)*x(:,ii)-b(1)))^2;%(gam*(a(1,:)*x(:,ii)-b(1))*gam*(a(2,:)*x(:,ii)-b(2))*...
+% %                     gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))^2;
+%                 dist_prod2 = (1+(gam*(a(1,:)*x(:,ii)-b(1)))^2);%*(1+(gam*(a(2,:)*x(:,ii)-b(2)))^2)*...
+% %                     (1+(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))^2);
+                dist_prod = 1;% (sqrtm(sum((x(:,ii)-this.state(1:2))).^2)-this.r)^2;%(gam*(a(1,:)*x_cur-b(1)))^2*(gam*(a(2,:)*x(:,ii)-b(2)))^2;%(gam*(a(1,:)*x(:,ii)-b(1))*gam*(a(2,:)*x(:,ii)-b(2))*...
+%                     gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))^2;
+                dist_prod2 = ...%(1+(gam*(a(1,:)*x_cur-b(1)))^2)*(1+(gam*(a(2,:)*x(:,ii)-b(2)))^2);%*...
+                    1+sum((x(:,ii)-this.state(1:2)).^2);%(1+(sqrtm(sum((x(:,ii)-this.state(1:2)).^2))-this.r)^2);
                 
+
                 % prediction
                 x_pred(:,ii) = A*x(:,ii);
 %                 P_pred(:,:,ii) = A*var_P(:,:,ii)*A'+Q;
@@ -198,21 +218,46 @@ classdef Robot
 %                 constr = [constr,var_P(:,2*ii+1:2*ii+2) >= P_pred(:,2*ii-1:2*ii)-K*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
 % %                 constr = [constr,(delta*C*P_pred(:,:,ii)*C'*delta+R)*tmp_M == eye(2)];
                 
-                % test version of simplified constraint
-                T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R/delta^2;
+%                 % test version of simplified constraint
+%                 T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R*delta_rcp^2;
+%                 a = T(1,1);
+%                 b = T(1,2);
+%                 c = T(2,1);
+%                 d = T(2,2);
+%                 t = a*d-b*c;
+%                 T2 = [d -b; -c a];
+%                 constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t == P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
+%                 constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*t...
+%                     == -P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
+                
+                % use x/sqrt(1+x^2) as sigmoid function and Sachin's
+                % formulation
+                T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'*dist_prod+var_R*dist_prod2;
                 a = T(1,1);
                 b = T(1,2);
                 c = T(2,1);
                 d = T(2,2);
                 t = a*d-b*c;
                 T2 = [d -b; -c a];
-                constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t == P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
+                constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t == dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
                 constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*t...
-                    == -P_pred(:,2*ii-1:2*ii)*var_C*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
+                    == -dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
+                
+                % use Schenato's formulation
+%                 T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'*dist_prod+var_R;
+%                 a = T(1,1);
+%                 b = T(1,2);
+%                 c = T(2,1);
+%                 d = T(2,2);
+%                 t = a*d-b*c;
+%                 T2 = [d -b; -c a];
+%                 constr = [constr,(x(:,ii+1)-x_pred(:,ii))*dist_prod2*t == dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
+%                 constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*dist_prod2*t...
+%                     == -dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
             end
             constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.v_lb <= u(2,:) <= this.v_ub];
             
-            opt = sdpsettings('solver','ipopt','verbose',2);
+            opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
             
             sol = optimize(constr,obj,opt);
             optz = value(z);
