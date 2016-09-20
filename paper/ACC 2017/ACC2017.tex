@@ -26,6 +26,7 @@
 \usepackage{algorithm,algpseudocode}
 %\usepackage{booktabs}
 \usepackage{dsfont}
+\usepackage{gensymb} % degree symbol
 
 % format for theorems etc.
 \newtheorem{thm}{\bfseries Theorem}
@@ -78,14 +79,11 @@
 
 
 \title{\LARGE \bf
-Distributed Bayesian Filters for Multi-Vehicle Network by Using Latest-In-and-Full-Out Exchange Protocol of Observations}
+Model Predictive Control-based Target Search and Tracking Using Autonomous Mobile Robot with Limited Sensing Domain}
 
-
-\author{Chang Liu$^{1}$, Shengbo Eben Li$^{2}$ and J. Karl Hedrick$^{3}$% <-this % stops a space
-\thanks{*The first two authors, C. Liu and S. Li, have equally contributed to this research.}% <-this % stops a space
+\author{Chang Liu$^{1}$, J. Karl Hedrick$^{2}$% <-this % stops a space
 \thanks{$^{1}$Chang Liu is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small changliu@berkeley.edu}}%
-\thanks{$^{2}$Shengbo Eben Li is with the Department of Automotive Engineering, Tsinghua University, Beijing, 100084, China. He has worked at Department of Mechanical Engineering, University of California, Berkeley as a visiting scholar. Email: {\tt\small lisb04@gmail.com}}%
-\thanks{$^{3}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
+\thanks{$^{2}$J. Karl Hedrick is with the Vehicle Dynamics \& Control Lab, Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA 94709, USA. Email: {\tt\small khedrick@me.berkeley.edu}}%
 }
 
 
@@ -101,155 +99,140 @@ Distributed Bayesian Filters for Multi-Vehicle Network by Using Latest-In-and-Fu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-
-This paper presents a measurement dissemination-based distributed Bayesian filtering (DBF) approach for a network of unmanned ground vehicles (UGVs).
-The DBF utilizes the Latest-In-and-Full-Out (LIFO) local exchange protocol of sensor measurements for data communication within the network.
-% for target search and tracking.
-Different from existing statistics dissemination-based approaches that transmit posterior distributions or likelihood functions, each UGV under LIFO only exchanges with neighboring UGVs a full communication buffer consisting of latest available measurements,
-%receives the latest available measurements and then broadcasts full communication buffer to its neighborhood, 
-which significantly reduces the transmission burden between each pair of UGVs to scale linearly with the size of the network.
-Under the condition of fixed and undirected topology, LIFO can guarantee non-intermittent dissemination of all observations over the network within finite time.
-%, with each robot non-intermittently receiving observations of all others.
-Two types of LIFO-based DBF algorithms are then derived to estimate individual probability density function (PDF) for a static target and for a moving target, respectively. 
-For the static target, each UGV locally fuses the newly received observations while for the moving target, a set of historical observations is stored and sequentially fused. 
-%Upon obtaining the latest available observations of all robots, an iterative Bayesian filtering procedure is applied that alternates between prediction and updating steps. 
-The consistency of LIFO-based DBF is proved that the estimated target position converges in probability to the true target position.
-% when the number of observations tends to infinity.
-%the agreement between robots' estimated target position and the actual position.
-The effectiveness of this method is demonstrated by comparing with consensus-based distributed filters and a centralized filter in simulations of target localization.
+Target search and tracking using autonomous robots is important for both civil and military applications.
+In this work, we propose a model predictive control (MPC)-based path planning approach for a ground mobile robot to autonomously search and track a moving target.
+%a path planning method for an autonomous robot equipped with a binary sensor to search for a stationary target is proposed.
+The robot is equipped with a sensor with limited sensing domain for target detection.
+Both target motion and sensor measurement use linear time-invariant models.
+Due to the limited sensing domain, we utilize a modified Kalman filter to handle the intermittent measurements.
+Under the MPC framework, the sensing domain is approximated with a bell-shaped differentiable function and is explicitly considered in the optimization problem.
+To reduce the computation burden of solving MPC, we propose a two-step procedure: it first considers the limited sensing range and computes a reference trajectory, which is then used for solving the original MPC that considers both limited sensing range and angle.
+The effectiveness of the proposed method is demonstrated by numerical simulations.
 \end{abstract}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
-Distributed filtering that focuses on using a group of networked UGVs to collectively infer environment status has been used for various applications, such as intruder detection \cite{chamberland2007wireless}, pedestrian tracking \cite{wang2007wlan} and micro-environmental monitoring \cite{cao2008development}. 
-Several techniques have been developed for distributed filtering.
-For example, Olfati-Saber (2005) proposed a distributed Kalman filter (DKF) for estimating states of linear systems with Gaussian process and measurement noise \cite{2005distributed}.
-Each DKF used additional low-pass and band-pass consensus filters to compute the average of weighted measurements and inverse-covariance matrices.
-Madhavan et al. (2004) presented a distributed extended Kalman filter for nonlinear systems \cite{madhavan2004distributed}.
-This filter was used to generate local terrain maps by using pose estimates to combine elevation gradient and vision-based depth with environmental features.
-Gu (2007) proposed a distributed particle filter for Markovian target tracking over an undirected sensor network \cite{gu2007distributed}. 
-Gaussian mixture models (GMM) were adopted to approximate the posterior distribution from weighted particles and the parameters of GMM were exchanged via average consensus filter.
-As a generic filtering scheme for nonlinear systems and arbitrary noise distributions, distributed Bayesian filters (DBF) have received increasing interest during past years \cite{bandyopadhyay2014distributed,julian2012distributed}, which is the focus of this study.
-%This study focuses on developing a distributed Bayesian filter (DBF) that is applicable for state estimation of general nonlinear systems and the proposed DBF is applied to search and tracking (SAT) of both static and moving targets.
+Using autonomous robots to search and track targets has attracted wide interest in recent years. 
+In such application, an autonomous robot first needs to explore the environment and search for the targets of interest. 
+After detecting a target, the robot will then switch mode and keep tracking the target. Some applications include indoor search \cite{lau2006probabilistic}, marine search-and-rescue \cite{furukawa2006recursive} and object search-and-identify in the wilderness \cite{chung2009probabilistic}.
 
-The design of distributed filtering algorithms depends on the communication topology of multi-UGV network, which can be classified into two types: fusion center (FC)-based and neighborhood (NB)-based.
-In FC-based approaches, each UGV uses a filter to estimate local statistics of environment status based on its own measurement.
-The local statistics is then transmitted (possibly via multi-hopping) to a single FC, where a global posterior distribution (or statistical moments in DKF \cite{olfati2007consensus}) is calculated at each filtering cycle after receiving all local information \cite{zuo2006bandwidth}. %,vemula2006target
-%At each filtering cycle, fusion center calculates the global state estimate only after receiving latest local estimates of all robots \cite{zuo2006bandwidth,vemula2006target}.
-% has been a common structure for distributed filtering, in which local information collected by robots is transmitted (possibly via multi-hopping) to the fusion center for forming global estimation \cite{zuo2006bandwidth,ribeiro2006bandwidth}. 
-%FC-based DBF is efficient for estimation in that it can collectively utilize all robots' information and thus useful for applications that only require information at a single central unit, such as in environmental monitoring.
-%However, FC-based DBF requires constant communication link between each robot and the center, which is challenging for applications of robots in vast or complex areas.
-In NB-based approaches, a set of UGVs execute distributed filters to estimate individual posterior distribution. 
-Consensus of individual estimates is achieved by solely communicating statistics and/or observations within local neighbors of these UGVs.
-%Only communication between neighboring agents is allowed.
-The NB-based methods have become popular in recent years since such approaches do not require complex routing protocols or global knowledge of the network and therefore are robust to changes in network topology and to link failures.
-%, and thus suitable for networks with mobile agents.
-%Besides, filtering is locally conducted on each robot, which requires less computation power compared to that in the fusion center.
+Studies on search and tracking were initiated during World War II. 
+However, later research efforts have treated these two modes rather separately. 
+On one hand, much work has been focused on tracking moving targets \cite{papanikolopoulos1993visual,lee2000stable,hausman2015cooperative}, which assumes that targets are within the sensor's sensing domain from the beginning. 
+The sensor is then controlled to maintain the target's visibility over time. 
+On the other hand, intense efforts have been put into search problems, which started with simple environment coverage strategies and gradually evolved to more advanced approaches for handling complex, dynamic and stochastic environments \cite{stone1989or,bourgault2004process}. Probabilistic measures, such as probability of detection, were used as metrics for designing search path.
 
-%instead of communicating with a fusion center, each robot only exchanges information with neighboring robots and forms local estimation of the environment state. 
-%NB-based DBF is advantageous over FC-based DBF in that no central unit is required, thus suitable for applications in which maintaining communication link between robots and center is challenging, such as in disaster situations.
-%Besides, state estimation is locally conducted on each robot, which requires less computation power compared to that in the fusion center.
+%Though sharing certain similarities, target tracking problem is different from target search and localization in that the target to be localized is not within sensor FOV a priori and thus more uncertainty exists.
 
-So far, most studies on NB-based distributed filtering have mainly focused on the so-called \textit{statistics dissemination} strategy that each UGV actually exchanges statistics, including posterior distributions and likelihood functions, with neighboring UGVs \cite{hlinka2013distributed}.
-%\todohere{concern: this categorization is based on Hlinka's survery. Will this cause trouble? Besides, the name statistics dissemination and measurement dissemination are also from this survey. Any issues?}
-This strategy can be further categorized into two types: leader-based and consensus-based. 
-In the former, statistics is sequentially passed and updated along a path formed by active UGVs, called leaders.
-Only leaders perform filtering based on its own measurement and received measurements from local neighbors.
-%\todohere{mention leader-based and consensus-based. 2 examples for leader-based and 3 examples for consensus-based.}
-For example, Sheng et al. (2005) proposed a multiple leader-based distributed particle filter with Gaussian Mixer for target tracking \cite{sheng2005distributed}.
-% to track multiple moving targets. 
-Sensors are grouped into multiple uncorrelated cliques, in each of which a leader is assigned to perform particle filtering and the particle information is then exchanged among leaders.
-%Distributed filters were run on a set of leader agents in uncorrelated sensor cliques and the particles were approximated as GMMs, the parameters of which were then exchanged among leaders for global estimation.
-%In \cite{ram2007stochastic}, a circular topology that each sensor could only communicate with a fixed neighboring sensor was deployed for parameter estimation of a spatial field. 
-%State estimates were updated using by sensors when passed along the circular topology Each sensor generates  based on that of the previous sensor and its own observation and sequentially passes the estimate to its neighbor.
-In consensus-based distributed filters, every UGV diffuses statistics among neighbors, via which global agreement of the statistics is achieved by using consensus protocols \cite{olfati2007consensus,ren2005consensus,jadbabaie2003coordination}.
-% by which all UGVs exchange statistics and executes consensus algorithms with neighbors, as proposed in , for fusion of statistics.
-%For example, \todohere{find example on likelihood exchange} Julian et al. (2012) proposed a weighted-linear-average algorithm for fusing\todohere{find a more detailed word} posterior functions of environment status \cite{julian2012distributed}.
-% consensus-based distributed particle filter (DPF) that uses linear average consensus approach for fusing posterior functions of environment status. .
-For example, Hlinka et al. (2012) proposed a distributed method for computing an approximation of the joint (all-sensors) likelihood function by means of weighted-linear-average consensus algorithm when local likelihood functions belong to the exponential family of distributions \cite{hlinka2012likelihood}.
-Saptarshi et al. (2014) presented a Bayesian consensus filter that uses logarithmic opinion pool for fusing posterior distributions of the tracked target \cite{bandyopadhyay2014distributed}. 
-%The proposed BCF can incorporate non-Gaussian uncertainties and nonlinearity in target dynamic models and measurement models.  
-%The DPF can work even when the network diameter, the maximum in/out degree, and the number of UGVs are unknown.
-Other examples can be found in \cite{julian2012distributed,beaudeau2012target}.
-%There are other types of variants, for example, in \cite{ram2007stochastic}, a circular topology that each sensor can only communicate with a fixed neighboring sensor is deployed for parameter estimation of a spatial field. 
-%Each sensor generates state estimate based on that of the previous sensor and its own observation and sequentially passes the estimate to its neighbor.
-%who using the incremental Robbins-Monro gradient algorithm locally at each sensor.
+A pioneering work that unifies the target search and tracking under the same framework was conducted by Bourgault et al. \cite{bourgault2006optimal}, who designed a unified objective function for search and tracking that represents the cumulative probability of detection.
+It utilized a Bayesian filter for updating the target's state based on sensor measurement.
+Due to the numerical complexity of evaluating the objective function, the work used a one-step look-ahead scheme for path planning.
+%The belief of the target position is updated by using the recursive Bayesian estimation (RBE) to incorporate the UAV sensor observations.
+%At each time, the search path follows the direction that maximizes the probability of detecting the target.
+%and then used a one-step look-ahead scheme for planning path that either minimizes mean-time-to-detection or maximizes .
+%The UAV search path is computed with the greedy method to maximize the probability of detecting the target at each time.
+%Furukawa et al. \cite{furukawa2006recursive} extended the work in \cite{bourgault2006optimal} to multiple UAVs searching and tracking targets.
+%Each UAV follows the path that maximizes the probability of detecting the target and the detection results are shared among UAVs.
+%Tisdale et al. \cite{tisdale2009autonomous} utilized the recursive Bayesian estimation (RBE)-based search and tracking framework to perform the short-horizon path planning.
+The idea of using such greedy policy for path planning has also been utilized in \cite{schwager2011multi}, where robots follow the gradient of mutual information to estimate environment events and hazards online.
+Research has also been focused on distributed information gathering and target search using the greedy path planning policy \cite{hoffmann2010mobile,julian2012distributed}.
 
-Despite the popularity of statistics dissemination strategy, exchanging statistics can consume high communication resources.
-%Approximating statistics with parametric models, such as Gaussian Mixture Models \cite{sheng2005distributed}, can significantly reduce communication burden.
-%However, such manipulation increases the computation burden for each UGV and sacrifices accuracy of filtering due to the approximation.
-%which can be infeasible in vast area or complex environment.
-% such as marine search, seismological rescue, etc. 
-One promising remedy is to disseminate measurement instead of statistics among neighbors, which, however, has not been fully exploited.
-% strategy has been developed for NB-based DBFs, by which raw or quantized observations are exchanged among UGVs.
-%This study focuses on the strategy of exchanging observations in the neighborhood of each UGV, called the \textit{measurement dissemination-based} strategy, for the purpose of achieving a consensus of the probability density function (PDF) of the tracked target.  
-One pioneering work was done by Coates et al. (2004), who used adaptive encoding of observations to minimize communication overhead \cite{coates2004distributed}.
-Ribeiro et al. (2006) exchanged quantized observations along with error-variance limits considering more pragmatic signal models \cite{ribeiro2006bandwidth}.
-A recent work was conducted by Djuric et al. (2011), who proposed to broadcast raw measurements to other agents, and therefore each UGV has a complete set of observations of other UGVs for executing particle filtering \cite{djuric2011non}. 
-%At each time instant, a subset of UGVs that are in proximity of the tracked targets share their observations for target position estimation.
-% to all the remaining agents and apply local particle filter for target tracking 
-%Another example can be found in \cite{rosencrantz2002decentralized}, in which both observations and statistics were exchanged among sensors for distributed surveillance of the environment.
-A shortcoming of aforementioned works is that their communication topologies are assumed to be a complete graph that every pair of distinct UGVs is directly connected by a unique edge, which is not always feasible in reality.
+Approaches for non-myopic target search and tracking have also been developed. 
+For example, Tisdale et al. \cite{tisdale2009autonomous} utilized a receding horizon path planning approach for a team of aerial vehicles to cooperatively search for targets, with the probability of detection being maximized over a finite horizon.
+Ryan et al. \cite{ryan2010particle} used an information-theoretic objective function and developed a control-based formulation to minimize the entropy of an estimated distribution for moving targets over a multiple-step horizon.
+The prediction of conditional entropy is computed by sequential Monte Carlo method in the context of particle filtering.
+However, due to the complexity of Monte Carlo method, such approach could not be implemented in real time.
+Lanillos et al. \cite{lanillos2012minimum} used the cross entropy approach to solve an optimization problem with a discounted probability of detection as the objective function, which leads to minimum time search of the target.
+%Kulich et al. \cite{kulich2014single} deals with the problem using the frontier-based approach to search for a stationary target in an unknown environment. 
+%Objective function is hard to evaluate and time consuming...
+However, these works did not explicitly consider the limited sensing domain of sensors in the planning process.
+%, mainly because the evaluation of objective function relies on numerical integration and thus are already very computationally heavy.
 
-This paper extends existing works by introducing a Latest-In-and-Full-Out (LIFO) protocol into distributed Bayesian filters (DBF) for networked UGVs. 
-Each UGV is only allowed to broadcast observations to its neighbors by using single-hopping and then implements individual Bayesian filter locally after receiving transmitted observations.
-The main benefit of using LIFO is on the reduction of communication burden, with the transmission data volume scaling linearly with the UGV number, while a statistics dissemination-based strategy can suffer from the order of environmental size.
-%In addition, LIFO spreads all UGVs' observations among the network via multi-hopping, ensuring each UGV's access to all others' historical observations.
-%After receiving observations from neighbors, each UGV runs Bayesian filter locally for environment state estimation. 
-The proposed LIFO-based DBF has following properties:
-(1)	For a fixed and undirected network, LIFO guarantees the global dissemination of observations over the network in a non-intermittent manner.
-%, with each UGV non-intermittently receiving (delayed) observations of all other UGVs via local communication.
-(2)	The corresponding DBF ensures the consistency of estimated target position, i.e., the estimated position converges in probability to the true target position when the number of observations tends to infinity.
-%, which also implies the consensus of target PDFs.
-%which refers to the agreement between UGVs' estimates of target position and the true position of the target. 
-%Moreover, consistency implies the consensus of UGVs' target PDFs.
-%In this study, the consistency and consensus using LIFO-DBF is formally proved.
+%
+%Tisdale et al. \cite{tisdale2009autonomous} utilized a receding horizon approach for a team of aerial vehicles to cooperatively search for targets. 
+%A gradient routine is used to maximize the probability of detecting the target and a greedy method is used to sequentially decide vehicle motion for team collaboration.
+%Ryan et al. \cite{ryan2010particle} developed a control-based formulation to minimize the entropy of an estimated distribution for moving targets over a multiple-step horizon.
+%The prediction of conditional entropy is computed by sequential Monte Carlo method in the context of particle filtering.
+%Other examples can be found in \cite{kulich2014single,bonnie2012modelling,bertuccelli2006search}.
+%Suffer from large computational power and involve evaluation of complex objective function.
 
-The rest of this paper is organized as follows: 
-The problem of distributed Bayesian filtering is formulated in \cref{sec:prob_form}.
-%The LIFO-based DBF algorithm is described in \cref{sec:LIFO-dbf}, followed by the proof of consistency and consensus in \cref{sec:consist_proof}.
-The LIFO-based DBF algorithm is described in \cref{sec:LIFO-dbf}, followed by the proof of consistency in \cref{sec:consist_proof}.
-Simulation results are presented in \cref{sec:sim} and \cref{sec:conclu} concludes the paper.
+Sampling-based path planning approaches have also been adopted for information gathering.
+%, which can directly handle limited FOV of sensors. 
+For example, Hollinger et al. \cite{hollinger2014sampling} has proposed a rapidly exploring information gathering graph approach to effectively optimize a modular or submodular objective functions for information gathering. 
+Levine \cite{levine2010information} proposed a variant of RRT \cite{lavalle2001randomized} algorithm to search for targets in the environment, considering the limited sensing domain and occlusion caused by obstacles. 
+However, sampling-based methods currently suffer from poor scalability to higher dimensional space and thus is of limited use.
+
+In this work, we use the model predictive control framework for non-myopic path planning, which is formulated as an optimization problem that 
+%, which is advantageous in that it can adjust the generated path by incorporating updated environment state.
+%Moreover, we developed a closed-form objective function and 
+explicitly considers the limited sensing domain of the sensor. % in the planning process.
+Some previous works have considered the similar problem \cite{bonnie2012modelling,liu2015model}. 
+However, their assumption of certain sensor type (binary sensors) limits the applicability to general situations.
+A particularly relevant work was done by Patil et al. \cite{patil2014gaussian}, who considered the path planning in Gaussian belief space and proposed a sequential planning algorithm in MPC framework to deal with the discontinuity of sensing domains.
+Our work is different from this work in the way we handle the limited sensing domain and the strategy for solving the MPC problem.
+To be specific, we use the geometric representation of sensing domain and use sigmoid function to approximate its boundary. 
+In addition, we propose a two-step optimization structure that successively improves the planned path to reduce the uncertainty of the target.
+Such approach can alleviate the computational burden of solving the MPC problem.
+%In this paper, we present a model predictive control-based probabilistic search method for an autonomous ground robot to localize a stationary target in the dynamic environment.
+%Such method can have many potential applications.
+%For example, autonomous ground robots can be deployed in search-and-rescue missions for detecting survivors in disaster areas that are dangerous for human searchers.
+%The robots need to localize survivors while avoiding collision with static or moving obstacles, such as buildings, vehicles and humans, in the environment.
+%, such as buildings, vehicles and humans.
+%In the proposed method, the probabilistic search framework is utilized to construct a probability map to encode the information of the target position.
+%A probability map is constructed to  and is updated using the particle filter method basd on the sensor detection results.
+%(1) a receding horizon control problem is formulated by combining  the updated probability map of stationary target and barrier functions for safety concern, with the purpose of maximizing the probability of detecting the target while avoiding collision with surrounding obstacles;
+%the MPC method is used to recursively compute a long-horizon optimal search path that maximizes the probability of detecting the target while guaranteeing no collision with obstacles in the dynamic environment.
+%To enforce collision avoidance with obstacles, a barrier function, which was originally proposed for solving constrained optimization problems\cite{wright1999numerical}, is included in MPC.
+%(2) By approximating the updated probability map with a Gaussian Mixture Model, an analytical form of the objective function is derived for the search path optimization, which has the potential to allow a long prediction horizon and reduce the computation burden.
+%Our contribution in this work is composed of two parts: first, we investigate an important application that autonomous ground robots search for targets while avoiding collision with obstacles in the environment;
+%second, we derive a closed form objective function, which can also be utilized for search problem in other scenarios and is promising for reducing the computation complexity of the path planning.
+
+The remainder of this paper is organized as follows: the target search and tracking problem is formulated in \cref{sec:prob_form}.
+The MPC-based path planning method that incorporates limited sensing domain is described in \cref{sec:method}.
+Simulation results are presented in \cref{sec:sim}.
 
 \section{PROBLEM FORMULATION}\label{sec:prob_form}
-Let $\mathit{S}=\left\lbrace x|x\in \mathbb{R}^2\right\rbrace $ denote a two-dimensional planar space containing a target to be localized.
-%The exact target location is unknown but its probability map in $S$ is available.
-An autonomous ground robot equipped with a camera sensor is tasked with localizing the target.
 
-
-%Here we adopt the probabilisitc search framework, which will be descbribed in following sections.
+%Let $\mathit{S}=\left\lbrace x|x\in \mathbb{R}^2\right\rbrace $ denote
+We consider a two-dimensional planar space, as shown in \Cref{fig:scenario}, that contains a moving target (blue toy car) and an autonomous mobile robot (red wheeled robot).
+The robot is equipped with a sensor that has limited sensing domain to measure the target position.
+The target position is unknown a priori and the robot needs to autonomously search for the target.
+Once having detected the target, the robot will need to continue tracking it by keeping the target in its sensor's sensing domain.
+As shown in the figure, the target position comes with large initial uncertainty due to the lack of prior information.
+However, when the target is within the sensing domain, the uncertainty is significantly reduced and the robot will then keep tracking the target.
 
 \subsection{Robot and Target Motion Model}
 %\todonote{it may be better to directly write the model using y}
-We consider a discrete-time unicycle motion model for the robot:
+We use a discrete-time unicycle motion model for the mobile robot:
 %as shown in \cref{eqn:r_kinematics}:
 %\begin{subequations}\label{eqn:r_kinematics}
 \begin{equation}
-x^R_{k+1}=f(x^R_k,u^R_k),
+x^r_{k+1}=f(x^r_k,u^r_k),
 \end{equation}
 where
 	\begin{align}
 %		y^R_{k+1}&=f(y^R_k,u^R_k),\\
 %		\text{where}\\		
-		f(x^R_k,u^R_k)&=x^R_{k}+
+		f(x^r_k,u^r_k)&=x^r_{k}+
 		\begin{bmatrix}
-			\cos{\theta^R_{k}}\Delta t & 0\\
-			\sin{\theta^R_{k}}\Delta t & 0\\
+			\cos{\theta^r_{k}}\Delta t & 0\\
+			\sin{\theta^r_{k}}\Delta t & 0\\
 			\Delta t & 0\\
 			0 & \Delta t
-		\end{bmatrix}u^R_{k}\nonumber.
+		\end{bmatrix}u^r_{k}\nonumber.
 	\end{align}
 %\end{subequations}
-The robot state $x^R_k=[x^R_{1,k},x^R_{2,k},\theta^R_k,v^R_k]$ consists of robot position, heading angle and speed at time $k$.
-The control input $u^R_k=[w^R_k,a^R_k]$ includes angular velocity and linear acceleration.
+The robot state $x^r_k=[x^r_{1,k},x^r_{2,k},\theta^r_k,v^r_k]\in\mathbb{R}^4$ consists of its position, steering wheel angle and speed at time $k$.
+The control input $u^r_k=[w^r_k,a^r_k]\in\mathbb{R}^2$ includes angular velocity and linear acceleration.
+$\Delta t$ represents the sampling time.
 
-We assume a stochastic single integrator model for the target:
+We assume a stochastic linear time-invariant model for the target:
 \begin{equation}
-x^t_{k+1}=Ax^t_k+w_k,\;w_t\sim \mathcal{N}(0,Q)
+x^t_{k+1}=Ax^t_k+Bu^t_k+w_k,\;w_t\sim \mathcal{N}(0,Q),
 \end{equation}
-with a zero-mean Gaussian noise.
-The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]$ include its position. $Q$ is the covariance matrix for Gaussian distribution.
+where $A,B\in\mathbb{R}^{2\times 2}$ are system matrices; $w_t\in\mathbb{R}^2$ is a zero-mean Gaussian noise with $Q\succeq 0$ being the covariance matrix.
+The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]\in\mathbb{R}^2$ represents its position.
 
 %Define 
 %\begin{subequations}
@@ -267,80 +250,254 @@ The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]$ include its position. $Q$ is the 
 %\end{equation*}
 %where $u_m$ and $u_M$ stand for the lower and upper bounds of the input, respectively.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.33\textwidth]{figures/scenario}
+	\caption{Scenario of the target search and tracking mission. Initial positions of the robot and target are represented by translucent red wheeled robot and blue toy car. Their corresponding trajectories are shown as the red and blue dashed lines. The blue dashed circles corresponds to the uncertainty of target position. The green sector shows the sensor's limited sensing domain.} 
+	\label{fig:scenario}
+\end{figure}
+
 \subsection{Sensor Model}
-Due to the fact that the target position is unknown a-priori and thus the target may not be within the FOV at the beginning of the search process, the sensor model needs to account for the cases that the target is within and out of FOV.
-We adopt the linear measurement model from Schenato et. al. that considers the missing measurements:
+%We consider a linear measurement model for the camera sensor as defined in \Cref{eqn:sensor}.
+We let the sensor have the same state as the robot (i.e. position and heading angle).
+Due to the fact that the target position is unknown a-priori and thus the target can be outside of the sensing domain, the sensor model needs to account for intermittent measurements of the target.
+We adopt the measurement model from Sinopoli et al. \cite{sinopoli2004kalman}, which considers
+both the case that the target is within sensing domain (a measurement is thus obtained) and the case that the target is outside of sensing domain (therefore the measurement is missing):
 %When the target is within the FOV, a linear measurement model is used:
-\begin{equation}
-y_{k+1}=Cx^t_k+v_t,\;v_t\sim
+\begin{equation}\label{eqn:sensor}
+y_{k}=Cx^t_k+v_k,\;v_k\sim
 \begin{cases}
 \mathcal{N}(0,R) & \text{if } x^t_k\in\mathcal{F}_k\\
 \mathcal{N}(0,\sigma^2 I) & \text{if } x^t_k\notin\mathcal{F}_k
 \end{cases},
 \end{equation}
-where a Gaussian white noise with covariance $R$ is added when the target is within the FOV $\mathcal{F}_k$ of the sensor.
-Once the target is outside of FOV, the measurement is equivalent to receiving a measurement containing a white noise of infinite covariant, i.e. $\sigma\rightarrow\infty$.
+where $C\in\mathbb{R}^{2\times 2}$ is the measurement matrix and $v_k\in\mathbb{R}^2$ is a zero-mean Gaussian noise. 
+Different from the measurement noise in traditional Kalman filter, the distribution of $v_k$ now depends on whether the target is inside or outside of the sensor's sensing domain $\mathcal{F}_k$ at time $k$: when the target is within the sensing domain, a finite covariance $R\succeq 0$ is used; once the target is outside of sensing domain, the missing measurement can be equivalently modeled as receiving a measurement sampled from a white noise of infinite covariance, i.e. $\sigma\rightarrow\infty$. 
+This formulation will facilitate the development of a unified objective function in MPC, which is described in the following section.
 
-\section{MPC-based Informative Path Planning}
-\subsection{kalman Filter with Limited FOV}
-According to Schenato paper, a discrete-time kalman filter with intermittent measurement can be formulated as:
-\begin{subequations}
+\subsection{Modeling Sensing Domain}
+Common sensors, such as cameras and radars, have limited sensing domain that are bounded in both sensing range (distance) and angle (angle of view) \cite{yu2016dynamical}.
+We approximate the sensing domain as a sector (\Cref{fig:FOV}), which can be represented as $\mathcal{F}_k=\left\lbrace v=[x_1,x_2]\in\mathbb{R}^2|\:\|v\|_2\leq r, \angle v\in[\theta_1,\theta_2]\right\rbrace$.
+It should be noted that, though we use a sector sensing domain model in this work, the presented path planning method can also apply to other geometries of sensor's sensing domain, such as the lobe or cone shape.
+
+\section{MPC-based Path Planning}\label{sec:method}
+\subsection{Kalman filter with Limited Sensing Domain}\label{subseq:KF with FOV}
+Since limited sensing domain can cause intermittent measurements, we modify the discrete-time Kalman filter from \cite{sinopoli2004kalman} to consider this effect, which is defined as
+\begin{subequations}\label{eqn:KF}
 	\begin{align}
-	\hat{x}^t_{k+1|k}&=A\hat{x}^t_{k|k}\\
+	\hat{x}^t_{k+1|k}&=A\hat{x}^t_{k|k}+Bu^t_k\label{eqn:KF_pred_x}\\
 	P_{k+1|k}&=AP_{k|k}A'+Q\\
 	K_{k+1}&=P_{k+1|k}C(CP_{k+1|k}C'+R)^{-1}\\
-	\hat{x}^t_{k+1|k+1}&=\hat{x}^t_{k+1|k}+\gamma_{k+1}K_{k+1}(y_{k+1}-C\hat{x}^t_{k+1|k})\\
-	P_{k+1|k+1}&=P_{k+1|k}-\gamma_{k+1}K_{k+1}CP_{k+1|k}
+	\hat{x}^t_{k+1|k+1}&=\hat{x}^t_{k+1|k}+\gamma_{k+1}K_{k+1}(y_{k+1}-C\hat{x}^t_{k+1|k})\label{eqn:KF_upd_x}\\
+	P_{k+1|k+1}&=P_{k+1|k}-\gamma_{k+1}K_{k+1}CP_{k+1|k},
 	\end{align}
 \end{subequations}
-where $\gamma_{k+1}$ takes a binary value ($1$ or $0$), corresponding to situation that a measurement is obtained or not obtained.
-Such Kalman filter provides a unifying a framework for handling different measurement results. However, $\gamma_{k+1}$ is a discontinuous function of the robot and target states, which is inconvenient for formulating an optimization problem. 
-Here we use a sigmoid function to approximate $\gamma_{k+1}$.
-To be specific, we assume that the sensor can always obtain a measurement when the target is inside its FOV and no measurement if outside of FOV. 
-Therefore, $\gamma_{k+1}=\mathds{1}_{x^t_{k+1}\in\mathcal{F}_{k+1}}$, which is an indicator function specifying whether the target is inside the sensor's FOV.
+where $\hat{x}^t_{k|k}$ and $P_{k|k}$ represent the estimated target position and covariance matrix. % denoting the estimation uncertainty. 
+We define $\gamma_{k}=\mathds{1}_{\left\lbrace x^t_{k}\in\mathcal{F}_{k}\right\rbrace}$ to be an indicator function that reflects whether a measurement is obtained ($\gamma_{k}=1$) or not ($\gamma_{k}=0$) at time $k$.
+Then the Kalman filter is able to handle the intermittent measurements caused by the limited sensing domain.
+For notational simplicity, we define $b_k=[\hat{x}^t_k,P_{k|k}]$ and let $b_{k+1}=g(b_k,u^r_k)$ represent the Kalman filter defined in \Cref{eqn:KF}.
+It should be noted that, $\gamma_k$ depends on the state of both the robot and target.
+Therefore, $b_{k+1}$ is a function of both $b_{k}$ and robot control input $u^r_k$.
+%To be specific, we assume that the sensor can always obtain a measurement when the target is inside its FOV and no measurement if outside of FOV. 
+%Therefore, $\gamma_{k+1}=\mathds{1}_{x^t_{k+1}\in\mathcal{F}_{k+1}}$, which is an indicator function specifying whether the target is inside the sensor's FOV.
 
-A typical camera sensor FOV can be modeled as a sector (\cref{fig:FOV}).
-We use a sigmoid function to approximate its boundary:
-\begin{equation}
-\gamma_{k}\approx \frac{d(x^t_k,e_i)}{1+d(x^t_k,e_i)^2},
-\end{equation}
-where $d$ 
-Since the sigmoid function is differentiable, it can be utilized in the MPC framework.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.28\textwidth]{figures/sensorFOV}
+	\caption{Illustration of sensor's sensing domain $\mathcal{F}_k$. The sensing range is $r$ and the sensing angle is $[\theta_1,\theta_2]$. $v$ represents the vector from the sensor origin to the target position.}
+	\label{fig:FOV}
+\end{figure}
 
-\subsection{Informative Path Planning}
-A model predictive control problem with planning horizon $N$ can be formulated as:
+
+\subsection{Path Planning for Target Search and Tracking}
+We formulate the path planning problem using the model predictive control framework. 
+MPC is a suitable method for this problem.
+This is because the target position constantly gets updated as new sensor measurement is obtained and MPC can utilize the updated target information to re-generate a path at each time instance. 
+The MPC-based path planner with planning horizon $N$ can be formulated as:
 \begin{subequations}
-	\begin{align*}
-	\min_{u_{1:N}}\; & J(b_{1:N+1})\\
-	\text{s.t. }\; & x^R_{k+1}=f(x^R_k,u_k),\\
-	& b_{k+1}=g(b_k,u_k),\\
-	& x^R_{k+1}\in\mathcal{X}, \, u_{k+1}\in\mathcal{U},\\
+	\begin{align}
+	\min_{u_{1:N}}\; & J(b_{1:N+1},u_{1:N})\\
+	\text{s.t. }\; & x^r_{k+1}=f(x^r_k,u^r_k),\\
+	& b_{k+1}=g(b_k,u^r_k),\\
+	& x^r_{k+1}\in\mathcal{X}, \, u^r_{k+1}\in\mathcal{U},\\
 	& k=1,\dots,N,
-	\end{align*}
+	\end{align}\label{eqn:MPC}
 \end{subequations}
-where $\mathcal{X}$ and $\mathcal{U}$ are feasible set of robot state and control input, respectively.
+where $J$ is the objective function; $\mathcal{X}$ and $\mathcal{U}$ represent the feasible sets of robot state and control input, consisting of constraints on robot speed, steering rate and linear acceleration.
 
-To drive the robot to configurations in which the sensor can obtain information about the target, we want to maximize the entropy reduction, $H(\hat{x}^t_1)-H(\hat{x}^t_{k+1})$, for the planning horizon. Since $H(\hat{x}^t_1)$ depends only on the target estimation at the current time and is not affected by control input of the robot, it is equivalently to minimizing $H(\hat{x}^t_{k+1})$.
-For a multivariate normal distribution, such entropy is equivalent to $\frac{k}{2} (1 + \ln (2\pi)) + \frac{1}{2} \ln |P_{N+1|N+1} |$.
-Minimizing a determinant can be troublesome for optimization problem. Utilizing the relation that
-$det(A)^{\frac{1}{n}}\leq \frac{1}{n}tr(A)$ for a positive definite matrix $A$, we define the objective function of the MPC problem as:
-\begin{align*}
-J(b_{1:N+1})&=tr(P_{N+1|N+1}).
-\end{align*}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.28\textwidth]{figures/FOV_function}
+	\caption{Illustration of the bell-shaped function for approximating $\gamma_k$. In this example, parameters take the following values: $\tilde{\theta}_k=0,\:\theta_0=\pi/3,\:\alpha_1=1,\:\alpha_2=10$.}
+	\label{fig:3d-gamma}
+\end{figure}
 
+Information-theoretic measures have been proven to be effective metrics for path planning in information gathering \cite{bourgault2006optimal,ryan2010particle,hoffmann2010mobile,atanasov2015distributed}. 
+To drive the robot to configurations in which the sensor can effectively obtain target information, we choose the cumulative entropy and the distance between the robot and predicted target position as the objective function.
+%, i.e.
+%\begin{equation}
+%J(b_{1:N+1},u_{1:N})=\sum\limits_{i=1}^{N} w_1H(b_{i+1})+w_2\|x^t_{i+1}-x^r_{i+1}\|^2
+%\end{equation}
+%, $H(\hat{x}^t_1)-H(\hat{x}^t_{k+1})$, for the planning horizon. 
+%Since $H(\hat{x}^t_1)$ depends only on the target estimation at the current time and is not affected by control input of the robot, it is equivalently to minimizing $H(\hat{x}^t_{k+1})$.
+Because the linear Gaussian noise assumption in the target model and measurement model, target uncertainty follows a Gaussian distribution. 
+%According to the entropy of a multivariate normal distribution \cite{information theory book}, 
+Therefore, the entropy at $k$ is $H(b_{k}) = \frac{k}{2} (1 + \ln (2\pi)) + \frac{1}{2} \ln |P_{k|k}|$ (\cite{mackay2003information}).
+Minimizing a determinant can incur large computation burden for an optimization problem. 
+Therefore, we utilize the relation
+$|A|^{\frac{1}{n}}\leq \frac{1}{n}tr(A)$ for a positive definite matrix $A$ and define the objective function of the MPC problem as:
+\begin{equation*}
+J(b_{1:N+1})=\sum\limits_{i=1}^{N} w_1tr(P_{i+1|i+1})+w_2\|x^t_{i+1}-x^r_{i+1}\|^2,
+\end{equation*}
+where $tr(P_{k|k})$ is the trace of the matrix $P_{k|k}$.
+%In the predictive horizon, it is undetermined whether the measurement of target can be obtained or not.
+%Therefore, sensor FOV needs to be defined and $\gamma_K$ needs to be represented in the form that can be utilized by the MPC problem. 
 
+The binary variable $\gamma_{k}$ defined in \Cref{subseq:KF with FOV} is a discontinuous function of the robot and target states, which is inconvenient for an optimization problem that usually requires differentiability of functions in it.
+Therefore we approximate $\gamma_{k+1}$ as a product of two bell-shaped differentiable functions, corresponding to bounds on sensing range and angle:
+%take the similar approach as in \cite{patil2014gaussian} to use the sigmoid function for approximating $\gamma_{k+1}$.
+%A typical camera sensor FOV can be modeled as a sector (\cref{fig:FOV}).
+%We use a sigmoid function to approximate its boundary:
+\begin{equation}\label{eqn:gamma}
+\begin{split}
+\gamma_{k}&\approx \frac{1}{1+\alpha_1\|[x^t_{1,k},x^t_{2,k}]-[x^r_{1,k},x^r_{2,k}]\|_2^2}\times\\
+&\quad\frac{1}{1+\exp{\left\lbrace-\alpha_2(\cos(\theta^r_k-\tilde{\theta}_k)-\cos(\theta_0))\right\rbrace}},
+\end{split}
+\end{equation}
+where $\hat{\theta}_k=\angle([x^t_{1,k},x^t_{2,k}]-[x^r_{1,k},x^r_{2,k}])$ is the direction angle from the sensor position to target position; $\theta_0=\frac{\theta_2-\theta_1}{2}$ is half of the sensing angle; $\alpha_1$ and $\alpha_2$ are tunning parameters that controls the shape of the function. 
+\Cref{eqn:gamma} can be interpreted as follows:
+when the robot is close to the target, it is more likely that the target can be detected; besides, the closer the target direction aligns with the center direction of the sensor, the higher possibility that the target will get detected.
+\Cref{fig:3d-gamma} shows the shape of $\gamma_k$.
 
-\section{Simulation}
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test1_1}
+		%		\caption{}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test1_2}
+		%		\caption{}
+	\end{subfigure}
+	\par\bigskip
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test1_3}
+		%		\caption{}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test1_4}
+		%		\caption{}
+	\end{subfigure}
+	\caption{Intermediate steps of search and tracking. Green dashed sector represents the sensor's sensing domain and the blue dashed circle show the uncertainty of the target position (based on diagonal elements of $\sqrt{P_{k|k}}$). Red and blue lines corresponds to the trajectories of the robot and target.}
+	\label{fig:test1}
+\end{figure}
 
-\subsection{Static Target}
+\subsection{Sequential Planning}
+%Due to the coupling between robot state and target position in \Cref{eqn:gamma}, solving the nonlinear MPC problem is time consuming. 
+Directly solving the MPC problem in \Cref{eqn:MPC} is time consuming, mainly due to the coupling of robot and target state in $\gamma_k$, as defined in \Cref{eqn:gamma}.
+To reduce the computation burden for real-time applications, we make several relaxation to the original MPC problem.
+To be specific, in the predictive horizon, the target position is assumed to be propagated without noise from the estimated target position at the beginning of the prediction. This is equivalent to predicting target position using \Cref{eqn:KF_pred_x} but without updating step (\Cref{eqn:KF_upd_x}). 
+This is a reasonable assumption for MPC framework. 
+In fact, because of the stochasticity of target motion and sensor measurement process, it is difficult to accurately predict the evolution of the environment state for a long horizon. 
+The advantage of MPC is that it will takes into account the newly received information about the target and then utilize it to update the path at each time step. 
+This can compensate for inaccuracy caused by using a simple model to predict target position in the predictive horizon.
 
-\subsection{Moving Target}
+We also devise a two-step process to further reduce the computation burden for the MPC problem. 
+In the first step, we only consider the limited sensing range of the sensor, assuming a full sensing angle. 
+In this step, $\gamma_k$ is equivalent to the first multiplier in \Cref{eqn:gamma}.
+With this simplified $\gamma_k$, the MPC computes a reference trajectory of the robot.
+Utilizing the generated reference trajectory, the heading angle of sensor $\hat{\theta}_k$ at each predicted time can be computed. 
+In the second step, MPC is solved again but with the full expression of $\gamma_k$, in which $\hat{\theta}_k$ takes the value from the first step.
+The benefits of conducting this sequential two-step planning process lies in that computing the reference trajectory in the first step generates the reference heading angle of the robot, which reduces the computation burden when later a full version of MPC is solved.
 
+\section{Simulation}\label{sec:sim}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test2}
+%		\caption{}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test3}
+%		\caption{}
+	\end{subfigure}
+		\par\bigskip
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{figures/test4}
+%		\caption{}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.24\textwidth}
+		\includegraphics[width=\textwidth]{figures/trace_comparison}
+%		\caption{}
+	\end{subfigure}
+	\caption{First three figures show the final steps of search and tracking mission in three different scenarios. The last figure shows the trace of $P_{k|k}$ at each time step.}
+	\label{fig:other test}
+\end{figure}
+
+%\begin{tabular}{|c|c|c|c|c|c|}
+%	\hline
+%	$a (m/s^2)$ & $[-3,1]$ & $v(m/s)$ & $[0,3]$ & $w(rad/s)$ & $[-\frac{\pi}{4},\frac{\pi}{4}]$\\
+%	\hline
+%\end{tabular}
+
+We have tested the algorithm on several scenarios. 
+Each scenario consists of a mobile robot equipped with a camera and a moving target in a $50m\times 50m$ field.
+The initial position of the target is different in each scenario while the robot starts from the same position.
+Specifications for simulation is described in Appendix.
+%Parameters of simulation are shown in \Cref{tab:sim_param}.\todohere{decide later whether needs to add table here}
+
+%In all scenarios, the robot successfully finds and tracks the target.
+\Cref{fig:test1} shows the intermediate search and tracking steps of one test scenario.
+At the beginning, the robot starts from the lower left corner and the target is at the upper right corner.
+The estimated target position is initialized as the target's true position but with a large uncertainty.
+The robot then moves towards the target by using the control input computed from the MPC problem (\Cref{eqn:MPC}).
+At step $21$, the robot successfully detects the target and thus the uncertainty significantly shrinks.
+The robot then keeps tracking the target and the uncertainty is further reduced, as the figure of Step $50$ shows.
+
+Robot and target trajectories in some other test scenarios are shown in \Cref{fig:other test}.
+The lower right figure in \Cref{fig:other test} shows the trace of the covariance matrix of the target position.
+As expected, uncertainty keeps increasing at the beginning since the target is not found and thus no uncertainty reduction can be conducted by Kalman filter.
+Once the target is within the sensor's sensing domain, uncertainty drops significantly since Kalman filter is able to use measurements to improve the estimation of the target position.
+The robot then keeps measuring the target position and the uncertainty continues being reduced.
+Fluctuation of the trace can also be observed in later part of the search and tracking.
+This is mainly due to the fact that the target moves in a stochastic manner and therefore there exists some cases that the target falls out of the sensing domain.
+However, the robot is able to adjust its sensor and keep the target in its sensing domain again.
+These figures shows that the robot successfully detects the target and then keeps tracking it afterwards in all cases using the presented approach.
 
 \section{CONCLUSION}\label{sec:conclu}
+In this work, we propose a model predictive control (MPC)-based path planning approach for a ground mobile robot to autonomously search and track a moving target.
+%Different from previous works that relies on numerical integration for evaluating the objective function, we developed a closed-form expression, which can greatly reduce the computation burden of solving MPC.
+We consider the effects of sensor's limited sensing domain in the predictive horizon by utilizing the modified Kalman filter for handling intermittent measurements.
+To deal with the discontinuity caused by limited sensing domain, we propose a bell-shaped function to approximate the sensing domain's boundary.
+A two-step sequential planning approach is then developed for solving the MPC problem.
+Simulation results have demonstrated the effectiveness of the proposed path planning algorithm in searching and tracking the target.
+
+Though this work achieves good results, we realize some limitations that should be addressed in our future work. 
+First, the developed approach relies on the assumption of Gaussian distribution of target uncertainty and is therefore restricted to linear target model and sensor measurement model. 
+For general nonlinear dynamic systems, this method may not be directly applied.
+\cite{patil2014gaussian} has used Extended Kalman filter to deal with this issue.
+However, the Gaussian distribution assumption in that work also limits its generalizability.
+Second, when measurement arrival rate is below a certain threshold, as \cite{sinopoli2004kalman} indicated, Kalman filter is not able to converge. 
+Some other general nonlinear filters, such as Bayes filter and Particle filter, can therefore be used to improve the robustness of the filtering results.
+Lastly, when there exist obstacles in the environment, occlusion may happen that affects the sensor measurement process. 
+Taking into account the occlusion in the planning process is our ongoing work.
+
+\appendix
+\section*{Parameters for Simulation}\label{app:param}
+\begin{itemize}
+	\item Feasible sets: $\mathcal{X}=\left\lbrace x^r_k|v^r_k\in[0,3]\right\rbrace$, $\mathcal{U}=\left\lbrace u^r_k|a^r_k\in[-3,1],\: w^r_k\in[-\frac{pi}{4},\frac{pi}{4}]\right\rbrace$.
+	\item Sensor sensing domain: $r=5,\: \theta_0=60\degree$.
+	\item $\Delta t = 0.5$.
+	\item System matrices: $A,C,R=\begin{bmatrix}
+	1& 0\\0 &1
+	\end{bmatrix},\:  Q = \begin{bmatrix}
+	0.01& 0\\0 &0.01
+	\end{bmatrix}$.	
+\end{itemize}
 
 
-\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+\addtolength{\textheight}{0cm}%{-12cm}   % This command serves to balance the column lengths
                                   % on the last page of the document manually. It shortens
                                   % the textheight of the last page by a suitable amount.
                                   % This command does not take effect until the next page

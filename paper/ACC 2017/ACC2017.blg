@@ -8,68 +8,49 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: references.bib
-Warning--I didn't find a database entry for "chamberland2007wireless"
-Warning--I didn't find a database entry for "wang2007wlan"
-Warning--I didn't find a database entry for "cao2008development"
-Warning--I didn't find a database entry for "2005distributed"
-Warning--I didn't find a database entry for "madhavan2004distributed"
-Warning--I didn't find a database entry for "gu2007distributed"
-Warning--I didn't find a database entry for "bandyopadhyay2014distributed"
-Warning--I didn't find a database entry for "julian2012distributed"
-Warning--I didn't find a database entry for "olfati2007consensus"
-Warning--I didn't find a database entry for "zuo2006bandwidth"
-Warning--I didn't find a database entry for "hlinka2013distributed"
-Warning--I didn't find a database entry for "ren2005consensus"
-Warning--I didn't find a database entry for "jadbabaie2003coordination"
-Warning--I didn't find a database entry for "hlinka2012likelihood"
-Warning--I didn't find a database entry for "beaudeau2012target"
-Warning--I didn't find a database entry for "coates2004distributed"
-Warning--I didn't find a database entry for "ribeiro2006bandwidth"
-Warning--I didn't find a database entry for "djuric2011non"
 -- IEEEtran.bst version 1.13 (2008/09/30) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 1 entry,
+You've used 25 entries,
             4039 wiz_defined-function locations,
-            835 strings with 7879 characters,
-and the built_in function-call counts, 695 in all, are:
-= -- 44
-> -- 13
-< -- 1
-+ -- 6
-- -- 3
-* -- 46
-:= -- 119
-add.period$ -- 3
-call.type$ -- 1
-change.case$ -- 1
-chr.to.int$ -- 0
-cite$ -- 1
-duplicate$ -- 51
-empty$ -- 65
-format.name$ -- 4
-if$ -- 143
+            959 strings with 12550 characters,
+and the built_in function-call counts, 22788 in all, are:
+= -- 1863
+> -- 528
+< -- 230
++ -- 300
+- -- 80
+* -- 1082
+:= -- 3189
+add.period$ -- 61
+call.type$ -- 25
+change.case$ -- 24
+chr.to.int$ -- 558
+cite$ -- 25
+duplicate$ -- 1573
+empty$ -- 1812
+format.name$ -- 102
+if$ -- 5358
 int.to.chr$ -- 0
-int.to.str$ -- 1
-missing$ -- 10
-newline$ -- 26
-num.names$ -- 1
-pop$ -- 27
+int.to.str$ -- 25
+missing$ -- 249
+newline$ -- 98
+num.names$ -- 25
+pop$ -- 571
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 47
+skip$ -- 1788
 stack$ -- 0
-substring$ -- 5
-swap$ -- 32
-text.length$ -- 1
+substring$ -- 1370
+swap$ -- 1375
+text.length$ -- 44
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 1
+type$ -- 25
 warning$ -- 0
-while$ -- 2
-width$ -- 2
-write$ -- 31
-(There were 18 warnings)
+while$ -- 107
+width$ -- 27
+write$ -- 266

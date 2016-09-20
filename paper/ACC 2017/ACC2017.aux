@@ -1,38 +1,104 @@
 \relax 
-\citation{chamberland2007wireless}
-\citation{wang2007wlan}
-\citation{cao2008development}
-\citation{2005distributed}
-\citation{madhavan2004distributed}
-\citation{gu2007distributed}
-\citation{bandyopadhyay2014distributed,julian2012distributed}
-\citation{olfati2007consensus}
-\citation{zuo2006bandwidth}
-\citation{hlinka2013distributed}
-\citation{sheng2005distributed}
-\citation{olfati2007consensus,ren2005consensus,jadbabaie2003coordination}
-\citation{hlinka2012likelihood}
-\citation{bandyopadhyay2014distributed}
-\citation{julian2012distributed,beaudeau2012target}
+\citation{lau2006probabilistic}
+\citation{furukawa2006recursive}
+\citation{chung2009probabilistic}
+\citation{papanikolopoulos1993visual,lee2000stable,hausman2015cooperative}
+\citation{stone1989or,bourgault2004process}
+\citation{bourgault2006optimal}
+\citation{schwager2011multi}
+\citation{hoffmann2010mobile,julian2012distributed}
+\citation{tisdale2009autonomous}
+\citation{ryan2010particle}
+\citation{lanillos2012minimum}
+\citation{hollinger2014sampling}
+\citation{levine2010information}
+\citation{lavalle2001randomized}
+\citation{bonnie2012modelling,liu2015model}
+\citation{patil2014gaussian}
 \@writefile{toc}{\contentsline {section}{\numberline {I}INTRODUCTION}{1}}
-\citation{coates2004distributed}
-\citation{ribeiro2006bandwidth}
-\citation{djuric2011non}
+\citation{sinopoli2004kalman}
+\citation{yu2016dynamical}
 \@writefile{toc}{\contentsline {section}{\numberline {II}PROBLEM FORMULATION}{2}}
 \newlabel{sec:prob_form}{{II}{2}}
 \newlabel{sec:prob_form@cref}{{[section][2][]II}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {II-A}Robot and Target Motion Model}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Scenario of the target search and tracking mission. Initial positions of the robot and target are represented by translucent red wheeled robot and blue toy car. Their corresponding trajectories are shown as the red and blue dashed lines. The blue dashed circles corresponds to the uncertainty of target position. The green sector shows the sensor's limited sensing domain.\relax }}{2}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:scenario}{{1}{2}}
+\newlabel{fig:scenario@cref}{{[figure][1][]1}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {II-B}Sensor Model}{2}}
-\@writefile{toc}{\contentsline {section}{\numberline {III}MPC-based Informative Path Planning}{2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {III-A}kalman Filter with Limited FOV}{2}}
+\newlabel{eqn:sensor}{{3}{2}}
+\newlabel{eqn:sensor@cref}{{[equation][3][]3}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {II-C}Modeling Sensing Domain}{2}}
+\citation{sinopoli2004kalman}
+\citation{bourgault2006optimal,ryan2010particle,hoffmann2010mobile,atanasov2015distributed}
+\citation{mackay2003information}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Illustration of sensor's sensing domain $\mathcal  {F}_k$. The sensing range is $r$ and the sensing angle is $[\theta _1,\theta _2]$. $v$ represents the vector from the sensor origin to the target position.\relax }}{3}}
+\newlabel{fig:FOV}{{2}{3}}
+\newlabel{fig:FOV@cref}{{[figure][2][]2}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}MPC-based Path Planning}{3}}
+\newlabel{sec:method}{{III}{3}}
+\newlabel{sec:method@cref}{{[section][3][]III}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-A}Kalman filter with Limited Sensing Domain}{3}}
+\newlabel{subseq:KF with FOV}{{III-A}{3}}
+\newlabel{subseq:KF with FOV@cref}{{[subsection][1][3]III-A}{3}}
+\newlabel{eqn:KF}{{4}{3}}
+\newlabel{eqn:KF@cref}{{[subequation][4][]4}{3}}
+\newlabel{eqn:KF_pred_x}{{4a}{3}}
+\newlabel{eqn:KF_pred_x@cref}{{[subequation][1][4]4a}{3}}
+\newlabel{eqn:KF_upd_x}{{4d}{3}}
+\newlabel{eqn:KF_upd_x@cref}{{[subequation][4][4]4d}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-B}Path Planning for Target Search and Tracking}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Illustration of the bell-shaped function for approximating $\gamma _k$. In this example, parameters take the following values: $\mathaccentV {tilde}07E{\theta }_k=0,\tmspace  +\medmuskip {.2222em}\theta _0=\pi /3,\tmspace  +\medmuskip {.2222em}\alpha _1=1,\tmspace  +\medmuskip {.2222em}\alpha _2=10$.\relax }}{3}}
+\newlabel{fig:3d-gamma}{{3}{3}}
+\newlabel{fig:3d-gamma@cref}{{[figure][3][]3}{3}}
+\newlabel{eqn:MPC}{{5}{3}}
+\newlabel{eqn:MPC@cref}{{[subequation][5][]5}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Intermediate steps of search and tracking. Green dashed sector represents the sensor's sensing domain and the blue dashed circle show the uncertainty of the target position (based on diagonal elements of $\sqrt  {P_{k|k}}$). Red and blue lines corresponds to the trajectories of the robot and target.\relax }}{4}}
+\newlabel{fig:test1}{{4}{4}}
+\newlabel{fig:test1@cref}{{[figure][4][]4}{4}}
+\newlabel{eqn:gamma}{{6}{4}}
+\newlabel{eqn:gamma@cref}{{[equation][6][]6}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {III-C}Sequential Planning}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces First three figures show the final steps of search and tracking mission in three different scenarios. The last figure shows the trace of $P_{k|k}$ at each time step.\relax }}{4}}
+\newlabel{fig:other test}{{5}{4}}
+\newlabel{fig:other test@cref}{{[figure][5][]5}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Simulation}{4}}
+\newlabel{sec:sim}{{IV}{4}}
+\newlabel{sec:sim@cref}{{[section][4][]IV}{4}}
+\citation{patil2014gaussian}
+\citation{sinopoli2004kalman}
 \bibstyle{IEEEtran}
 \bibdata{references}
-\bibcite{sheng2005distributed}{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {III-B}Informative Path Planning}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}Simulation}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {IV-A}Static Target}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {IV-B}Moving Target}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}CONCLUSION}{3}}
-\newlabel{sec:conclu}{{V}{3}}
-\newlabel{sec:conclu@cref}{{[section][5][]V}{3}}
-\@writefile{toc}{\contentsline {section}{References}{3}}
+\bibcite{lau2006probabilistic}{1}
+\bibcite{furukawa2006recursive}{2}
+\bibcite{chung2009probabilistic}{3}
+\bibcite{papanikolopoulos1993visual}{4}
+\bibcite{lee2000stable}{5}
+\bibcite{hausman2015cooperative}{6}
+\bibcite{stone1989or}{7}
+\bibcite{bourgault2004process}{8}
+\bibcite{bourgault2006optimal}{9}
+\bibcite{schwager2011multi}{10}
+\bibcite{hoffmann2010mobile}{11}
+\bibcite{julian2012distributed}{12}
+\bibcite{tisdale2009autonomous}{13}
+\bibcite{ryan2010particle}{14}
+\bibcite{lanillos2012minimum}{15}
+\bibcite{hollinger2014sampling}{16}
+\bibcite{levine2010information}{17}
+\bibcite{lavalle2001randomized}{18}
+\@writefile{toc}{\contentsline {section}{\numberline {V}CONCLUSION}{5}}
+\newlabel{sec:conclu}{{V}{5}}
+\newlabel{sec:conclu@cref}{{[section][5][]V}{5}}
+\@writefile{toc}{\contentsline {section}{Appendix}{5}}
+\newlabel{app:param}{{}{5}}
+\newlabel{app:param@cref}{{[section][1][]}{5}}
+\@writefile{toc}{\contentsline {section}{References}{5}}
+\bibcite{bonnie2012modelling}{19}
+\bibcite{liu2015model}{20}
+\bibcite{patil2014gaussian}{21}
+\bibcite{sinopoli2004kalman}{22}
+\bibcite{atanasov2015distributed}{23}
+\bibcite{mackay2003information}{24}
+\bibcite{yu2016dynamical}{25}
