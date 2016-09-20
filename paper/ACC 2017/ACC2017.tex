@@ -197,6 +197,7 @@ Simulation results are presented in \cref{sec:sim}.
 %Let $\mathit{S}=\left\lbrace x|x\in \mathbb{R}^2\right\rbrace $ denote
 We consider a two-dimensional planar space, as shown in \Cref{fig:scenario}, that contains a moving target (blue toy car) and an autonomous mobile robot (red wheeled robot).
 The robot is equipped with a sensor that has limited sensing domain to measure the target position.
+We let the sensor share the same state as the robot (i.e. position and heading angle).
 The target position is unknown a priori and the robot needs to autonomously search for the target.
 Once having detected the target, the robot will need to continue tracking it by keeping the target in its sensor's sensing domain.
 As shown in the figure, the target position comes with large initial uncertainty due to the lack of prior information.
@@ -257,32 +258,43 @@ The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]\in\mathbb{R}^2$ represents its pos
 	\label{fig:scenario}
 \end{figure}
 
-\subsection{Sensor Model}
-%We consider a linear measurement model for the camera sensor as defined in \Cref{eqn:sensor}.
-We let the sensor have the same state as the robot (i.e. position and heading angle).
-Due to the fact that the target position is unknown a-priori and thus the target can be outside of the sensing domain, the sensor model needs to account for intermittent measurements of the target.
-We adopt the measurement model from Sinopoli et al. \cite{sinopoli2004kalman}, which considers
-both the case that the target is within sensing domain (a measurement is thus obtained) and the case that the target is outside of sensing domain (therefore the measurement is missing):
-%When the target is within the FOV, a linear measurement model is used:
-\begin{equation}\label{eqn:sensor}
-y_{k}=Cx^t_k+v_k,\;v_k\sim
-\begin{cases}
-\mathcal{N}(0,R) & \text{if } x^t_k\in\mathcal{F}_k\\
-\mathcal{N}(0,\sigma^2 I) & \text{if } x^t_k\notin\mathcal{F}_k
-\end{cases},
-\end{equation}
-where $C\in\mathbb{R}^{2\times 2}$ is the measurement matrix and $v_k\in\mathbb{R}^2$ is a zero-mean Gaussian noise. 
-Different from the measurement noise in traditional Kalman filter, the distribution of $v_k$ now depends on whether the target is inside or outside of the sensor's sensing domain $\mathcal{F}_k$ at time $k$: when the target is within the sensing domain, a finite covariance $R\succeq 0$ is used; once the target is outside of sensing domain, the missing measurement can be equivalently modeled as receiving a measurement sampled from a white noise of infinite covariance, i.e. $\sigma\rightarrow\infty$. 
-This formulation will facilitate the development of a unified objective function in MPC, which is described in the following section.
-
 \subsection{Modeling Sensing Domain}
 Common sensors, such as cameras and radars, have limited sensing domain that are bounded in both sensing range (distance) and angle (angle of view) \cite{yu2016dynamical}.
 We approximate the sensing domain as a sector (\Cref{fig:FOV}), which can be represented as $\mathcal{F}_k=\left\lbrace v=[x_1,x_2]\in\mathbb{R}^2|\:\|v\|_2\leq r, \angle v\in[\theta_1,\theta_2]\right\rbrace$.
 It should be noted that, though we use a sector sensing domain model in this work, the presented path planning method can also apply to other geometries of sensor's sensing domain, such as the lobe or cone shape.
 
+\subsection{Sensor Measurement Model}
+%We consider a linear measurement model for the camera sensor as defined in \Cref{eqn:sensor}.
+We assume a linear measurement model.
+Since the target position is unknown a-priori, the target can be outside of the sensing domain and results in missing measurement.
+%This problem prevents the use of traditional Kalman filter.
+%the sensor model needs to account for intermittent measurements of the target.
+To tackle this problem, we adopt the measurement model from Sinopoli et al. \cite{sinopoli2004kalman}, which provides a unified model for handling intermittent measurements:
+%, which considers both the case that the target is within sensing domain (a measurement is thus obtained) and the case that the target is outside of sensing domain (therefore the measurement is missing):
+\begin{equation}\label{eqn:sensor}
+y_{k}=Cx^t_k+v_k,\;v_k\sim
+\begin{cases}
+\mathcal{N}(0,R) & \text{if } \gamma_k=1\\%x^t_k\in\mathcal{F}_k\\
+\mathcal{N}(0,\sigma^2 I) & \text{if } \gamma_k=0\\% x^t_k\notin\mathcal{F}_k
+\end{cases},
+\end{equation}
+where $C\in\mathbb{R}^{2\times 2}$ is the measurement matrix and $v_k\in\mathbb{R}^2$ is a zero-mean Gaussian noise. 
+$\gamma_k$ is a binary random variable denoting whether a measurement is received ($\gamma_k=1$) or not ($\gamma_k=0$) at time step $k$.
+Different from the measurement noise in traditional Kalman filter, covariance of $v_k$ now depends on whether a measurement is obtained. 
+In practice, the receiving of a measurement corresponds to a finite covariance $R\succeq 0$ and the absence of measurement corresponds to the limiting case of $\sigma\rightarrow\infty$.
+%whether the target is inside or outside of the sensor's sensing domain $\mathcal{F}_k$ at time $k$: when the target is within the sensing domain, a finite covariance $R\succeq 0$ is used; once the target is outside of sensing domain, the missing measurement can be equivalently modeled as receiving a measurement sampled from a white noise of infinite covariance, i.e. $\sigma\rightarrow\infty$. 
+
+To adapt \Cref{eqn:sensor} for handling limited sensing domain, we define 
+\begin{equation}
+\label{eqn:gamma_indicator}
+\gamma_{k}=\mathds{1}_{\left\lbrace x^t_{k}\in\mathcal{F}_{k}\right\rbrace}
+\end{equation}
+to be an indicator function that reflects whether the target is within sensing domain (a measurement is thus received) and the case that the target is outside of sensing domain (therefore the measurement is missing).
+This formulation will facilitate the development of a unified MPC that explicitly handles intermittent measurements caused by limited sensing domain, which is to be described in following sections.
+
 \section{MPC-based Path Planning}\label{sec:method}
-\subsection{Kalman filter with Limited Sensing Domain}\label{subseq:KF with FOV}
-Since limited sensing domain can cause intermittent measurements, we modify the discrete-time Kalman filter from \cite{sinopoli2004kalman} to consider this effect, which is defined as
+\subsection{Kalman Filter with Limited Sensing Domain}\label{subseq:KF with FOV}
+Since limited sensing domain can cause intermittent measurements, we utilize the discrete-time Kalman filter from \cite{sinopoli2004kalman} to consider this effect, which is defined as
 \begin{subequations}\label{eqn:KF}
 	\begin{align}
 	\hat{x}^t_{k+1|k}&=A\hat{x}^t_{k|k}+Bu^t_k\label{eqn:KF_pred_x}\\
@@ -293,11 +305,11 @@ Since limited sensing domain can cause intermittent measurements, we modify the 
 	\end{align}
 \end{subequations}
 where $\hat{x}^t_{k|k}$ and $P_{k|k}$ represent the estimated target position and covariance matrix. % denoting the estimation uncertainty. 
-We define $\gamma_{k}=\mathds{1}_{\left\lbrace x^t_{k}\in\mathcal{F}_{k}\right\rbrace}$ to be an indicator function that reflects whether a measurement is obtained ($\gamma_{k}=1$) or not ($\gamma_{k}=0$) at time $k$.
-Then the Kalman filter is able to handle the intermittent measurements caused by the limited sensing domain.
+%We define $\gamma_{k}=\mathds{1}_{\left\lbrace x^t_{k}\in\mathcal{F}_{k}\right\rbrace}$ to be an indicator function that reflects whether a measurement is obtained ($\gamma_{k}=1$) or not ($\gamma_{k}=0$) at time $k$.
+%Then the Kalman filter is able to handle the intermittent measurements caused by the limited sensing domain.
 For notational simplicity, we define $b_k=[\hat{x}^t_k,P_{k|k}]$ and let $b_{k+1}=g(b_k,u^r_k)$ represent the Kalman filter defined in \Cref{eqn:KF}.
-It should be noted that, $\gamma_k$ depends on the state of both the robot and target.
-Therefore, $b_{k+1}$ is a function of both $b_{k}$ and robot control input $u^r_k$.
+Note that $\hat{x}^t_{k+1|k+1}$ and $P_{k+1|k+1}$ are a function of $\gamma_{k+1}$ now and thus depend on the state of both the robot and target. 
+%and therefore $b_{k+1}$ is a function of both $b_{k}$ and robot control input $u^r_k$.
 %To be specific, we assume that the sensor can always obtain a measurement when the target is inside its FOV and no measurement if outside of FOV. 
 %Therefore, $\gamma_{k+1}=\mathds{1}_{x^t_{k+1}\in\mathcal{F}_{k+1}}$, which is an indicator function specifying whether the target is inside the sensor's FOV.
 
@@ -353,8 +365,8 @@ where $tr(P_{k|k})$ is the trace of the matrix $P_{k|k}$.
 %In the predictive horizon, it is undetermined whether the measurement of target can be obtained or not.
 %Therefore, sensor FOV needs to be defined and $\gamma_K$ needs to be represented in the form that can be utilized by the MPC problem. 
 
-The binary variable $\gamma_{k}$ defined in \Cref{subseq:KF with FOV} is a discontinuous function of the robot and target states, which is inconvenient for an optimization problem that usually requires differentiability of functions in it.
-Therefore we approximate $\gamma_{k+1}$ as a product of two bell-shaped differentiable functions, corresponding to bounds on sensing range and angle:
+The binary variable $\gamma_{k}$ (\Cref{eqn:gamma_indicator}) is a discontinuous function of the robot and target states, which is inconvenient for an optimization problem that usually requires differentiability of functions in it.
+Therefore we approximate $\gamma_{k}$ as a product of two bell-shaped differentiable functions, corresponding to bounds on sensing range and angle:
 %take the similar approach as in \cite{patil2014gaussian} to use the sigmoid function for approximating $\gamma_{k+1}$.
 %A typical camera sensor FOV can be modeled as a sector (\cref{fig:FOV}).
 %We use a sigmoid function to approximate its boundary:
@@ -364,7 +376,7 @@ Therefore we approximate $\gamma_{k+1}$ as a product of two bell-shaped differen
 &\quad\frac{1}{1+\exp{\left\lbrace-\alpha_2(\cos(\theta^r_k-\tilde{\theta}_k)-\cos(\theta_0))\right\rbrace}},
 \end{split}
 \end{equation}
-where $\hat{\theta}_k=\angle([x^t_{1,k},x^t_{2,k}]-[x^r_{1,k},x^r_{2,k}])$ is the direction angle from the sensor position to target position; $\theta_0=\frac{\theta_2-\theta_1}{2}$ is half of the sensing angle; $\alpha_1$ and $\alpha_2$ are tunning parameters that controls the shape of the function. 
+where $\tilde{\theta}_k=\angle([x^t_{1,k},x^t_{2,k}]-[x^r_{1,k},x^r_{2,k}])$ is the direction angle from the sensor position to target position; $\theta_0=\frac{\theta_2-\theta_1}{2}$ is half of the sensing angle; $\alpha_1$ and $\alpha_2$ are tunning parameters that controls the shape of the function. 
 \Cref{eqn:gamma} can be interpreted as follows:
 when the robot is close to the target, it is more likely that the target can be detected; besides, the closer the target direction aligns with the center direction of the sensor, the higher possibility that the target will get detected.
 \Cref{fig:3d-gamma} shows the shape of $\gamma_k$.
