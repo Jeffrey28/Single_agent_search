@@ -8,14 +8,14 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    style="font-style:normal;font-weight:normal;font-size:12px;font-family:Dialog;color-interpolation:auto;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto"
-   width="282.22223mm"
-   height="246.94444mm"
+   width="262.10962mm"
+   height="242.07947mm"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="trace_comparison.svg">
+   sodipodi:docname="trace_comparison_offset.svg">
   <metadata
-     id="metadata255">
+     id="metadata245">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -37,11 +37,11 @@
      inkscape:pageshadow="2"
      inkscape:window-width="1536"
      inkscape:window-height="803"
-     id="namedview253"
+     id="namedview243"
      showgrid="false"
      inkscape:zoom="0.7628672"
-     inkscape:cx="671.97051"
-     inkscape:cy="476.36705"
+     inkscape:cx="357.65456"
+     inkscape:cy="477.04324"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -276,7 +276,8 @@
   </defs>
   <g
      id="g99"
-     style="color-interpolation:linearRGB;fill:#262626;stroke:#262626;stroke-width:0.83329999;stroke-linejoin:round;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision">
+     style="color-interpolation:linearRGB;fill:#262626;stroke:#262626;stroke-width:0.83329999;stroke-linejoin:round;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
+     transform="translate(-12.1356,-18.845856)">
     <line
        id="line101"
        y1="729"
@@ -365,7 +366,7 @@
   <g
      id="g125"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(282.9592,742.3333)">
+     transform="translate(270.8236,723.48744)">
     <text
        id="text127"
        style="stroke:none"
@@ -376,7 +377,7 @@
   <g
      id="g129"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(438.4694,742.3333)">
+     transform="translate(426.3338,723.48744)">
     <text
        id="text131"
        style="stroke:none"
@@ -387,7 +388,7 @@
   <g
      id="g133"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(593.9796,742.3333)">
+     transform="translate(581.844,723.48744)">
     <text
        id="text135"
        style="stroke:none"
@@ -398,7 +399,7 @@
   <g
      id="g137"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(749.4898,742.3333)">
+     transform="translate(737.3542,723.48744)">
     <text
        id="text139"
        style="stroke:none"
@@ -409,7 +410,7 @@
   <g
      id="g141"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(905,742.3333)">
+     transform="translate(892.8644,723.48744)">
     <text
        id="text143"
        style="stroke:none"
@@ -420,7 +421,7 @@
   <g
      id="g145"
      style="font-size:55px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(524.0004,806)">
+     transform="translate(511.8648,787.15414)">
     <text
        id="text147"
        style="stroke:none"
@@ -430,7 +431,8 @@
   </g>
   <g
      id="g149"
-     style="color-interpolation:linearRGB;fill:#262626;stroke:#262626;stroke-width:0.83329999;stroke-linejoin:round;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision">
+     style="color-interpolation:linearRGB;fill:#262626;stroke:#262626;stroke-width:0.83329999;stroke-linejoin:round;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
+     transform="translate(-12.1356,-18.845856)">
     <line
        id="line151"
        y1="729"
@@ -519,7 +521,7 @@
   <g
      id="g175"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(129.6667,729)">
+     transform="translate(117.5311,710.15414)">
     <text
        id="text177"
        style="stroke:none"
@@ -530,7 +532,7 @@
   <g
      id="g179"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(129.6667,574.9524)">
+     transform="translate(117.5311,556.10654)">
     <text
        id="text181"
        style="stroke:none"
@@ -541,7 +543,7 @@
   <g
      id="g183"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(129.6667,420.9048)">
+     transform="translate(117.5311,402.05894)">
     <text
        id="text185"
        style="stroke:none"
@@ -552,7 +554,7 @@
   <g
      id="g187"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(129.6667,266.8571)">
+     transform="translate(117.5311,248.01124)">
     <text
        id="text189"
        style="stroke:none"
@@ -563,7 +565,7 @@
   <g
      id="g191"
      style="font-size:50px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(129.6667,112.8095)">
+     transform="translate(117.5311,93.963644)">
     <text
        id="text193"
        style="stroke:none"
@@ -574,7 +576,7 @@
   <g
      id="g195"
      style="font-size:55px;font-family:SansSerif;color-interpolation:linearRGB;fill:#262626;stroke:#262626;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="matrix(0,-1,1,0,68.6667,405.4997)">
+     transform="matrix(0,-1,1,0,56.5311,386.65384)">
     <text
        id="text197"
        style="stroke:none"
@@ -585,7 +587,7 @@
   <g
      id="g199"
      style="font-weight:bold;font-size:55px;font-family:SansSerif;color-interpolation:linearRGB;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="matrix(0.8275346,0,0,0.8275346,458.99848,64.242003)">
+     transform="matrix(0.8275346,0,0,0.8275346,461.69339,49.103774)">
     <text
        id="text201"
        style="stroke:none"
@@ -595,128 +597,111 @@
   </g>
   <g
      id="g203"
-     style="color-interpolation:linearRGB;fill:#0072bd;stroke:#0072bd;stroke-width:3.33330011;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:12, 3, 6, 3;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision">
+     style="color-interpolation:linearRGB;fill:#0072bd;stroke:#0072bd;stroke-width:3.33330011;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:12, 3, 6, 3;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
+     transform="translate(-12.1356,-18.845856)">
     <path
        inkscape:connector-curvature="0"
        id="path205"
        style="fill:none;fill-rule:evenodd"
-       d="m 143,112.1933 15.551,-0.6162 15.551,-0.6161 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6161 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,572.392 15.551,26.5832 15.551,9.2923 15.5511,4.6609 15.551,2.757 15.551,1.792 15.551,1.2371 15.5511,0.8899 15.551,0.6594 15.551,0.4992 15.551,0.3842 15.551,0.2995 15.551,0.2357 15.5511,0.187 15.551,0.1492 15.551,0.1197 15.551,0.0964 15.5511,0.0779 15.551,0.063 15.551,0.0512 15.551,0.0415 15.5511,0.0339 15.551,0.0275 15.5509,0.0225 15.5511,0.0184 15.551,0.0149 15.551,0.0123 15.551,0.01 15.5511,0.008 15.551,0.007" />
+       d="m 143,112.1933 15.551,-0.6162 15.551,-0.6161 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6161 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,572.392 15.551,26.5832 15.551,9.2923 15.5511,4.6609 15.551,2.757 15.551,1.792 15.551,1.2371 15.5511,0.8899 15.551,0.6594 15.551,0.4992 15.551,0.3842 15.551,0.2995 15.551,0.2357 15.5511,-0.6162 15.551,0.3171 15.551,0.249 15.551,0.1973 15.5511,0.1572 15.551,0.1259 15.551,0.1014 15.551,0.0818 15.5511,0.0662 15.551,0.0537 15.5509,0.0436 15.5511,0.0355 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6161" />
     <path
        inkscape:connector-curvature="0"
        id="path207"
-       style="fill:none;fill-rule:evenodd;stroke:#d95319"
-       d="m 143,112.1933 15.551,-0.6162 15.551,-0.6161 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6161 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,571.7807 15.551,26.5797 15.551,9.2915 15.551,4.6606 15.5511,2.7569 15.551,1.792 15.551,1.237 15.551,0.8899 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6161 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,2.3458 15.5511,1.5622 15.551,1.0961 15.551,0.7977 15.551,0.596 15.5511,0.4541 15.551,0.3513 15.5509,0.2748 15.5511,0.2169 15.551,0.1725 15.551,-0.6161 15.551,0.2645 15.5511,0.2092 15.551,-0.6162" />
+       style="fill:none;fill-rule:evenodd;stroke:#d95319;stroke-width:3.31317282"
+       d="m 147.00063,112.19193 15.36369,-0.6162 15.3637,-0.6161 15.36379,-0.61621 15.3637,-0.6162 15.36369,-0.6162 15.3637,-0.6162 15.36369,-0.61621 15.3638,-0.6162 15.36369,-0.6162 15.3637,-0.61621 15.36369,-0.6162 15.3637,-0.6162 15.36379,-0.6162 15.3637,-0.61611 15.36369,-0.6162 15.3637,-0.6162 15.36369,-0.61621 15.3638,-0.6162 15.36369,-0.6162 15.3637,572.39461 15.36369,26.58332 15.3637,9.29235 15.36379,4.66092 15.3637,-0.61621 15.36369,-0.6162 15.3637,3.22882 15.36379,2.04521 15.3637,1.3882 15.36369,0.98681 15.3637,0.7248 15.36369,0.5453 15.3637,0.4178 15.36379,0.32431 15.3637,0.2546 15.36369,0.2015 15.3637,0.1604 15.36379,0.1286 15.3637,0.1033 15.36369,0.0835 15.3637,0.0674 15.36379,0.0548 15.3637,0.0445 15.36359,0.0361 15.3638,0.0295 15.36369,0.024 15.3637,0.0196 15.3637,0.016 15.36379,0.0131 15.36369,0.0107" />
     <path
        inkscape:connector-curvature="0"
        id="path209"
-       style="fill:none;fill-rule:evenodd;stroke:#edb120;stroke-width:3.32518411"
-       d="m 145.00069,112.19233 15.47531,-0.6162 15.47532,-0.6161 15.47541,-0.61621 15.47531,-0.6162 15.47532,-0.6162 15.47531,-0.6162 15.47531,-0.6162 15.47542,-0.61621 15.47531,-0.6162 15.47531,-0.6162 15.47532,-0.6162 15.47531,-0.6162 15.47541,-0.61621 15.47532,-0.6161 15.47531,-0.6162 15.47532,-0.6162 15.47531,-0.6162 15.47541,-0.61621 15.47532,-0.6162 15.47531,572.39387 15.47531,26.58328 15.47532,9.29233 15.47541,4.66092 15.47531,2.75701 15.47532,1.792 15.47531,1.23711 15.47541,-0.6162 15.47532,-0.61621 15.47531,-0.6162 15.47531,-0.6161 15.47532,-0.6162 15.47531,-0.6162 15.47541,-0.61621 15.47532,-0.6162 15.47531,-0.6162 15.47531,-0.6162 15.47542,-0.6162 15.47531,-0.61621 15.47532,-0.6161 15.47531,-0.6163 15.47541,-0.6162 15.47532,-0.6161 15.47521,-0.61621 15.47541,-0.6162 15.47532,-0.6162 15.47531,5.22852 15.47531,3.01941 15.47542,1.9341 15.47531,1.32241" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path211"
-       style="fill:none;fill-rule:evenodd;stroke:#7e2f8e"
-       d="m 143,112.1933 15.551,-0.6162 15.551,-0.6161 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6161 15.551,-0.6162 15.551,569.9469 15.551,26.5688 15.5511,9.2894 15.551,4.6598 15.551,-0.6161 15.551,-0.6163 15.551,-0.6162 15.5511,-0.6161 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,5.9171 15.5511,-0.6162 15.551,3.5719 15.551,2.2229 15.551,-0.6161 15.5511,-0.6162 15.551,-0.6163 15.551,2.0938 15.551,1.4165 15.5511,-0.6161 15.551,-0.6163 15.5509,1.3609 15.5511,0.9695 15.551,0.7132 15.551,0.5371 15.551,0.4118 15.5511,0.32 15.551,-0.6162" />
+       style="fill:none;fill-rule:evenodd;stroke:#edb120"
+       d="m 143,112.1933 15.551,-0.6162 15.551,-0.6161 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6161 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,571.1695 15.551,26.576 15.551,9.2908 15.551,4.6603 15.551,-0.6161 15.5511,2.9897 15.551,-0.6162 15.551,2.1267 15.551,1.4358 15.5511,1.017 15.551,0.7451 15.551,0.5595 15.551,0.4279 15.551,0.3319 15.551,0.2603 15.5511,0.2058 15.551,0.1639 15.551,0.1312 15.551,0.1055 15.5511,-0.6162 15.551,-0.6162 15.551,-0.6162 15.551,-0.6162 15.5511,-0.6162 15.551,-0.6162 15.5509,-0.6162 15.5511,-0.6162 15.551,1.299 15.551,-0.6162 15.551,-0.6161 15.5511,1.2792 15.551,-0.6162" />
   </g>
   <g
-     id="g217"
+     id="g211"
+     style="color-interpolation:sRGB;fill:#ffffff;stroke:#ffffff;color-rendering:optimizeSpeed;image-rendering:optimizeSpeed;shape-rendering:crispEdges;text-rendering:optimizeSpeed"
+     transform="translate(-82.921184,-13.602479)">
+    <path
+       inkscape:connector-curvature="0"
+       id="path213"
+       d="m 720,276 0,-176 168,0 0,176 z"
+       style="stroke:none" />
+  </g>
+  <g
+     id="g215"
      style="font-size:33px;font-family:SansSerif;color-interpolation:linearRGB;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(804.0194,134.8411)">
+     transform="translate(743.09822,120.73902)">
     <text
-       id="text219"
+       id="text217"
        style="stroke:none"
        y="13"
        xml:space="preserve"
        x="0">test1</text>
   </g>
   <g
-     id="g221"
+     id="g219"
      style="color-interpolation:linearRGB;fill:#0072bd;stroke:#0072bd;stroke-width:3.33330011;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:12, 3, 6, 3;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(-22,0)">
+     transform="translate(-82.921184,-13.602479)">
     <line
-       id="line223"
-       y1="134.84109"
+       id="line221"
+       y1="134.34151"
        x2="817.86407"
        x1="736.31073"
        style="fill:none"
-       y2="134.84109" />
+       y2="134.34151" />
   </g>
   <g
-     id="g225"
+     id="g223"
      style="font-size:33px;font-family:SansSerif;color-interpolation:linearRGB;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(804.0194,189.2804)">
+     transform="translate(743.09822,174.39752)">
     <text
-       id="text227"
+       id="text225"
        style="stroke:none"
        y="13"
        xml:space="preserve"
        x="0">test2</text>
   </g>
   <g
-     id="g229"
+     id="g227"
      style="color-interpolation:linearRGB;fill:#d95319;stroke:#d95319;stroke-width:3.33330011;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:12, 3, 6, 3;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(-22,0)">
+     transform="translate(-82.921184,-13.602479)">
     <line
-       id="line231"
-       y1="189.2804"
+       id="line229"
+       y1="188"
        x2="817.86407"
        x1="736.31073"
        style="fill:none"
-       y2="189.2804" />
+       y2="188" />
   </g>
   <g
-     id="g233"
+     id="g231"
      style="font-size:33px;font-family:SansSerif;color-interpolation:linearRGB;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(804.0194,243.7196)">
+     transform="translate(743.09822,228.05602)">
     <text
-       id="text235"
+       id="text233"
        style="stroke:none"
        y="13"
        xml:space="preserve"
        x="0">test3</text>
   </g>
   <g
-     id="g237"
+     id="g235"
      style="color-interpolation:linearRGB;fill:#edb120;stroke:#edb120;stroke-width:3.33330011;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:12, 3, 6, 3;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(-22,0)">
+     transform="translate(-82.921184,-13.602479)">
     <line
-       id="line239"
-       y1="243.7196"
+       id="line237"
+       y1="241.65849"
        x2="817.86407"
        x1="736.31073"
        style="fill:none"
-       y2="243.7196" />
+       y2="241.65849" />
   </g>
   <g
-     id="g241"
-     style="font-size:33px;font-family:SansSerif;color-interpolation:linearRGB;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(804.0194,298.1589)">
-    <text
-       id="text243"
-       style="stroke:none"
-       y="13"
-       xml:space="preserve"
-       x="0">test4</text>
-  </g>
-  <g
-     id="g245"
-     style="color-interpolation:linearRGB;fill:#7e2f8e;stroke:#7e2f8e;stroke-width:3.33330011;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:12, 3, 6, 3;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="translate(-22,0)">
-    <line
-       id="line247"
-       y1="298.15891"
-       x2="817.86407"
-       x1="736.31073"
-       style="fill:none"
-       y2="298.15891" />
-  </g>
-  <g
-     id="g249"
+     id="g239"
      style="color-interpolation:linearRGB;fill:#262626;stroke:#262626;stroke-width:0.83329999;stroke-linecap:butt;color-rendering:optimizeQuality;image-rendering:optimizeQuality;text-rendering:geometricPrecision"
-     transform="matrix(1.148612,0,0,0.99974394,-128.97084,0.05543601)">
+     transform="matrix(1.2179614,0,0,0.99951071,-239.81036,-13.510492)">
     <path
        inkscape:connector-curvature="0"
-       id="path251"
+       id="path241"
        style="fill:none;fill-rule:evenodd"
-       d="m 720,333 0,-233 168,0 0,233 z" />
+       d="m 720,276 0,-176 168,0 0,176 z" />
   </g>
 </svg>
