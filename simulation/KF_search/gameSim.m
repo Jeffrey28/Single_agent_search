@@ -104,13 +104,6 @@ set(hdl2,'Color','b');
 %     set(hdl2,'LineStyle','-');
 set(hdl2,'Marker','*');
 
-% hdl3 = plot(rbt.est_pos_hist(1,:),rbt.est_pos_hist(2,:),'g','markers',3);
-% set(hdl3,'MarkerFaceColor','g');
-% set(hdl3,'MarkerEdgeColor','g');
-% set(hdl3,'Color','g');
-% %     set(hdl2,'LineStyle','-');
-% set(hdl3,'Marker','s');
-
 % draw FOV
 a1 = rbt.traj(3,end)-rbt.theta0;  % A random direction
 a2 = rbt.traj(3,end)+rbt.theta0;
@@ -128,35 +121,7 @@ ylim([fld.fld_cor(3),fld.fld_cor(4)]);
 box on
 axis equal
 
-
 %% save simulation result
 save('test4_offset')
 
-%{
-% save data
-% if the data is a decimal, replace the '.' with 'p'
-str_safe_dis = strrep(num2str(safe_dis),'.','p');
-str_safe_marg = strrep(num2str(safe_marg),'.','p');
-str_h_v = strrep(num2str(agents(1).currentV),'.','p');
-
-str_t = datestr(clock,'dd-mmm-yyyy_HHMMSS');
-folder_path = ('.\sim_res');
-data_name = sprintf('sim_traj_%s_%s_%s_%s_%s_%s.mat',...
-    pre_type,plan_type,str_safe_dis,str_safe_marg,str_h_v,str_t);
-file_name = fullfile (folder_path,data_name);
-save(file_name,'obv_traj','est_state','pre_traj','plan_state','r_state','r_input');
-
-% save plot
-folder_path = ('.\sim_res');
-fig_name = sprintf('sim_traj_%s_%s_%s_%s_%s_%s.fig',...
-    pre_type,plan_type,str_safe_dis,str_safe_marg,str_h_v,str_t);
-file_name = fullfile (folder_path,fig_name);
-h = gcf;
-saveas (h,file_name);
-
-% convert .fig to .pdf
-fig_name2 = sprintf('sim_traj_%s_%s_%s_%s_%s_%s.pdf',...
-    pre_type,plan_type,str_safe_dis,str_safe_marg,str_h_v,str_t);
-file_name2 = fullfile (folder_path,fig_name2);
-fig2Pdf(file_name2,300,h)
-%}
+% run resultAnalysis.m to analyze the simulation results

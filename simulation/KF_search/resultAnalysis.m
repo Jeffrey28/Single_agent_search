@@ -1,3 +1,5 @@
+% call this function to analyze results in gameSim.m
+
 % draw entropy
 clc
 clear

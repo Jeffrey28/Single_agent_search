@@ -148,8 +148,6 @@ classdef Robot
             u = sdpvar(2,N,'full');
             % estimation
             x = sdpvar(2,N+1,'full');
-%             P = sdpvar(2,2,N+1);
-%             var_P = sdpvar(2,2,N+1,'full'); % symmetric matrix in first two dim
             var_P = sdpvar(2,2*(N+1),'full'); % symmetric matrix in first two dim
             % auxiliary variable
             tmp_M = sdpvar(2,2,'full');
@@ -305,8 +303,6 @@ classdef Robot
             u = sdpvar(2,N,'full');
             % estimation
             x = sdpvar(2,N+1,'full');
-%             P = sdpvar(2,2,N+1);
-%             var_P = sdpvar(2,2,N+1,'full'); % symmetric matrix in first two dim
             var_P = sdpvar(2,2*(N+1),'full'); % symmetric matrix in first two dim
             % auxiliary variable
             tmp_M = sdpvar(2,2,'full');
@@ -428,104 +424,6 @@ classdef Robot
             optz = value(z);
             optu = value(u);
             %}
-            
-            %{
-                % KF update
-%                 alp1 = z(3,ii+1) - this.theta0;
-%                 alp2 = z(3,ii+1) + this.theta0;
-                alp1 = st(3) - this.theta0;
-                alp2 = st(3) + this.theta0;
-                a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
-                b = [z(1,ii+1)*sin(alp1)-z(2,ii+1)*cos(alp1);-z(1,ii+1)*sin(alp2)+z(2,ii+1)*cos(alp2)];%[b1;b2];
-                
-%                 alp1 = st(3) - this.theta0;
-%                 alp2 = st(3) + this.theta0;
-%                 a = [sin(alp1),-cos(alp1);-sin(alp2),cos(alp2)]; % [a1;a2]
-%                 b = [-st(1)*sin(alp1)+st(2)*cos(alp1);st(1)*sin(alp2)-st(2)*cos(alp2)];%[b1;b2];
-                
-%                 delta = 1;%/((1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
-%                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))));
-%                 delta_rcp = (1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
-%                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2)));
-%                 D = ...%(1+exp(gam*(a(1,:)*x(:,ii)-b(1))))*(1+exp(gam*(a(2,:)*x(:,ii)-b(2))))*...
-%                     (1+exp(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2)));
-%                 dist_prod = (gam*(a(1,:)*x(:,ii)-b(1)))^2;%(gam*(a(1,:)*x(:,ii)-b(1))*gam*(a(2,:)*x(:,ii)-b(2))*...
-% %                     gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))^2;
-%                 dist_prod2 = (1+(gam*(a(1,:)*x(:,ii)-b(1)))^2);%*(1+(gam*(a(2,:)*x(:,ii)-b(2)))^2)*...
-% %                     (1+(gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))^2);
-                dist_prod = 1;% (sqrtm(sum((x(:,ii)-this.state(1:2))).^2)-this.r)^2;%(gam*(a(1,:)*x_cur-b(1)))^2*(gam*(a(2,:)*x(:,ii)-b(2)))^2;%(gam*(a(1,:)*x(:,ii)-b(1))*gam*(a(2,:)*x(:,ii)-b(2))*...
-%                     gam*(sum((x(:,ii)-this.state(1:2)).^2)-this.r^2))^2;
-                dist_prod2 = ...%(1+exp(-(-a(1,:)*x(:,ii)+b(1))));%                 (1+(gam*(a(1(x_cur-b(1)))^2)*(1+(gam*(a(2,:)*x(:,ii)-b(2)))^2);%*...
-                    (1+sum((x(:,ii)-this.state(1:2)).^2))/100;%(1+(sqrtm(sum((x(:,ii)-this.state(1:2)).^2))-this.r)^2);
-%                 dist_prod2 = ...%(1+(gam*(a(1,:)*x_cur-b(1)))^2)*(1+(gam*(a(2,:)*x(:,ii)-b(2)))^2);%*...
-%                     (1+sum((x(:,ii)-z(1:2,ii+1)).^2))/100;%(1+(sqrtm(sum((x(:,ii)-this.state(1:2)).^2))-this.r)^2);
-                
-
-                % prediction
-                x_pred(:,ii) = A*x(:,ii);
-%                 P_pred(:,:,ii) = A*var_P(:,:,ii)*A'+Q;
-                P_pred(:,2*ii-1:2*ii) = A*var_P(:,2*ii-1:2*ii)*A'+Q;
-                
-                % update
-% %                 K = P_pred*C'*delta*tmp_M*delta;
-% %                 constr = [constr,K == 1];
-% %                 constr = [constr,K*(var_C*P_pred(:,:,ii)*var_C'+var_R/delta^2)==P_pred(:,:,ii)*var_C'];
-%                 constr = [constr,K*(var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R/delta^2)==P_pred(:,2*ii-1:2*ii)*var_C'];
-% %                 constr = [constr,K*(C*P_pred(:,:,ii)*C'+R*D^2)==P_pred(:,:,ii)*C'];
-%                 constr = [constr,x(:,ii+1) == x_pred(:,ii)+K*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
-% %                 constr = [constr,x(:,ii+1) == x_pred+K*(C*x_cur-C*x_pred)];
-% %                 constr = [constr,var_P(:,:,ii+1) == P_pred(:,:,ii)-K*var_C*P_pred(:,:,ii)+phi];
-%                 constr = [constr,var_P(:,2*ii+1:2*ii+2) >= P_pred(:,2*ii-1:2*ii)-K*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
-% %                 constr = [constr,(delta*C*P_pred(:,:,ii)*C'*delta+R)*tmp_M == eye(2)];
-                
-%                 % test version of simplified constraint
-%                 T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R*delta_rcp^2;
-%                 a = T(1,1);
-%                 b = T(1,2);
-%                 c = T(2,1);
-%                 d = T(2,2);
-%                 t = a*d-b*c;
-%                 T2 = [d -b; -c a];
-%                 constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t == P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
-%                 constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*t...
-%                     == -P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
-                
-                % use x/sqrt(1+x^2) as sigmoid function and Sachin's
-                % formulation
-%                 T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'*dist_prod+var_R*dist_prod2;
-%                 a = T(1,1);
-%                 b = T(1,2);
-%                 c = T(2,1);
-%                 d = T(2,2);
-%                 t = a*d-b*c;
-%                 T2 = [d -b; -c a];
-% %                 constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t == dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))];
-% %                 constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*t...
-% %                     == -dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)];%+phi];
-%                 constr = [constr,(x(:,ii+1)-x_pred(:,ii))*t*dist_prod2 == P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))/100];
-%                 constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*t*dist_prod2...
-%                     == -P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)/100];%+phi];
-                
-                % use Schenato's formulation
-                T = var_C*P_pred(:,2*ii-1:2*ii)*var_C'+var_R;
-                a = T(1,1);
-                b = T(1,2);
-                c = T(2,1);
-                d = T(2,2);
-                t = a*d-b*c;
-                T2 = [d -b; -c a];
-                constr = [constr,(x(:,ii+1)-x_pred(:,ii))*dist_prod2*t == dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*(var_C*x(:,ii)-var_C*x_pred(:,ii))/100];
-                constr = [constr,(var_P(:,2*ii+1:2*ii+2)-P_pred(:,2*ii-1:2*ii))*dist_prod2*t...
-                    == -dist_prod*P_pred(:,2*ii-1:2*ii)*var_C'*T2*var_C*P_pred(:,2*ii-1:2*ii)/100];%+phi];
-%             end
-            
-            
-            opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
-            
-            sol = optimize(constr,obj,opt);
-            optz = value(z);
-            optu = value(u);
-            %}
         end
         
         function this = updState(this,u)
@@ -534,128 +432,6 @@ classdef Robot
             dt = this.dt;
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
             this.traj = [this.traj,this.state];
-        end
-        
-        function this = computeMetrics(this,fld,id)
-            % Computing Performance Metrics
-            count = this.step_cnt;
-            
-            %% ML error
-            % DBF
-            if strcmp(id,'dbf')
-                [tmp_x1,tmp_y1] = find(this.dbf_map == max(this.dbf_map(:)));
-                if length(tmp_x1) > 1
-                    tmp_idx = randi(length(tmp_x1),1,1);
-                else
-                    tmp_idx = 1;
-                end
-                this.ml_pos_dbf(:,count) = [tmp_x1(tmp_idx);tmp_y1(tmp_idx)];
-                this.ml_err_dbf(count) = norm(this.ml_pos_dbf(:,count)-fld.target.pos);
-            end
-            
-            % concensus
-            if strcmp(id,'cons')
-                [tmp_x2,tmp_y2] = find(this.cons_map == max(this.cons_map(:)));
-                if length(tmp_x2) > 1
-                    tmp_idx2 = randi(length(tmp_x2),1,1);
-                else
-                    tmp_idx2 = 1;
-                end
-                this.ml_pos_cons(:,count) = [tmp_x2(tmp_idx2);tmp_y2(tmp_idx2)];
-                this.ml_err_cons(count) = norm(this.ml_pos_cons(:,count)-fld.target.pos);
-            end
-            
-            % centralized
-            if strcmp(id,'cent')
-                [tmp_x3,tmp_y3] = find(this.cent_map == max(this.cent_map(:)));
-                if length(tmp_x3) > 1
-                    tmp_idx3 = randi(length(tmp_x3),1,1);
-                else
-                    tmp_idx3 = 1;
-                end
-                this.ml_pos_cent(:,count) = [tmp_x3(tmp_idx3);tmp_y3(tmp_idx3)];
-                this.ml_err_cent(count) = norm(this.ml_pos_cent(:,count)-fld.target.pos);
-            end
-            
-            %% Covariance of posterior pdf
-            [ptx,pty] = meshgrid(1:fld.fld_size(1),1:fld.fld_size(2));
-            pt = [ptx(:),pty(:)];
-            
-            % DBF
-            if strcmp(id,'dbf')
-                tmp_map1 = this.dbf_map;
-                % this avoids the error when some grid has zeros probability
-                tmp_map1(tmp_map1 <= realmin) = realmin;
-                
-                % compute covariance of distribution
-                dif1 = pt' - [(1+fld.target.pos(1))/2;(1+fld.target.pos(2))/2]*ones(1,size(pt',2));
-                cov_p1 = zeros(2,2);
-                for jj = 1:size(pt',2)
-                    cov_p1 = cov_p1 + dif1(:,jj)*dif1(:,jj)'*tmp_map1(pt(jj,1),pt(jj,2));
-                end
-                this.pdf_cov_dbf{count} = cov_p1;
-                this.pdf_norm_dbf(count) = norm(cov_p1,'fro');
-            end
-            
-            if strcmp(id,'cons')
-                % concensus
-                tmp_map2 = this.cons_map;
-                % this avoids the error when some grid has zeros probability
-                tmp_map2(tmp_map2 <= realmin) = realmin;
-                
-                % compute covariance of distribution
-                dif2 = pt' - [(1+fld.target.pos(1))/2;(1+fld.target.pos(2))/2]*ones(1,size(pt',2));
-                cov_p2 = zeros(2,2);
-                for jj = 1:size(pt',2)
-                    cov_p2 = cov_p2 + dif2(:,jj)*dif2(:,jj)'*tmp_map2(pt(jj,1),pt(jj,2));
-                end
-                this.pdf_cov_cons{count} = cov_p2;
-                this.pdf_norm_cons(count) = norm(cov_p2,'fro');
-            end
-            
-            % centralized
-            if strcmp(id,'cent')
-                tmp_map3 = this.cent_map;
-                % this avoids the error when some grid has zeros probability
-                tmp_map3(tmp_map3 <= realmin) = realmin;
-                
-                % compute covariance of distribution
-                dif3 = pt' - [(1+fld.target.pos(1))/2;(1+fld.target.pos(2))/2]*ones(1,size(pt',2));
-                cov_p3 = zeros(2,2);
-                for jj = 1:size(pt',2)
-                    cov_p3 = cov_p3 + dif3(:,jj)*dif3(:,jj)'*tmp_map3(pt(jj,1),pt(jj,2));
-                end
-                this.pdf_cov_cent{count} = cov_p3;
-                this.pdf_norm_cent(count) = norm(cov_p3,'fro');
-            end
-            
-            %% Entropy of posterior pdf
-            % DBF
-            if strcmp(id,'dbf')
-                tmp_map1 = this.dbf_map;
-                % this avoids the error when some grid has zeros probability
-                tmp_map1(tmp_map1 <= realmin) = realmin;
-                dis_entropy = -(tmp_map1).*log2(tmp_map1); % get the p*log(p) for all grid points
-                this.ent_dbf(count) = sum(sum(dis_entropy));
-            end
-            
-            % concensus
-            if strcmp(id,'cons')
-                tmp_map2 = this.cons_map;
-                % this avoids the error when some grid has zeros probability
-                tmp_map2(tmp_map2 <= realmin) = realmin;
-                dis_entropy = -(tmp_map2).*log2(tmp_map2); % get the p*log(p) for all grid points
-                this.ent_cons(count) = sum(sum(dis_entropy));
-            end
-            
-            % centralized
-            if strcmp(id,'cent')
-                tmp_map3 = this.cent_map;
-                % this avoids the error when some grid has zeros probability
-                tmp_map3(tmp_map3 <= realmin) = realmin;
-                dis_entropy = -(tmp_map3).*log2(tmp_map3); % get the p*log(p) for all grid points
-                this.ent_cent(count) = sum(sum(dis_entropy));
-            end
         end
     end
 end
