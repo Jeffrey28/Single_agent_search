@@ -1,0 +1,5 @@
+1/26/17
+
+needs to revise:
+1. do not define P as a 3-D sdpvar. use cell or other structures. 3-D sdpvar causes trouble in constraints.
+2. the objective function needs more derivation. current one is incorrect for multi-variate Gaussian case.

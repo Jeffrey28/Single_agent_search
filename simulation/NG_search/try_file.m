@@ -24,7 +24,25 @@
 %     plot(x,y)
 % end
 
-% visualize FOV
+%% test ekf
+xg = [10;10]; % target position
+xs = [15;15]; % sensor position
+f = @(x) x;
+h = @(x) x-xs;
+del_f = @(x) eye(2);
+del_h = @(x) eye(2);
+Q = 0.01*eye(2);
+R = 5*eye(2);
+x = xg+[6;7];
+P = 100*eye(2);
+y = xg-xs;
+for ii = 1:50
+[x_next,P_next,x_pred,P_pred] = ekf(f,Q,h,R,y,del_f,del_h,x,P);
+x = x_next;
+P = P_next;
+end
+
+%% visualize FOV
 %{
 figure
 l = a(1,:);
@@ -68,7 +86,7 @@ box on
 %}
 
 %%% draw plot
-%
+%{
 figure('WindowStyle','normal','Position', [500 50 800 700])
 hold on
 idx = 50;

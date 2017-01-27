@@ -11,9 +11,14 @@ classdef Robot
         v_ub;
         
         % sensor specs
+        sensor_type; 
         theta0; % sensor range in angle
         r; % sensor range
+        % linear sensor
         C; % C matrix of observation
+        % nonlinear sensor
+        h; % y=h(x)
+        del_h; % gradient of h
         R; % covariance for sensor model
         
         % observation
@@ -24,6 +29,8 @@ classdef Robot
         P; % estimation covariance
         est_pos_hist;
         P_hist;
+        gmm_num; % # of gmm components
+        wt; % weigths of gmm components
         
         % path planning
         mpc_hor;
@@ -47,13 +54,18 @@ classdef Robot
             this.v_lb = inPara.v_lb;
             this.v_ub = inPara.v_ub;
             this.R = inPara.R;
-            this.C = inPara.C;
+%             this.C = inPara.C;
+            this.h = inPara.h;
+            this.del_h = inPara.del_h;
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
             this.est_pos = inPara.est_pos;
             this.P = inPara.P;
             this.est_pos_hist = [];
-            this.P_hist = [];            
+            this.P_hist = [];        
+            this.gmm_num = inPara.gmm_num;
+            this.wt = inPara.wt;
+            this.sensor_type = inPara.sensor_type;
             
             this.mpc_hor = inPara.mpc_hor;
             this.dt = inPara.dt;
@@ -61,6 +73,7 @@ classdef Robot
             this.gam = inPara.gam;
         end
         
+        %% sensor modeling
         % approximate straightline edge of sensor FOV based on current
         % robot state
         function [a,b] = FOV(this,st)
@@ -80,17 +93,28 @@ classdef Robot
                 && (norm(tar_pos-this.state(1:2)) <= this.r);
         end
         
+        %% measurement generation
         % generate a random measurement
         function y = sensorGen(this,fld)
             tar_pos = fld.target.pos;
-            
-            if this.inFOV(tar_pos)
-                y = tar_pos+(mvnrnd([0;0],this.R))';
-            else
-                y = [-100;-100];
+            % range-bearing sensor
+            if strcmp(this.sensor_type,'rb')
+%                 if this.inFOV(tar_pos)
+                    y = this.h(tar_pos)+(mvnrnd([0;0],this.R))';
+%                     y = tar_pos+(mvnrnd([0;0],this.R))';
+%                 else
+%                     y = [-100;-100];
+%                 end
+            elseif strcmp(this.sensor_type,'ran')
+                if this.inFOV(tar_pos)
+                    y = norm(tar_pos-this.state(1:2))+normrnd(0,this.R);
+                else
+                    y = -100;
+                end
             end
         end
         
+        %% filtering
         function this = KF(this,fld)
             y = this.y;
             
@@ -129,7 +153,171 @@ classdef Robot
             this.P_hist = [this.P_hist,P_next];
         end
         
+        function this = GSF(this,fld)                                                
+            % target
+            tar = fld.target;
+            f = tar.f;
+            del_f = tar.del_f;
+            Q = tar.Q;
+            
+            % sensor
+            h = this.h;
+            del_h = this.del_h;
+            R = this.R;            
+            % measurement
+            y = this.y;
+            
+            % used for updating gmm component weights
+            alp = ones(this.gmm_num,1); 
+            
+            for ii = 1:this.gmm_num 
+                % current estimation
+                P = this.P{ii};
+                x = this.est_pos(:,ii);
+                A = del_f(x);
+                % prediction
+                x_pred = f(x); %%% replace this one with new nonlinear model                                
+                P_pred = A*P*A'+Q;
+                
+                % update
+                % sensor model linearization
+                C = del_h(x_pred);
+                                                
+                if sum(y-[-100;-100]) ~= 0
+                    % if an observation is obtained
+                    K = P_pred*C'/(C*P_pred*C'+R);
+                    x_next = x_pred+K*(y-h(x_pred));
+                    P_next = P_pred-K*C*P_pred;
+                    alp(ii) = mvnpdf(y,h(x_pred),C*P_pred*C'+R);
+                else
+                    x_next = x_pred;
+                    P_next = P_pred;
+                end
+                
+                this.est_pos(:,ii) = x_next;
+                this.P{ii} = P_next;
+            end
+            
+            % update gmm component weight
+            wt = this.wt.*alp;
+            this.wt = wt/sum(wt);
+            tar_mean = this.est_pos*this.wt;
+            tar_cov = zeros(2,2);
+            for jj = 1:this.gmm_num
+                tar_cov = tar_cov+this.wt(jj)*this.P{jj};
+            end
+            this.est_pos_hist = [this.est_pos_hist,tar_mean];
+            this.P_hist = [this.P_hist,tar_cov];
+        end
+        
+        %% planning
+        function [optz,optu] = ngPlanner(this,fld)
+            % planing in non-Gaussian (GMM) belief space
+            N = this.mpc_hor;
+            dt = this.dt;
+%             C = this.C;
+%             R = this.R;
+%             st = this.state;
+%             x_cur = this.est_pos;
+%             gam = this.gam;
+            
+            % target 
+            tar = fld.target;
+            f = tar.f;
+            del_f = tar.del_f;
+            Q = tar.Q;
+            
+            % sensor
+            h = this.h;    
+            del_h = this.del_h;
+            R = this.R; 
+            
+            % set up simulation
+            % robot state and control
+            z = sdpvar(4,N+1,'full');
+            u = sdpvar(2,N,'full');
+            % estimation
+            x = sdpvar(2,this.gmm_num,N+1,'full');
+            P = sdpvar(2,this.gmm_num,2*(N+1),'full'); % symmetric matrix in first two dim
+            % auxiliary variable
+%             tmp_M = sdpvar(2,2,'full');
+%             K = sdpvar(2,2,'full');
+%             phi = sdpvar(2,2,'full');
+%             tmp1 = sdpvar(2,N,'full');
+            
+            % debug purpose
+            x_pred = sdpvar(2,this.gmm_num,N,'full');
+%             P_pred = sdpvar(2,2,N,'full');
+            P_pred = sdpvar(2,this.gmm_num,2*N,'full');
+            
+            % obj
+            obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    obj = obj+this.wt(jj)*(f(x(:,jj,ii+1))); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
+                end
+            end
+            
+            % constraints
+            % initial value
+            constr = [z(:,1) == this.state];
+            constr = [constr,x(:,:,1) == this.est_pos];
+            for jj = 1:this.gmm_num
+                constr = [constr,P(:,jj,1:2) == this.P{jj}];%[1 0;0 1]];
+            end
+            
+            % constraints on the go
+            for ii = 1:N
+                % robot state
+                constr = [constr,z(:,ii+1) == z(:,ii)+...
+                    [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
+                    u(:,ii)]*dt];
+                
+                constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
+                    [fld.fld_cor(2);fld.fld_cor(4)]];               
+                                
+                gamma_den = 1;
+                gamma_num = 1;
+                
+                % prediction
+                for jj = 1:this.gmm_num
+                    A = del_f(x(:,jj,ii));
+                    C = del_h(x(:,jj,ii));
+%                     x_pred(:,jj,ii) = f(x(:,jj,ii)); % for debug purpose                    
+                    constr = [constr,P_pred(:,jj,2*ii-1:2*ii) == A*squeeze(P(:,jj,2*ii-1:2*ii))*A'+Q];
+                    % update using pesudo measurement
+                    T = C*P_pred(:,2*ii-1:2*ii)*C'+R; % CPC'+R
+                    a = T(1,1);
+                    b = T(1,2);
+                    c = T(2,1);
+                    d = T(2,2);
+                    t = a*d-b*c;
+                    T2 = [d -b; -c a]; % inv(CPC'+R)
+                    
+                    % this updating of x seems to use the MAP assumption of
+                    % variables
+                    constr = [constr, x(:,ii+1) == f(x(:,ii))];
+                    
+                    % since gamma is in factorial form, to avoid division, I
+                    % separate the denominator and numerator to two sides of
+                    % the equation
+                    constr = [constr,(P(:,jj,2*ii+1:2*ii+2)-P_pred(:,jj,2*ii-1:2*ii))*gamma_num*t...
+                        == -gamma_den*P_pred(:,2*ii-1:2*ii)*C'*T2*C*P_pred(:,2*ii-1:2*ii)/100];%+phi];
+                end
+            end
+            constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
+                this.v_lb <= z(4,:) <= this.v_ub];
+            
+            opt = sdpsettings('solver','fmincon','verbose',1,'debug',1,'showprogress',1);
+            
+            sol1 = optimize(constr,obj,opt);
+            zref = value(z);            
+            optz = value(z);
+            optu = value(u);            
+        end
+        
         function [optz,optu] = Planner(this,fld)
+            %{
             N = this.mpc_hor;
             var_dt = this.dt;
             var_C = this.C;
@@ -279,9 +467,11 @@ classdef Robot
             sol = optimize(constr,obj,opt);
             optz = value(z);
             optu = value(u);
+            %}
         end
 
         function [optz,optu] = Planner2(this,fld)
+            %{
             % two layer process
             
             N = this.mpc_hor;
@@ -426,12 +616,15 @@ classdef Robot
             %}
         end
         
+        %% robot state updating
         function this = updState(this,u)
             st = this.state;
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
             this.traj = [this.traj,this.state];
+            % range-bearing sensor
+            this.h = @(x) x-this.state(1:2);
         end
     end
 end
