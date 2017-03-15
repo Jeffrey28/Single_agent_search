@@ -37,7 +37,7 @@ for ii = 1:sim_len
     display(rbt.state);
     
     % draw plot
-%     sim.plotSim(rbt,fld)
+    sim.plotSim(rbt,fld)
 
     % terminating condition
 %     if trace(rbt.P) <= 1 && norm(fld.target.pos-rbt.est_pos) <= 2 && norm(rbt.state(1:2)-target.pos) <= 3

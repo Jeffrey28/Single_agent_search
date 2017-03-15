@@ -1,0 +1,5 @@
+3/14/17
+current issue:
+1. the linearization of C (del_h) needs double check.
+2. the alpha needs to contain angle information.
+3. write up a formal document and write down what can be done next.

@@ -91,6 +91,7 @@ classdef Robot
             [a,b] = this.FOV(this.state);
             flag = (a(1,:)*tar_pos-b(1) <= 0) && (a(2,:)*tar_pos-b(2) <= 0)...
                 && (norm(tar_pos-this.state(1:2)) <= this.r);
+%             flag = (norm(tar_pos-this.state(1:2)) <= this.r);
         end
         
         %% measurement generation
@@ -220,16 +221,11 @@ classdef Robot
             % planing in non-Gaussian (GMM) belief space
             N = this.mpc_hor;
             dt = this.dt;
-%             C = this.C;
-%             R = this.R;
-%             st = this.state;
-%             x_cur = this.est_pos;
-%             gam = this.gam;
             
             % target 
             tar = fld.target;
             f = tar.f;
-            del_f = tar.del_f;
+            del_f = tar.del_f;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
             Q = tar.Q;
             
             % sensor
@@ -237,128 +233,183 @@ classdef Robot
             del_h = this.del_h;
             R = this.R; 
             
+            % the parameter for the sensing boundary approximation
+            alp = 1;
+            alp_inc = 2; % increament paramter for alpha
+            
             % set up simulation
             % robot state and control
-            z = sdpvar(4,N+1,'full');
-            u = sdpvar(2,N,'full');
+            z = sdpvar(4,N+1,'full'); % robot state
+            u = sdpvar(2,N,'full'); % robot control
             % estimation
-            x = sdpvar(2*this.gmm_num,N+1,'full');
-%             P = sdpvar(2,this.gmm_num,2*(N+1),'full'); % symmetric matrix in first two dim
-            P = cell(this.gmm_num,1);
-            % initialize P
-            for ii = 1:this.gmm_num
-               P{ii} = sdpvar(2,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
-            end
+            x = sdpvar(2*this.gmm_num,N+1,'full'); % target mean
+            P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
             
             % auxiliary variable
-%             tmp_M = sdpvar(2,2,'full');
-            K = sdpvar(2,2,'full');
-%             phi = sdpvar(2,2,'full');
-%             tmp1 = sdpvar(2,N,'full');
+            %             tmp_M = sdpvar(2,2,'full');
+            K = sdpvar(2*this.gmm_num,2*N,'full');
+            %             phi = sdpvar(2,2,'full');
+            %             tmp1 = sdpvar(2,N,'full');
             
             % debug purpose
             x_pred = sdpvar(2*this.gmm_num,N,'full');
-%             P_pred = sdpvar(2,2,N,'full');
-            P_pred = cell(this.gmm_num,1);
-            % initialize P
-            for ii = 1:this.gmm_num
-               P_pred{ii} = sdpvar(2,2*N,'full'); % a set of 2-by-2 symmetric matrices
-            end
+            P_pred = sdpvar(2*this.gmm_num,2*N,'full');                       
             
-            % the parameter for the sensing boundary approximation
-            alp = 0.1;
-            
-            % obj
-            obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
-            for ii = 1:N
+            zref = [];
+            uref = [];
+            while (1)
+                
+                
+                % obj
+                obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+                        tmp = 0;
+                        for ll = 1:this.gmm_num
+                            % obj uses the 0-order approximation
+                            %%% I assume that the covariance does not change
+                            %%% for now, which is the simplification. Will
+                            %%% change this later after making program work.
+                            if ll == jj
+                                tmp = tmp+this.wt(ll)/(2*pi*det(this.P{ll}));
+                            else
+                                tmp = tmp+this.wt(ll)/(2*pi*det(this.P{ll}))*exp(-(x(2*jj-1:2*jj,ii+1)...
+                                    -x(2*ll-1:2*ll,ii+1))'/this.P{ll}*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2);
+                            end
+                        end
+                        obj = obj-this.wt(jj)*(tmp); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
+                    end
+                end
+                
+                % constraints
+                % initial value
+                constr = [z(:,1) == this.state];
+                constr = [constr,x(:,1) == this.est_pos(:)];
                 for jj = 1:this.gmm_num
-                    tmp = 0;
-                    for ll = 1:this.gmm_num
-                        %%% I assume that the covariance does not change
-                        %%% for now, which is the simplification. Will
-                        %%% change this later after making program work.
-                        if ll == jj
-                            tmp = tmp+this.wt(ll)/(2*pi*det(this.P{ll}));
+                    constr = [constr,P(2*jj-1:2*jj,1:2) == this.P{jj}];%[1 0;0 1]];
+                end
+                
+                % constraints on the go
+                for ii = 1:N
+                    % robot state
+                    if isempty(zref)
+                        constr = [constr,z(:,ii+1) == z(:,ii)+...
+                            [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
+                            u(:,ii)]*dt];
+                    else
+                        % linearize using previous result
+                        constr = [constr,z(:,ii+1) == z(:,ii)+...
+                            [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            u(:,ii)]*dt];
+                    end
+                    
+                    constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
+                        [fld.fld_cor(2);fld.fld_cor(4)]];
+                    
+                    % use the weighted mean as the MAP of target position
+                    
+                    if isempty(zref)
+                        tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
+                        gamma_den = 1+sum((tmp_mean-z(1:2,ii+1)).^2);
+                    else                        
+                        tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
+                        tmp_v = tmp_mean-zref(1:2,ii+1);
+                        theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
+                        gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
+                            (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)))/100;
+                    end
+                    gamma_num = 1;
+                    
+                    % target prediction
+                    for jj = 1:this.gmm_num
+                        A = del_f(x(2*jj-1:2*jj,ii));
+                        if isempty (zref)
+                            C = del_h(x(2*jj-1:2*jj,ii),z(1:2,ii));
                         else
-                            tmp = tmp+this.wt(ll)/(2*pi*det(this.P{ll}))*exp(-(x(2*jj-1:2*jj,ii+1)...
-                                -x(2*ll-1:2*ll,ii+1))'/this.P{ll}*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2);
+                            C = del_h(x(2*jj-1:2*jj,ii),zref(1:2,ii));
+                        end
+                        
+                        % forward prediction
+                        % mean
+                        constr = [constr, x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))];
+                        % covariance
+                        constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
+                        
+                        % update using pesudo measurement
+                        T = C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
+                        constr = [constr, K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
+                        
+                        %                     a = T(1,1);
+                        %                     b = T(1,2);
+                        %                     c = T(2,1);
+                        %                     d = T(2,2);
+                        %                     t = a*d-b*c;
+                        %                     T2 = [d -b; -c a]; % inv(CPC'+R)
+                        
+                        % since gamma is in factorial form, to avoid division, I
+                        % separate the denominator and numerator to two sides of
+                        % the equation
+                        % mean
+                        %%%%% note: for now, I assume the MAP as the target
+                        %%%%% position, however, I should change this later
+                        %%%%% when using GMM.
+                        constr = [constr,x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)];
+                        % covariance
+                        if isempty(zref)
+                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+                                == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+                        else
+                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+                                == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
                         end
                     end
-                obj = obj-this.wt(jj)*log(tmp); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
                 end
-            end
-            
-            % constraints
-            % initial value
-            constr = [z(:,1) == this.state];
-            constr = [constr,x(:,1) == this.est_pos(:)];
-            for jj = 1:this.gmm_num
-                constr = [constr,P{jj}(:,1:2) == this.P{jj}];%[1 0;0 1]];
-            end
-            
-            % constraints on the go
-            for ii = 1:N
-                % robot state
-                constr = [constr,z(:,ii+1) == z(:,ii)+...
-                    [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
-                    u(:,ii)]*dt];
+                constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
+                    this.v_lb <= z(4,:) <= this.v_ub];
                 
-                constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
-                    [fld.fld_cor(2);fld.fld_cor(4)]];               
-                                
-                gamma_den = 1; %(1+alp*sum(([squeeze(x(1,:,ii+1))*this.wt;squeeze(x(2,:,ii+1))*this.wt]...
-%                     -z(1:2,ii+1)).^2)); %((1+exp((a(1,:)*x_cur-b(1))))*(1+exp((a(2,:)*x_cur-b(2)))))*(1+exp(-cos(z(3,ii+1)-theta_ref(ii))+cos(this.theta0)));
-                gamma_num = 1;
+                % use the result from last iteration as the initial
+                % solution for current iteration
                 
-                % target prediction
-                for jj = 1:this.gmm_num
-                    A = del_f(x(2*jj-1:2*jj,ii));
-                    C = del_h(x(2*jj-1:2*jj,ii));
-                    
-                    % forward prediction                    
-                    % mean
-                    constr = [constr, x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))]; 
-                    % covariance
-                    constr = [constr,P_pred{jj}(:,2*ii-1:2*ii) == A*(P{jj}(:,2*ii-1:2*ii))*A'+Q];
-                    
-                    % update using pesudo measurement                    
-                    T = C*P_pred{jj}(:,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
-                    constr = [constr, K*T == P_pred{jj}(:,2*ii-1:2*ii)*C']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
-                    
-%                     a = T(1,1);
-%                     b = T(1,2);
-%                     c = T(2,1);
-%                     d = T(2,2);
-%                     t = a*d-b*c;
-%                     T2 = [d -b; -c a]; % inv(CPC'+R)
-                                       
-                    % since gamma is in factorial form, to avoid division, I
-                    % separate the denominator and numerator to two sides of
-                    % the equation
-                    % mean
-                    %%%%% note: for now, I assume the MAP as the target
-                    %%%%% position, however, I should change this later 
-                    %%%%% when using GMM.
-                    constr = [constr,x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)];
-                    % covariance
-                    constr = [constr,(P{jj}(:,2*ii+1:2*ii+2)-P_pred{jj}(:,2*ii-1:2*ii))*gamma_den...
-                        == -gamma_num*K*C*P_pred{jj}(:,2*ii-1:2*ii)];%+phi];
+                if ~isempty(zref)
+                    assign(z,zref)
+                    assign(u,uref)
                 end
+                opt = sdpsettings('solver','ipopt','verbose',2,'debug',1,'showprogress',1);
+                
+                sol1 = optimize(constr,obj,opt);
+                zref = value(z);
+                uref = value(u);
+                
+                % terminating condition: the actual in/out FOV is
+                % consistent with that of planning
+                is_in_fov = zeros(N,1);
+                is_in_fov_approx = zeros(N,1);
+                xref = value(x);
+                tmp_rbt = this;
+                for ii = 1:N
+                    tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
+                    
+                    tmp_rbt.state = zref(:,ii+1);
+                    is_in_fov(ii) = tmp_rbt.inFOV(tmp_mean);
+                    
+                    tmp_v = tmp_mean-zref(1:2,ii+1);
+                    theta_ref = atan2(tmp_v(2),tmp_v(1));
+                    is_in_fov_approx(ii) = 1/((1+exp(-alp*sum((tmp_mean-zref(1:2,ii+1)).^2)))...
+                        *(1+exp(-cos(zref(3,ii+1)-theta_ref)+cos(this.theta0))));
+                end
+                
+                if norm(is_in_fov-is_in_fov_approx,1) < 0.1*N
+                    break
+                end
+                
+                alp = alp*alp_inc;
             end
-            constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
-                this.v_lb <= z(4,:) <= this.v_ub];
             
-%             [model,recoverymodel,diagnostic,internalmodel] = export(constr,obj,sdpsettings('solver','fmincon'));
-            
-            opt = sdpsettings('solver','fmincon','verbose',1,'debug',1,'showprogress',1);
-            
-            sol1 = optimize(constr,obj,opt);
-            zref = value(z);            
-            optz = value(z);
-            optu = value(u);            
+            optz = zref;
+            optu = uref;
             %}
         end
-        
         
         function [optz,optu] = Planner(this,fld)
             %{
