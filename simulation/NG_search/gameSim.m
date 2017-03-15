@@ -3,7 +3,8 @@
 % This code is used for ACC 17
 % Chang Liu 9/12/16
 % The code is modified for IROS 17
-% Chang Liu Jan. 17
+% Chang Liu Jan. 2017
+
 
 clc 
 clear % clear global variables
@@ -30,16 +31,17 @@ for ii = 1:sim_len
     display(rbt.est_pos);
     
     %% robot motion planning
-    %
-    [optz,optu] = rbt.ngPlanner(fld)
+    
+    [optz,optu] = rbt.ngPlanner(fld);
     rbt = rbt.updState(optu);
     display('robot state:')
     display(rbt.state);
     
-    if trace(rbt.P) <= 1 && norm(fld.target.pos-rbt.est_pos) <= 2 && norm(rbt.state(1:2)-target.pos) <= 3
-        display('target is localized')
-        break
-    end     
+    % terminating condition
+%     if trace(rbt.P) <= 1 && norm(fld.target.pos-rbt.est_pos) <= 2 && norm(rbt.state(1:2)-target.pos) <= 3
+%         display('target is localized')
+%         break
+%     end     
    %}
 end
 

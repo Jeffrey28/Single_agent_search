@@ -211,7 +211,12 @@ classdef Robot
         end
         
         %% planning
-        function [optz,optu] = ngPlanner(this,fld)
+        
+        function [optz,optu] = ngPlanner(this,fld)            
+            % use the multi-layer approach similar to Sachin's work. Fix
+            % the parameter for the sensor, solve path planning. Then
+            % refine the parameter until close to reality.
+            
             % planing in non-Gaussian (GMM) belief space
             N = this.mpc_hor;
             dt = this.dt;
@@ -237,33 +242,58 @@ classdef Robot
             z = sdpvar(4,N+1,'full');
             u = sdpvar(2,N,'full');
             % estimation
-            x = sdpvar(2,this.gmm_num,N+1,'full');
-            P = sdpvar(2,this.gmm_num,2*(N+1),'full'); % symmetric matrix in first two dim
+            x = sdpvar(2*this.gmm_num,N+1,'full');
+%             P = sdpvar(2,this.gmm_num,2*(N+1),'full'); % symmetric matrix in first two dim
+            P = cell(this.gmm_num,1);
+            % initialize P
+            for ii = 1:this.gmm_num
+               P{ii} = sdpvar(2,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
+            end
+            
             % auxiliary variable
 %             tmp_M = sdpvar(2,2,'full');
-%             K = sdpvar(2,2,'full');
+            K = sdpvar(2,2,'full');
 %             phi = sdpvar(2,2,'full');
 %             tmp1 = sdpvar(2,N,'full');
             
             % debug purpose
-            x_pred = sdpvar(2,this.gmm_num,N,'full');
+            x_pred = sdpvar(2*this.gmm_num,N,'full');
 %             P_pred = sdpvar(2,2,N,'full');
-            P_pred = sdpvar(2,this.gmm_num,2*N,'full');
+            P_pred = cell(this.gmm_num,1);
+            % initialize P
+            for ii = 1:this.gmm_num
+               P_pred{ii} = sdpvar(2,2*N,'full'); % a set of 2-by-2 symmetric matrices
+            end
+            
+            % the parameter for the sensing boundary approximation
+            alp = 0.1;
             
             % obj
             obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
             for ii = 1:N
                 for jj = 1:this.gmm_num
-                    obj = obj+this.wt(jj)*(f(x(:,jj,ii+1))); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
+                    tmp = 0;
+                    for ll = 1:this.gmm_num
+                        %%% I assume that the covariance does not change
+                        %%% for now, which is the simplification. Will
+                        %%% change this later after making program work.
+                        if ll == jj
+                            tmp = tmp+this.wt(ll)/(2*pi*det(this.P{ll}));
+                        else
+                            tmp = tmp+this.wt(ll)/(2*pi*det(this.P{ll}))*exp(-(x(2*jj-1:2*jj,ii+1)...
+                                -x(2*ll-1:2*ll,ii+1))'/this.P{ll}*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2);
+                        end
+                    end
+                obj = obj-this.wt(jj)*log(tmp); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
                 end
             end
             
             % constraints
             % initial value
             constr = [z(:,1) == this.state];
-            constr = [constr,x(:,:,1) == this.est_pos];
+            constr = [constr,x(:,1) == this.est_pos(:)];
             for jj = 1:this.gmm_num
-                constr = [constr,P(:,jj,1:2) == this.P{jj}];%[1 0;0 1]];
+                constr = [constr,P{jj}(:,1:2) == this.P{jj}];%[1 0;0 1]];
             end
             
             % constraints on the go
@@ -276,37 +306,49 @@ classdef Robot
                 constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
                     [fld.fld_cor(2);fld.fld_cor(4)]];               
                                 
-                gamma_den = 1;
+                gamma_den = 1; %(1+alp*sum(([squeeze(x(1,:,ii+1))*this.wt;squeeze(x(2,:,ii+1))*this.wt]...
+%                     -z(1:2,ii+1)).^2)); %((1+exp((a(1,:)*x_cur-b(1))))*(1+exp((a(2,:)*x_cur-b(2)))))*(1+exp(-cos(z(3,ii+1)-theta_ref(ii))+cos(this.theta0)));
                 gamma_num = 1;
                 
-                % prediction
+                % target prediction
                 for jj = 1:this.gmm_num
-                    A = del_f(x(:,jj,ii));
-                    C = del_h(x(:,jj,ii));
-%                     x_pred(:,jj,ii) = f(x(:,jj,ii)); % for debug purpose                    
-                    constr = [constr,P_pred(:,jj,2*ii-1:2*ii) == A*squeeze(P(:,jj,2*ii-1:2*ii))*A'+Q];
-                    % update using pesudo measurement
-                    T = C*P_pred(:,2*ii-1:2*ii)*C'+R; % CPC'+R
-                    a = T(1,1);
-                    b = T(1,2);
-                    c = T(2,1);
-                    d = T(2,2);
-                    t = a*d-b*c;
-                    T2 = [d -b; -c a]; % inv(CPC'+R)
+                    A = del_f(x(2*jj-1:2*jj,ii));
+                    C = del_h(x(2*jj-1:2*jj,ii));
                     
-                    % this updating of x seems to use the MAP assumption of
-                    % variables
-                    constr = [constr, x(:,ii+1) == f(x(:,ii))];
+                    % forward prediction                    
+                    % mean
+                    constr = [constr, x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))]; 
+                    % covariance
+                    constr = [constr,P_pred{jj}(:,2*ii-1:2*ii) == A*(P{jj}(:,2*ii-1:2*ii))*A'+Q];
                     
+                    % update using pesudo measurement                    
+                    T = C*P_pred{jj}(:,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
+                    constr = [constr, K*T == P_pred{jj}(:,2*ii-1:2*ii)*C']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
+                    
+%                     a = T(1,1);
+%                     b = T(1,2);
+%                     c = T(2,1);
+%                     d = T(2,2);
+%                     t = a*d-b*c;
+%                     T2 = [d -b; -c a]; % inv(CPC'+R)
+                                       
                     % since gamma is in factorial form, to avoid division, I
                     % separate the denominator and numerator to two sides of
                     % the equation
-                    constr = [constr,(P(:,jj,2*ii+1:2*ii+2)-P_pred(:,jj,2*ii-1:2*ii))*gamma_num*t...
-                        == -gamma_den*P_pred(:,2*ii-1:2*ii)*C'*T2*C*P_pred(:,2*ii-1:2*ii)/100];%+phi];
+                    % mean
+                    %%%%% note: for now, I assume the MAP as the target
+                    %%%%% position, however, I should change this later 
+                    %%%%% when using GMM.
+                    constr = [constr,x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)];
+                    % covariance
+                    constr = [constr,(P{jj}(:,2*ii+1:2*ii+2)-P_pred{jj}(:,2*ii-1:2*ii))*gamma_den...
+                        == -gamma_num*K*C*P_pred{jj}(:,2*ii-1:2*ii)];%+phi];
                 end
             end
             constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
                 this.v_lb <= z(4,:) <= this.v_ub];
+            
+%             [model,recoverymodel,diagnostic,internalmodel] = export(constr,obj,sdpsettings('solver','fmincon'));
             
             opt = sdpsettings('solver','fmincon','verbose',1,'debug',1,'showprogress',1);
             
@@ -314,7 +356,9 @@ classdef Robot
             zref = value(z);            
             optz = value(z);
             optu = value(u);            
+            %}
         end
+        
         
         function [optz,optu] = Planner(this,fld)
             %{
