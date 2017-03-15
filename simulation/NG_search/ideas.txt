@@ -1,4 +1,0 @@
-2/20/17
-
-needs to revise:
-1. the objective function needs more derivation. current one is incorrect for multi-variate Gaussian case.

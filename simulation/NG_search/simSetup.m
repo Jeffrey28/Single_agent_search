@@ -7,8 +7,10 @@ set(0,'DefaultFigureWindowStyle','docked');% docked
 
 sim_len = 100;
 dt = 0.5;
-
 sensor_type = 'rb'; % rb, ran, br
+
+inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type);
+sim = Sim(inPara_sim);
 
 %% Set field %%%
 % target info
@@ -45,6 +47,9 @@ inPara_rbt.w_lb = -pi/4;
 inPara_rbt.w_ub = pi/4;
 inPara_rbt.v_lb = 0;
 inPara_rbt.v_ub = 3;
+% robot kinematics
+inPara_rbt.g = @(z,u) z+u*dt;
+inPara_rbt.del_g = @(z,u) z+u*dt;
 % sensor
 %%% needs further revision
 inPara_rbt.sensor_type = sensor_type;
@@ -54,7 +59,7 @@ if strcmp(sensor_type,'rb')
 %     inPara_rbt.del_h = @(x) eye(2);
 %     inPara_rbt.R = 5*eye(2);
     inPara_rbt.h = @(x) x.^2-inPara_rbt.state(1:2).^2;
-    inPara_rbt.del_h =  @(x) [2*x(1) 0; 0 2*x(2)];
+    inPara_rbt.del_h = @(x,y) [2*x(1) 0; 0 2*x(2)]; % y is the robot state.
     inPara_rbt.R = 5*eye(2);
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
@@ -72,7 +77,7 @@ inPara_rbt.theta0 = 360/180*pi;
 inPara_rbt.range = 30;%4.5;
 
 % estimation initialization
-inPara_rbt.est_pos = target.pos+[5,-10,10;-0.5,10,-5];%[30;25];
+inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];
 inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
 inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;

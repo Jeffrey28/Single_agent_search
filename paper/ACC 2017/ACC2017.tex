@@ -99,7 +99,7 @@ Model Predictive Control-Based Target Search and Tracking Using Autonomous Mobil
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-Target search and tracking using autonomous robots is important for both civil and military applications.
+Target search and tracking using autonomous robots is important for both civilian and military applications.
 In this work, we propose a model predictive control (MPC)-based path planning approach for a ground mobile robot to autonomously search and track a moving target.
 %a path planning method for an autonomous robot equipped with a binary sensor to search for a stationary target is proposed.
 The robot is equipped with a sensor with limited sensing domain (bounded sensing range and angle of view) for target detection.
@@ -115,7 +115,7 @@ The effectiveness of the proposed method is demonstrated by numerical simulation
 \section{INTRODUCTION}
 Using autonomous robots to search and track targets has attracted wide interest in recent years. 
 In such application, an autonomous robot first needs to explore the environment and search for the targets of interest. 
-After detecting a target, the robot will then switch mode to track the target. Some applications include indoor search \cite{lau2006probabilistic}, marine search-and-rescue \cite{furukawa2006recursive} and object search-and-identify in the wilderness \cite{chung2009probabilistic}.
+After detecting a target, the robot will then switch mode to track the target. Some applications include indoor search \cite{lau2006probabilistic}, marine search-and-rescue \cite{furukawa2006recursive} and object search-and-identify \cite{chung2009probabilistic}.
 
 Studies on search and tracking were initiated during World War II. 
 However, later research efforts have treated these two modes rather separately. 
@@ -161,7 +161,7 @@ Sampling-based path planning approaches have also been adopted for information g
 %, which can directly handle limited FOV of sensors. 
 For example, Hollinger et al. \cite{hollinger2014sampling} has proposed a rapidly exploring information gathering graph approach to effectively optimize a modular or submodular objective functions for information gathering. 
 Levine \cite{levine2010information} proposed a variant of RRT \cite{lavalle2001randomized} algorithm to search for targets in the environment, considering the limited sensing domain and occlusion caused by obstacles. 
-However, sampling-based methods currently suffer from poor scalability to higher dimensional space and thus is of limited use.
+However, sampling-based methods suffer from poor scalability to higher dimensional space and thus is of limited use.
 
 In this work, we use the model predictive control framework for non-myopic path planning, which is formulated as an optimization problem that 
 %, which is advantageous in that it can adjust the generated path by incorporating updated environment state.
@@ -195,7 +195,7 @@ Simulation results are presented in \cref{sec:sim}.
 \section{PROBLEM FORMULATION}\label{sec:prob_form}
 
 %Let $\mathit{S}=\left\lbrace x|x\in \mathbb{R}^2\right\rbrace $ denote
-We consider a two-dimensional planar space, as shown in \Cref{fig:scenario}, that contains a moving target (blue toy car) and an autonomous mobile robot (red wheeled robot).
+We consider a two-dimensional planar space, as shown in \Cref{fig:scenario}, that contains a moving target (blue cylinder) and an autonomous mobile robot (red wheeled robot).
 The robot is equipped with a sensor that has limited sensing domain to measure the target position.
 We let the sensor have the same state as the robot (i.e. position and heading angle).
 The target position is unknown a priori and the robot needs to autonomously search for the target.
@@ -208,7 +208,7 @@ However, when the target is within the sensing domain, the uncertainty is signif
 We use a discrete-time unicycle motion model for the mobile robot:
 %as shown in \cref{eqn:r_kinematics}:
 %\begin{subequations}\label{eqn:r_kinematics}
-\begin{equation}
+\begin{equation}\label{eqn:target_motion_model}
 x^r_{k+1}=f(x^r_k,u^r_k),
 \end{equation}
 where
@@ -224,8 +224,8 @@ where
 		\end{bmatrix}u^r_{k}\nonumber.
 	\end{align}
 %\end{subequations}
-The robot state $x^r_k=[x^r_{1,k},x^r_{2,k},\theta^r_k,v^r_k]\in\mathbb{R}^4$ consists of its position, steering wheel angle and speed at time $k$.
-The control input $u^r_k=[w^r_k,a^r_k]\in\mathbb{R}^2$ includes angular velocity and linear acceleration.
+The robot state $x^r_k=[x^r_{1,k},x^r_{2,k},\theta^r_k,v^r_k]^T\in\mathbb{R}^4$ consists of its position, steering wheel angle and speed at time $k$.
+The control input $u^r_k=[w^r_k,a^r_k]^T\in\mathbb{R}^2$ includes angular velocity and linear acceleration.
 $\Delta t$ represents the sampling time.
 
 We assume a stochastic linear time-invariant model for the target:
@@ -233,7 +233,7 @@ We assume a stochastic linear time-invariant model for the target:
 x^t_{k+1}=Ax^t_k+Bu^t_k+w_k,\;w_t\sim \mathcal{N}(0,Q),
 \end{equation}
 where $A,B\in\mathbb{R}^{2\times 2}$ are system matrices; $w_t\in\mathbb{R}^2$ is a zero-mean Gaussian noise with $Q\succeq 0$ being the covariance matrix.
-The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]\in\mathbb{R}^2$ represents its position.
+The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]^T\in\mathbb{R}^2$ represents its position.
 
 %Define 
 %\begin{subequations}
@@ -253,14 +253,14 @@ The target state $x^t_k=[x^t_{1,k},x^t_{2,k}]\in\mathbb{R}^2$ represents its pos
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.33\textwidth]{figures/scenario}
-	\caption{Scenario of the target search and tracking mission. Initial positions of the robot and target are represented by translucent red wheeled robot and blue toy car. Their corresponding trajectories are shown as the red and blue dashed lines. The blue dashed circles corresponds to the uncertainty of target position. The green sector shows the sensor's limited sensing domain.} 
+	\includegraphics[width=0.45\textwidth]{figures/scenario2}
+	\caption{Scenario of the target search and tracking mission. Trajectories of the robot and the target are shown as the red and blue dashed lines. The gray circles correspond to the uncertainty of the estimated target position. The green sector shows the sensor's limited sensing domain.} 
 	\label{fig:scenario}
 \end{figure}
 
 \subsection{Modeling Sensing Domain}
 Common sensors, such as cameras and radars, have limited sensing domain that are bounded in both sensing range (distance) and angle (angle of view) \cite{yu2016dynamical}.
-We approximate the sensing domain as a sector (\Cref{fig:FOV}), which can be represented as $\mathcal{F}_k=\left\lbrace [x^t_{1,k},x^t_{2,k}]\in\mathbb{R}^2|\:\|v\|_2\leq r, \angle v\in[\theta_1,\theta_2]\right\rbrace$, where $v=[x^t_{1,k}-x^r_{1,k},x^t_{2,k}-x^r_{2,k}]$.
+We approximate the sensing domain as a sector (\Cref{fig:FOV}), which can be represented as $\mathcal{F}_k=\left\lbrace [x_{1,k},x_{2,k}]\in\mathbb{R}^2|\:\|v\|_2\leq r, \angle v\in[\theta_1,\theta_2]\right\rbrace$, where $v=[x_{1,k}-x^r_{1,k},x_{2,k}-x^r_{2,k}]$.
 It should be noted that, though we use a sector-shaped sensing domain model in this work, the presented path planning method can also apply to other geometries of sensor's sensing domain, such as the lobe or cone shape.
 
 \subsection{Sensor Measurement Model}
@@ -400,7 +400,7 @@ when the robot is close to the target, it is more likely that the target can be 
 		\includegraphics[width=\textwidth]{figures/test1_4}
 		%		\caption{}
 	\end{subfigure}
-	\caption{Intermediate steps of search and tracking. Green dashed sector represents the sensor's sensing domain and the blue dashed circle show the uncertainty of the target position (based on diagonal elements of $\sqrt{P_{k|k}}$). Red and blue lines corresponds to the trajectories of the robot and target.}
+	\caption{Intermediate steps of search and tracking. Green dashed sector represents the sensor's sensing domain and the blue dashed circle show the uncertainty of the target position (based on diagonal elements of $\sqrt{P_{k|k}}$). Red and blue lines correspond to the trajectories of the robot and target.}
 	\label{fig:test1}
 \end{figure}
 
@@ -408,7 +408,8 @@ when the robot is close to the target, it is more likely that the target can be 
 %Due to the coupling between robot state and target position in \Cref{eqn:gamma}, solving the nonlinear MPC problem is time consuming. 
 Directly solving the MPC problem in \Cref{eqn:MPC} is time consuming, mainly due to the coupling of robot and target state in $\gamma_k$, as defined in \Cref{eqn:gamma}.
 To reduce the computation burden for real-time applications, we make several relaxation to the original MPC problem.
-To be specific, in the predictive horizon, the target position is assumed to be propagated without noise from the estimated target position at the beginning of the prediction. This is equivalent to predicting target position using \Cref{eqn:KF_pred_x} but without updating step (\Cref{eqn:KF_upd_x}). 
+To be specific, in the predictive horizon, the target position is assumed to change following \Cref{eqn:target_motion_model} but without noise, starting from the estimated target position at the beginning of the prediction. 
+This is equivalent to predicting target position using \Cref{eqn:KF_pred_x} but without updating step (\Cref{eqn:KF_upd_x}). 
 This is a reasonable assumption for MPC framework. 
 In fact, because of the stochasticity of target motion and sensor measurement process, it is difficult to accurately predict the evolution of the environment state for a long horizon. 
 The benefit of MPC is that it will takes into account the newly received information about the target and then utilize it to update the path at each time step. 
@@ -456,10 +457,15 @@ The benefits of conducting this sequential two-step planning process lies in tha
 We have tested the algorithm on different scenarios. 
 Each scenario consists of a mobile robot equipped with a camera and a moving target in a $50m\times 50m$ field.
 The initial position of the target is different in each scenario while the robot starts from the same position.
-Specifications for simulation are described in Appendix.
-%Parameters of simulation are shown in \Cref{tab:sim_param}.\todohere{decide later whether needs to add table here}
+The robot has a maximum speed of $3m/s$ with the acceleration range $[-3m/{s^2},1m/{s^2}]$ and the angular velocity range $[-\frac{\pi}{4},\frac{\pi}{4}]$.
+The sensing range $r=5m$ and the sensing angle is $60\degree$.
+Target model $A$ and measurement model $C$ are assumed to be identity matrices, with the noise $R=\begin{bmatrix}
+1& 0\\0 &1
+\end{bmatrix}$ and $Q=\begin{bmatrix}
+0.01& 0\\0 &0.01
+\end{bmatrix}$.
+The value of $B$ varies among different scenarios.
 
-%In all scenarios, the robot successfully finds and tracks the target.
 \Cref{fig:test1} shows the intermediate search and tracking steps of a test scenario.
 At the beginning, the robot starts from the lower left corner and the target is at the upper right corner.
 The estimated target position is initialized as the target's true position but with a large uncertainty.
@@ -498,7 +504,7 @@ The robot then keeps measuring the target position and the uncertainty continues
 Fluctuation of the trace can also be observed in later part of the search and tracking.
 This is mainly due to the fact that the target moves in a stochastic manner and therefore there exists some cases that the target falls out of the sensing domain.
 However, the robot is able to adjust its sensor and keep the target in its sensing domain again.
-These figures shows that the robot successfully detects the target and then keeps tracking it afterwards in all cases using the presented approach.
+These figures shows that the robot successfully detects the target and then keeps tracking it afterwards in all considered cases using the presented approach.
 
 We have also set the initial estimated target position to be different from the true position, which adds more complexity to the problem. 
 Results on three scenarios from \Cref{fig:test1,fig:other test} are presented in \Cref{fig:test_offset}.
@@ -527,23 +533,8 @@ Some general nonlinear filters, such as Bayes filter and Particle filter, can th
 Lastly, when there exist obstacles in the environment, occlusion may happen that affects the sensor measurement process. 
 Taking into account the occlusion in the planning process is our ongoing work.
 
-\appendix
-\section*{Parameters for Simulation}\label{app:param}
-\begin{itemize}
-	\setlength\itemsep{0.5em}
-	\item Feasible sets: $\mathcal{X}=\left\lbrace x^r_k|v^r_k\in[0,3]\right\rbrace$, $\mathcal{U}=\left\lbrace u^r_k|a^r_k\in[-3,1],\: w^r_k\in[-\frac{pi}{4},\frac{pi}{4}]\right\rbrace$.
-	\item Sensor sensing domain: $r=5,\: \theta_0=60\degree$.
-	\item $\Delta t = 0.5$.
-	\item System matrices: $A,C,R=\begin{bmatrix}
-	1& 0\\0 &1
-	\end{bmatrix},\:  Q = \begin{bmatrix}
-	0.01& 0\\0 &0.01
-	\end{bmatrix}$.	
-	\item The value of B varies among different scenarios.
-\end{itemize}
 
-
-\addtolength{\textheight}{-11cm}%{-12cm}   % This command serves to balance the column lengths
+\addtolength{\textheight}{-14cm}%{-12cm}   % This command serves to balance the column lengths
                                   % on the last page of the document manually. It shortens
                                   % the textheight of the last page by a suitable amount.
                                   % This command does not take effect until the next page

@@ -30,15 +30,14 @@ H.~Lau, S.~Huang, and G.~Dissanayake, ``Probabilistic search for a moving
 \bibitem{furukawa2006recursive}
 T.~Furukawa, F.~Bourgault, B.~Lavis, and H.~F. Durrant-Whyte, ``Recursive
   bayesian search-and-tracking using coordinated uavs for lost targets,'' in
-  \emph{Robotics and Automation, 2006. ICRA 2006. Proceedings 2006 IEEE
-  International Conference on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE,
-  2006, pp. 2521--2526.
+  \emph{Robotics and Automation, 2006 IEEE International Conference on}.\hskip
+  1em plus 0.5em minus 0.4em\relax IEEE, 2006, pp. 2521--2526.
 
 \bibitem{chung2009probabilistic}
 T.~H. Chung, M.~Kress, and J.~O. Royset, ``Probabilistic search optimization
   and mission assignment for heterogeneous autonomous agents,'' in
-  \emph{Robotics and Automation, 2009. ICRA'09. IEEE International Conference
-  on}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2009, pp. 939--945.
+  \emph{Robotics and Automation, 2009. IEEE International Conference on}.\hskip
+  1em plus 0.5em minus 0.4em\relax IEEE, 2009, pp. 939--945.
 
 \bibitem{papanikolopoulos1993visual}
 N.~P. Papanikolopoulos, P.~K. Khosla, and T.~Kanade, ``Visual tracking of a
@@ -49,9 +48,8 @@ N.~P. Papanikolopoulos, P.~K. Khosla, and T.~Kanade, ``Visual tracking of a
 \bibitem{lee2000stable}
 S.-O. Lee, Y.-J. Cho, M.~Hwang-Bo, B.-J. You, and S.-R. Oh, ``A stable
   target-tracking control for unicycle mobile robots,'' in \emph{Intelligent
-  Robots and Systems, 2000.(IROS 2000). Proceedings. 2000 IEEE/RSJ
-  International Conference on}, vol.~3.\hskip 1em plus 0.5em minus 0.4em\relax
-  IEEE, 2000, pp. 1822--1827.
+  Robots and Systems, 2000 IEEE/RSJ International Conference on}, vol.~3.\hskip
+  1em plus 0.5em minus 0.4em\relax IEEE, 2000, pp. 1822--1827.
 
 \bibitem{hausman2015cooperative}
 K.~Hausman, J.~M{\"u}ller, A.~Hariharan, N.~Ayanian, and G.~S. Sukhatme,
@@ -67,9 +65,8 @@ L.~D. Stone, ``Or forum—what's happened in search theory since the 1975
 \bibitem{bourgault2004process}
 F.~Bourgault, T.~Furukawa, and H.~F. Durrant-Whyte, ``Process model,
   constraints, and the coordinated search strategy,'' in \emph{Robotics and
-  Automation, 2004. Proceedings. ICRA'04. 2004 IEEE International Conference
-  on}, vol.~5.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2004, pp.
-  5256--5261.
+  Automation, 2004 IEEE International Conference on}, vol.~5.\hskip 1em plus
+  0.5em minus 0.4em\relax IEEE, 2004, pp. 5256--5261.
 
 \bibitem{bourgault2006optimal}
 ------, ``Optimal search for a lost target in a bayesian world,'' in
@@ -133,13 +130,19 @@ C.~Liu, S.~E. Li, and J.~K. Hedrick, ``Model predictive control-based
   probabilistic search method for autonomous ground robot in a dynamic
   environment,'' in \emph{ASME 2015 Dynamic Systems and Control
   Conference}.\hskip 1em plus 0.5em minus 0.4em\relax American Society of
-  Mechanical Engineers, 2015, pp. V003T49A003--V003T49A003.
+  Mechanical Engineers, 2015.
 
 \bibitem{patil2014gaussian}
 S.~Patil, Y.~Duan, J.~Schulman, K.~Goldberg, and P.~Abbeel, ``Gaussian belief
   space planning with discontinuities in sensing domains,'' in \emph{2014 IEEE
   International Conference on Robotics and Automation (ICRA)}.\hskip 1em plus
   0.5em minus 0.4em\relax IEEE, 2014, pp. 6483--6490.
+
+\bibitem{yu2016dynamical}
+J.~Yu, S.~E. Li, C.~Liu, and B.~Cheng, ``Dynamical tracking of surrounding
+  objects for road vehicles using linearly-arrayed ultrasonic sensors,'' in
+  \emph{2016 IEEE Intelligent Vehicles Symposium (IV)}.\hskip 1em plus 0.5em
+  minus 0.4em\relax IEEE, 2016, pp. 72--77.
 
 \bibitem{sinopoli2004kalman}
 B.~Sinopoli, L.~Schenato, M.~Franceschetti, K.~Poolla, M.~I. Jordan, and S.~S.
@@ -155,11 +158,5 @@ N.~A. Atanasov, J.~Le~Ny, and G.~J. Pappas, ``Distributed algorithms for
 D.~J. MacKay, \emph{Information theory, inference and learning
   algorithms}.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge university
   press, 2003.
-
-\bibitem{yu2016dynamical}
-J.~Yu, S.~E. Li, C.~Liu, and B.~Cheng, ``Dynamical tracking of surrounding
-  objects for road vehicles using linearly-arrayed ultrasonic sensors,'' in
-  \emph{2016 IEEE Intelligent Vehicles Symposium (IV)}.\hskip 1em plus 0.5em
-  minus 0.4em\relax IEEE, 2016, pp. 72--77.
 
 \end{thebibliography}

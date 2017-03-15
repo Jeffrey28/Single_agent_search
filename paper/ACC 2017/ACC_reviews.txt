@@ -1,0 +1,57 @@
+Reviewer 6 of 2017 ACC submission 1059
+
+Comments to the author
+======================
+
+The paper proposes an MPC scheme for search & tracking that
+takes into account computational constraints. The authors,
+in particular, propose a sequential planning approach over
+a MPC-based path planner.
+
+The paper seems well organized and addresses an interesting
+topic. At the same time, I have some suggestions for
+improvement:
+
+- some transposes are missing in vector definitions in
+II.A;
+- figure 1 isn't very explicative;
+- in the definition of the sensing domain (II.B), the use
+of target states x_{1,k}^t and x_{2,k}^t seems improper (as
+you refer to a domain definition, I suggest to simply use
+generic variables x_{1,k} and x_{2,k} instead);
+- as subsection III.C is one of the key contributions of
+the paper, I suggest to formalize the description of the
+proposed algorithm;
+- more space should be given to a comparison with 'myopic'
+path planning solutions (e.g. in the simulation section);
+- I suggest avoiding a separate appendix for the simulation
+parameters;
+- typos and minor comments: 'considered the similar
+problem'; 'red and blue lines corresponds'; we make several
+relaxation'; 'the target position is assumed to be
+propagated ... the prediction' (clarify); 'afterwards in
+all cases' => 'afterwards in all the considered cases';
+'below certain threshold'; some bibliography entries (e.g.
+title in reference [17], citation format consistency in
+[2,3,8,19,21]).
+
+Reviewer 7 of 2017 ACC submission 1059
+
+Comments to the author
+======================
+
+The paper presents a model predictive control (MPC) based
+path planning approach for a nonholonomic mobile robot
+pursuing a moving target. The robot is equipped with a
+sensor of limited range. The MPC fully incorporates the
+sensor's stochastic uncertainty modeled as Gaussian
+distribution. To simplify the MPC solution, the paper
+employs a two-step procedure that first generates the
+reference trajectory and then uses it to solve the original
+MPC. A numerical simulation is used to show the
+effectiveness of the approach.
+
+My main criticism of this work is that it completely avoids
+dealing with obstacles often encountered in this type of
+path planning. It only	mentions it briefly in the last
+sentence of the paper's conclusions.
