@@ -73,8 +73,8 @@ elseif strcmp(sensor_type,'br')
     % inPara_rbt.R_brg = 0.5;
 end
 
-inPara_rbt.theta0 = 360/180*pi;
-inPara_rbt.range = 30;%4.5;
+inPara_rbt.theta0 = 60/180*pi;
+inPara_rbt.range = 5;%4.5;
 
 % estimation initialization
 inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];

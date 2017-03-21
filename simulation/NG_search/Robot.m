@@ -311,13 +311,21 @@ classdef Robot
                     
                     if isempty(zref)
                         tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
-                        gamma_den = 1+sum((tmp_mean-z(1:2,ii+1)).^2);
+                        gamma_den = 1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+                        % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
                     else                        
                         tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
                         tmp_v = tmp_mean-zref(1:2,ii+1);
                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
-                        gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
-                            (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)))/100;
+                        theta1 = zref(3,ii+1)-this.theta0;
+                        theta2 = zref(3,ii+1)+this.theta0;
+                        a1 = [sin(theta1);-cos(theta1)];
+                        a2 = [-sin(theta2);cos(theta2)];
+                        gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+                            *(1+exp(alp*(tmp_v'*a1)))*...
+                            (1+exp(alp*(tmp_v'*a2)));
+%                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
+%                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
                     end
                     gamma_num = 1;
                     
@@ -375,7 +383,7 @@ classdef Robot
                     assign(z,zref)
                     assign(u,uref)
                 end
-                opt = sdpsettings('solver','ipopt','verbose',2,'debug',1,'showprogress',1);
+                opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
                 
                 sol1 = optimize(constr,obj,opt);
                 zref = value(z);
@@ -395,11 +403,18 @@ classdef Robot
                     
                     tmp_v = tmp_mean-zref(1:2,ii+1);
                     theta_ref = atan2(tmp_v(2),tmp_v(1));
-                    is_in_fov_approx(ii) = 1/((1+exp(-alp*sum((tmp_mean-zref(1:2,ii+1)).^2)))...
-                        *(1+exp(-cos(zref(3,ii+1)-theta_ref)+cos(this.theta0))));
+                    theta1 = zref(3,ii+1)-this.theta0;
+                    theta2 = zref(3,ii+1)+this.theta0;
+                    a1 = [sin(theta1);-cos(theta1)];
+                    a2 = [-sin(theta2);cos(theta2)];
+                    is_in_fov_approx(ii) = 1/((1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+                        *(1+exp(alp*(tmp_v'*a1)))*...
+                        (1+exp(alp*(tmp_v'*a2))));
+                    %(1+exp(-cos(zref(3,ii+1)-theta_ref)+cos(this.theta0))));
                 end
                 
-                if norm(is_in_fov-is_in_fov_approx,1) < 0.1*N
+                dif = norm(is_in_fov-is_in_fov_approx,1);
+                if dif < 0.1*N
                     break
                 end
                 

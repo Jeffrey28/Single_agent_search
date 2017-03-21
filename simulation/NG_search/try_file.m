@@ -25,6 +25,7 @@
 % end
 
 %% test ekf
+%{
 xg = [10;10]; % target position
 xs = [15;15]; % sensor position
 f = @(x) x;
@@ -41,6 +42,7 @@ for ii = 1:50
 x = x_next;
 P = P_next;
 end
+%}
 
 %% visualize FOV
 %{
@@ -147,3 +149,14 @@ ylim([fld.fld_cor(3),fld.fld_cor(4)]);
 box on
 % axis equal
 %}
+
+%% test the sigmoid function
+x0 = 0;
+k = [0.1,0.5,1,2,5,10];
+x = -5:0.1:5;
+figure 
+hold on
+for ii = 1:length(k)
+    y = 1./(1+exp((k(ii)*(x-x0))));
+    plot(x,y)
+end

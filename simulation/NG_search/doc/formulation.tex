@@ -1,0 +1,204 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
+
+\IEEEoverridecommandlockouts                              % This command is only needed if 
+                                                          % you want to use the \thanks command
+
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphicx}
+\usepackage{graphics} % for pdf, bitmapped graphics files
+\usepackage{epsfig} % for postscript graphics files
+\usepackage{subcaption}
+\usepackage[noadjust]{cite}
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath,amssymb,amsfonts} % assumes amsmath package installed
+\usepackage{algorithm,algpseudocode}
+%\usepackage{booktabs}
+\usepackage{dsfont}
+\usepackage{gensymb} % degree symbol
+
+% format for theorems etc.
+\newtheorem{thm}{\bfseries Theorem}
+\newtheorem{lem}{\bfseries Lemma}
+\newtheorem{cor}{\bfseries Corollary}
+\newtheorem{prop}{\bfseries Proposition}
+\newtheorem{rem}{\bfseries Remark}
+
+% format for argmin, argmax
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
+% format for cross-reference
+\usepackage[capitalize]{cleveref}
+\crefname{equation}{eq.}{eq.}
+\Crefname{equation}{Eq.}{Eq.}
+\crefname{thm}{theorem}{theorems}
+\Crefname{thm}{Theorem}{Theorems}
+\crefname{lem}{lemma}{lemmas}
+\Crefname{lem}{Lemma}{Lemmas}
+\crefname{cor}{corollary}{corollaries}
+\Crefname{cor}{Corollary}{Corollaries}
+\crefname{prop}{proposition}{propositions}
+\Crefname{prop}{Proposition}{Propositions}
+\crefname{rem}{remark}{remarks}
+\Crefname{rem}{Remark}{Remarks}
+
+%=====todonotes===== %
+\usepackage{todonotes}
+\usepackage{soul}
+\definecolor{smoothgreen}{rgb}{0.7,1,0.7}
+\sethlcolor{smoothgreen}
+
+\newcommand{\todopara}[1]{\vspace{0px} %
+	\todo[inline, color=black!10]{\textbf{[Paragraph:]} {#1}} %
+}
+\newcommand{\todonote}[1]{\vspace{0px} %
+	\todo[inline, color=green!30]{\textbf{[Note:]} {#1}} %
+}
+\newcommand{\todoQ}[1]{\vspace{0px} %
+	\todo[inline, color=orange!50]{\textbf{[Note:]} {#1}} %
+}
+\newcommand{\todohere}[1]{\hl{(\textbf{TODO:} #1)}}
+
+\newcommand{\hidetodos}{
+	\renewcommand{\todopara}[1]{}
+	\renewcommand{\todonote}[1]{}
+	\renewcommand{\todoQ}[1]{}
+	\renewcommand{\todohere}[1]{}
+	}
+
+
+\title{\LARGE \bf
+Formulation of the problem}
+
+\author{Chang Liu}%
+
+
+
+\begin{document}
+
+%\hidetodos % hide all todos 
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+\section{PROBLEM FORMULATION}\label{sec:prob_form}
+
+\subsection{Robot and Target Motion Model}
+Unicycle motion model for the mobile robot:
+\begin{equation}\label{eqn:target_motion_model}
+z_{k+1}=h(z_k,u^r_k),
+\end{equation}
+where
+	\begin{align}
+%		y^R_{k+1}&=f(y^R_k,u^R_k),\\
+%		\text{where}\\		
+		f(z_k,u^r_k)&=z_{k}+
+		\begin{bmatrix}
+			\cos{\theta^r_{k}}\Delta t & 0\\
+			\sin{\theta^r_{k}}\Delta t & 0\\
+			\Delta t & 0\\
+			0 & \Delta t
+		\end{bmatrix}u^r_{k}\nonumber.
+	\end{align}
+
+Motion model of the target:
+\begin{align}
+x_{k+1}&=f(x_k)+w_k,\;w_t\sim \mathcal{N}(0,Q)\\
+\end{align}
+
+\subsection{Modeling Sensing Domain}
+Sensor sensing domain is represented as $\mathcal{F}_k=\left\lbrace [x_{1,k},x_{2,k}]\in\mathbb{R}^2|\:\|v\|_2\leq r, \angle v\in[\theta_1,\theta_2]\right\rbrace$, where $v=[x_{1,k}-z_{1,k},x_{2,k}-z_{2,k}]$.
+
+\subsection{Sensor Measurement Model}
+Measurement model:
+\begin{equation}\label{eqn:sensor}
+y_{k}=g(x_k)+v_k,\;v_k\sim
+\begin{cases}
+\mathcal{N}(0,R) & \text{if } \gamma_k=1\\%x_k\in\mathcal{F}_k\\
+\mathcal{N}(0,\sigma^2 I) & \text{if } \gamma_k=0\\% x_k\notin\mathcal{F}_k
+\end{cases},
+\end{equation}
+
+\begin{equation}
+\label{eqn:gamma_indicator}
+\gamma_{k}=\mathds{1}_{\left\lbrace x_{k}\in\mathcal{F}_{k}\right\rbrace}
+\end{equation}
+
+\section{MPC-based Path Planning}\label{sec:method}
+\subsection{EKF with Limited Sensing Domain}\label{subseq:KF with FOV}
+\begin{subequations}\label{eqn:KF}
+	\begin{align}
+	\hat{x}^t_{k+1|k}&=f(\hat{x}^t_{k|k})\\
+	P_{k+1|k}&=A^i_kP^i_{k|k}A^{i'}_k+Q\\
+	K^i_{k+1}&=P^i_{k+1|k}C^{i'}_{k+1}(C^i_{k+1}P^{i'}_{k+1|k}C^{i'}_{k+1}+R)^{-1}\\
+	\hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\gamma_{k+1}K^i_{k+1}(y_{k+1}-h(\hat{x}^t_{k+1|k}))\label{eqn:KF_upd_x}\\
+	P^i_{k+1|k+1}&=P^i_{k+1|k}-\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k},
+	\end{align}
+\end{subequations}
+where $A^i_k=\frac{\partial f}{\partial x}|_{x=\hat{x}^i_{k|k}}$ and $C^i_{k+1}=\frac{\partial g}{\partial x}|_{x=\hat{x}^i_{k+1|k}}$. 
+The $\hat{x}^t_{k|k}$ and $P_{k|k}$ represent the estimated target position and covariance matrix.
+For notational simplicity, we define $b_k=[\hat{x}^t_k,P_{k|k}]$ and let $b_{k+1}=g(b_k,u^r_k)$ represent the Kalman filter defined in \Cref{eqn:KF}.
+
+$\gamma$ is approximated by
+\begin{equation}\label{eqn:gamma}
+\begin{split}
+\gamma_{k}&\approx \frac{1}{1+\alpha_1\|[x_{1,k},x_{2,k}]-[z_{1,k},z_{2,k}]\|_2^2}\times\\
+&\quad\frac{1}{1+\exp{\left\lbrace-\alpha_2(\cos(\theta^r_k-\tilde{\theta}_k)-\cos(\theta_0))\right\rbrace}},
+\end{split}
+\end{equation}
+where $\tilde{\theta}_k=\angle([x_{1,k},x_{2,k}]-[z_{1,k},z_{2,k}])$ is the direction angle from the sensor position to target position; $\theta_0=\frac{\theta_2-\theta_1}{2}$ is half of the sensing angle; $\alpha_1$ and $\alpha_2$ are tunning parameters that controls the shape of the function. 
+\Cref{eqn:gamma} can be interpreted as follows:
+when the robot is close to the target, it is more likely that the target can be detected; besides, the closer the target direction aligns with the center direction of the sensor, the higher possibility that the target will get detected.
+
+\subsection{Path Planning for Target Search and Tracking}
+The MPC-based path planner with planning horizon $N$ can be formulated as:
+\begin{subequations}
+	\begin{align}
+	\min_{u_{1:N}}\; & J(b_{1:N+1},u_{1:N})\\
+	\text{s.t. }\; & z_{k+1}=f(z_k,u^r_k),\\
+	& b_{k+1}=g(b_k,u^r_k),\\
+	& z_{k+1}\in\mathcal{X}, \, u^r_{k+1}\in\mathcal{U},\\
+	& k=1,\dots,N,
+	\end{align}\label{eqn:MPC}
+\end{subequations}
+The objective function is
+\begin{align}
+J(b_{1:N+1})&=\sum\limits_{k=1}^{N+1} H(b_k)\\ %+w_2\|x_{i+1}-z_{i+1}\|^2,
+& \approx -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log b^i_k.
+\end{align}
+The approximation is the $0$-order approximation of entropy.
+
+\subsection{Possible linearization in the iterative planning process}
+\begin{enumerate}
+	\item target motion matrix A
+	\item sensor measurement matrix C
+	\item initial solution
+	\item approximate the sensor boundary
+	\item linearize robot motion model
+\end{enumerate}
+
+\section{possible extensions}
+\begin{enumerate}
+	\item GSF with good weight update law
+	\item efficient computation of the objective function
+	\item how to represent and compute $\gamma$ (incorporating $b_t$ or just using a point estimate (e.g. MAP))
+	\item incorporate negative info in a better way than $\gamma$.
+	\item the way to do iterative planing: updating $\gamma$ in SQP or outside SQP; whether updating $w$. if not updating, can I obtain an upper bound of the error?
+	\item control of nonholonomic vehicle
+	\item make the problem a cvx optimization or some other form (e.g., proximal gradient) to better utilize the form of the problem.
+\end{enumerate}
+1,3,4 are the possible main contributions of the work.
+
+\end{document}
