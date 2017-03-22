@@ -93,6 +93,13 @@ Formulation of the problem}
 \thispagestyle{empty}
 \pagestyle{empty}
 
+\section{Introduction}
+My work can different from Charrow's work in the following aspects:
+1. Instead of fitting each particle with a GMM, I generate a GMM with much smaller component number for planning purpose.
+2. In the planning, I incorporate the effects of limited FOV.
+3. In the path planning, I use MPC that may incorporate uncertainties.
+
+I should mention that, strategies that only updates GMM weights are not suitable, since the GMM here is not for mode that is fixed, but for dynamically changing states. Therefore, it is important to update the mean and covariance.
 \section{PROBLEM FORMULATION}\label{sec:prob_form}
 
 \subsection{Robot and Target Motion Model}
@@ -189,9 +196,21 @@ The approximation is the $0$-order approximation of entropy.
 	\item linearize robot motion model
 \end{enumerate}
 
+\subsection{estimation-planning framework}
+In the estimation based on the actual measurement, use the particle filter to incorporate nonlinearity and use E-M at each step to fit a GMM. mention that we can use other advanced technologies to update GMM, but here we just use a simple one.
+
+In the planning, use $\gamma$ to update the estimation. This makes sense since if we use pseudo-measurement to update GMM, it only reinforces/bootstrapping the current GMM, brining no new info. So it makes sense to just consider the entropy of the uncertainty.
+
+In the MPC, I may need to include the uncertainty into the obj. 
+
 \section{possible extensions}
 \begin{enumerate}
-	\item GSF with good weight update law
+	\item GSF with good weight and component number update law
+		\begin{enumerate}
+			\item GMM-PF: update PF and GMM at the same time, not running E-M to fit GMM for PF. One benefit of this is that we can always check the difference between PF and GMM and generate a better GMM if difference is big.
+			\item when updating GMM, can we treat $\gamma=0$ as a rare event? Will Dirichlet process help?
+			\item treat $\gamma=0$ and $\gamma=1$ as hybrid system. Then use GMM to model the mode switch? I think a little bit about this but seems difficult to do.
+		\end{enumerate}
 	\item efficient computation of the objective function
 	\item how to represent and compute $\gamma$ (incorporating $b_t$ or just using a point estimate (e.g. MAP))
 	\item incorporate negative info in a better way than $\gamma$.

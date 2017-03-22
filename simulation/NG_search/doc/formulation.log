@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6210 64-bit) (preloaded format=pdflatex 2017.3.20)  20 MAR 2017 16:43
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6210 64-bit) (preloaded format=pdflatex 2017.3.20)  22 MAR 2017 12:23
 entering extended mode
 **./formulation.tex
 (formulation.tex
@@ -716,31 +716,34 @@ Package gensymb Info: Using \Omega for \ohm on input line 88.
 Package gensymb Warning: Not defining \micro.
 
 ABD: EveryShipout initializing macros
-LaTeX Font Info:    Try loading font information for U+msa on input line 100.
+LaTeX Font Info:    Try loading font information for U+msa on input line 107.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd"
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 100.
+LaTeX Font Info:    Try loading font information for U+msb on input line 107.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsb.fd"
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 5119) in paragraph at lines 122--123
+Underfull \hbox (badness 5119) in paragraph at lines 129--130
 []\OT1/ptm/m/n/10 Sensor sens-ing do-main is rep-re-sented as $\OMS/cmsy/m/n/10
  F[] \OT1/cmr/m/n/10 =
  []
 
 
-Underfull \hbox (badness 2418) in paragraph at lines 122--123
+Underfull \hbox (badness 2418) in paragraph at lines 129--130
 []$\OT1/ptm/m/n/10 , where $\OML/cmm/m/it/10 v \OT1/cmr/m/n/10 =
  []
 
-LaTeX Font Info:    Try loading font information for U+dsrom on input line 136.
+LaTeX Font Info:    Try loading font information for U+dsrom on input line 143.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\doublestroke\udsrom.fd"
 File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
-)
+) [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
+
+
+]
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -752,15 +755,14 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-[1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
-
+[2
 
 ] (formulation.aux) ) 
 Here is how much of TeX's memory you used:
- 17015 strings out of 493333
- 330938 string characters out of 3139200
- 397477 words of memory out of 3000000
- 20238 multiletter control sequences out of 15000+200000
+ 17016 strings out of 493333
+ 330955 string characters out of 3139200
+ 394477 words of memory out of 3000000
+ 20239 multiletter control sequences out of 15000+200000
  33133 words of font info for 72 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  62i,19n,56p,441b,307s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -780,9 +782,9 @@ KTeX 2.9/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Program Files/MiKTe
 X 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 /urw/times/utmr8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri8
 a.pfb>
-Output written on formulation.pdf (1 page, 160482 bytes).
+Output written on formulation.pdf (2 pages, 163206 bytes).
 PDF statistics:
- 74 PDF objects out of 1000 (max. 8388607)
+ 77 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
