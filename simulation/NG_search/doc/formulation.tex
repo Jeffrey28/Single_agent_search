@@ -150,8 +150,8 @@ y_{k}=g(x_k)+v_k,\;v_k\sim
 	\hat{x}^t_{k+1|k}&=f(\hat{x}^t_{k|k})\\
 	P_{k+1|k}&=A^i_kP^i_{k|k}A^{i'}_k+Q\\
 	K^i_{k+1}&=P^i_{k+1|k}C^{i'}_{k+1}(C^i_{k+1}P^{i'}_{k+1|k}C^{i'}_{k+1}+R)^{-1}\\
-	\hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\gamma_{k+1}K^i_{k+1}(y_{k+1}-h(\hat{x}^t_{k+1|k}))\label{eqn:KF_upd_x}\\
-	P^i_{k+1|k+1}&=P^i_{k+1|k}-\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k},
+	\hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\gamma_{k+1}K^i_{k+1}(y_{k+1}-h(\hat{x}^t_{k+1|k}))\label{subeqn:upd_mean}\\
+	P^i_{k+1|k+1}&=P^i_{k+1|k}-\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k}\label{subeqn:upd_cov},
 	\end{align}
 \end{subequations}
 where $A^i_k=\frac{\partial f}{\partial x}|_{x=\hat{x}^i_{k|k}}$ and $C^i_{k+1}=\frac{\partial g}{\partial x}|_{x=\hat{x}^i_{k+1|k}}$. 
@@ -183,7 +183,7 @@ The MPC-based path planner with planning horizon $N$ can be formulated as:
 The objective function is
 \begin{align}
 J(b_{1:N+1})&=\sum\limits_{k=1}^{N+1} H(b_k)\\ %+w_2\|x_{i+1}-z_{i+1}\|^2,
-& \approx -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log b^i_k.
+& \approx -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log f(x^i_k).
 \end{align}
 The approximation is the $0$-order approximation of entropy.
 
@@ -201,9 +201,11 @@ In the estimation based on the actual measurement, use the particle filter to in
 
 In the planning, use $\gamma$ to update the estimation. This makes sense since if we use pseudo-measurement to update GMM, it only reinforces/bootstrapping the current GMM, brining no new info. So it makes sense to just consider the entropy of the uncertainty.
 
-In the MPC, I may need to include the uncertainty into the obj. 
+In the MPC, I may need to include the uncertainty into the obj. It seems that the only uncertainty comes from $\gamma$ in \Cref{subeqn:upd_mean,subeqn:upd_cov}.
+The idea is that, since $\gamma$ is dependent on the underlying distribution of $x^i_{k+1|k}$, we can either assume MAP for the target position or use integral to compute the expected update of \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 
 \section{possible extensions}
+This section compiles the possible contributions I can make in this and other following works. The previous sections are the actual implementation of what I will do in this work.
 \begin{enumerate}
 	\item GSF with good weight and component number update law
 		\begin{enumerate}
