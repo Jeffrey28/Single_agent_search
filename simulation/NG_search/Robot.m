@@ -113,12 +113,11 @@ classdef Robot
             tar_pos = fld.target.pos;
             % range-bearing sensor
             if strcmp(this.sensor_type,'rb')
-%                 if this.inFOV(tar_pos)
+                if this.inFOV(tar_pos)
                     y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';
-%                     y = tar_pos+(mvnrnd([0;0],this.R))';
-%                 else
-%                     y = [-100;-100];
-%                 end
+                else
+                    y = [-100;-100];
+                end
             elseif strcmp(this.sensor_type,'ran')
                 if this.inFOV(tar_pos)
                     y = norm(tar_pos-this.state(1:2))+normrnd(0,this.R);
@@ -249,15 +248,21 @@ classdef Robot
                pred_par(:,ii) = f(particles(:,ii));
             end
             
-            % weight update
-            
+            % weight update            
             for ii = 1:np
                 if sum(y == -100) >= 1 
-                    %%% if the target is outside FOV. need to fill later
-                    
+                    % if the target is outside FOV.
+                    if this.inFOV(pred_par(:,ii))
+                        w(ii) = 0.01;
+                    else
+                        w(ii) = 0.99;
+                    end
                 else
-                    %%% need to consider the limited sensing range in the future.
-                    w(ii) = mvnpdf(y,this.h(pred_par(:,ii),this.state(1:2)),this.R);
+                    if this.inFOV(pred_par(:,ii))
+                        w(ii) = mvnpdf(y,this.h(pred_par(:,ii),this.state(1:2)),this.R);
+                    else
+                        w(ii) = 0.01;
+                    end
                 end
             end
             w = w/sum(w);
@@ -267,7 +272,8 @@ classdef Robot
             new_particles = particles(:,idx);
             this.particles = new_particles;
             
-            %%%%% resampling strategy needs to be implemented
+            %%%%% may need to deal with practical issues in PF, to be
+            %%%%% filled later
             
             %% gmm fitting
             max_gmm_num = this.max_gmm_num; % maximum gmm component number
@@ -287,13 +293,16 @@ classdef Robot
             [minAIC,numComponents] = min(AIC);
             
             best_model = gmm_model{numComponents};
-            this.gmm_mu = best_model.mu';
-            % gmm_sigma = zeros(2,2,numComponents);
-            % for ii = 1:numComponents
-            %     gmm_sigma(:,:,ii) = diag(best_model.Sigma(:,:,ii)); % best_model.Sigma is a vector, showing the diagonal elements of the matrix
-            % end
+            this.gmm_num = numComponents;
+            this.gmm_mu = best_model.mu';           
             this.gmm_sigma = best_model.Sigma;
             this.wt = best_model.PComponents';
+            
+            % convert the data form to be compatible with the main code
+            this.est_pos = this.gmm_mu(:);
+            for ii = 1:numComponents                
+                this.P{ii} = this.gmm_sigma(:,:,ii);
+            end
         end
         
         %% planning
@@ -343,7 +352,6 @@ classdef Robot
             zref = [];
             uref = [];
             while (1)
-                
                 
                 % obj
                 obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance

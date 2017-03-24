@@ -17,7 +17,7 @@ for ii = 1:sim_len
     %% target state update
     fld = fld.targetMove();
     
-    %% observe and update target estimation
+    %% target estimation
     rbt.y = rbt.sensorGen(fld);
     display('measurement')
     display(rbt.y)
@@ -31,7 +31,7 @@ for ii = 1:sim_len
     display(rbt.est_pos);
     
     %% robot motion planning
-    %{
+    %
     [optz,optu] = rbt.ngPlanner(fld);
     rbt = rbt.updState(optu);
     display('robot state:')
@@ -40,7 +40,7 @@ for ii = 1:sim_len
     
     % draw plot
     sim.plotFilter(rbt,fld)
-    pause()
+%     pause()
 %     sim.plotTraj(rbt,fld)
     
     
