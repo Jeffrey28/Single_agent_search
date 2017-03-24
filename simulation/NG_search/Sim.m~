@@ -41,17 +41,11 @@ classdef Sim
             %}
             
             % draw prob map (based on particle filter)
-            gmm_obj = gmdistribution(rbt.gmm_mu',rbt.gmm_sigma,rbt.wt');
+            gmm_obj = gmdistribution(rbt.mu',rbt.sigma,rbt.wt');
                     
             tmp = pdf(gmm_obj,[X(:),Y(:)]);
             prob_map_gmm = (reshape(tmp,ylen,xlen))';
             
-            shading interp
-            contourf(prob_map_gmm','LineColor','none');
-            load('MyColorMap','mymap')
-            colormap(mymap);
-            colorbar        
-            drawnow
         end
         
         function plotTraj(this,rbt,fld)

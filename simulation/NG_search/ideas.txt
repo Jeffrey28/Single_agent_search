@@ -1,3 +1,6 @@
-3/22/17
+3/23/17
+
+Now the pf is there. should keep modifying so that it works under limited sensing FOV and make the planning part work (with basic version).
+
 current issue:
-1. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP. make the simulation run first (so the focus is on PF-GMM). Then go back to this expectation or other modifications that I can make.
+1. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP. But needs to keep thinking if I can make the convexification for the problem
