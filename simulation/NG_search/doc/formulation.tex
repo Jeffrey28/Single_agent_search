@@ -204,6 +204,8 @@ In the planning, use $\gamma$ to update the estimation. This makes sense since i
 In the MPC, I may need to include the uncertainty into the obj. It seems that the only uncertainty comes from $\gamma$ in \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 The idea is that, since $\gamma$ is dependent on the underlying distribution of $x^i_{k+1|k}$, we can either assume MAP for the target position or use integral to compute the expected update of \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 
+Another think I need to try to do is try to exploit the structure of the problem to look into possibility of convexification, submodularity etc. Otherwise the paper is very application-oriented.
+
 \section{possible extensions}
 This section compiles the possible contributions I can make in this and other following works. The previous sections are the actual implementation of what I will do in this work.
 \begin{enumerate}
