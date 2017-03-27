@@ -130,18 +130,30 @@ Sensor sensing domain is represented as $\mathcal{F}_k=\left\lbrace [x_{1,k},x_{
 
 \subsection{Sensor Measurement Model}
 Measurement model:
-\begin{equation}\label{eqn:sensor}
-y_{k}=g(x_k)+v_k,\;v_k\sim
-\begin{cases}
-\mathcal{N}(0,R) & \text{if } \gamma_k=1\\%x_k\in\mathcal{F}_k\\
-\mathcal{N}(0,\sigma^2 I) & \text{if } \gamma_k=0\\% x_k\notin\mathcal{F}_k
-\end{cases},
+\begin{equation}
+y_{k}=g(x_k)+v_k,\;v_k
+\end{equation}
+It has four modes,
+
+if $\gamma_k=1$
+\begin{equation}\label{eqn:sensor_infov}
+	P(Y_k|x_k)=
+	\begin{cases}
+		P(y_k|x_k)\sim \mathcal{N}(g(x_k),R)\\
+		P(\emptyset|x_k)=0\\	
+	\end{cases}
 \end{equation}
 
-\begin{equation}
-\label{eqn:gamma_indicator}
-\gamma_{k}=\mathds{1}_{\left\lbrace x_{k}\in\mathcal{F}_{k}\right\rbrace}
+if $\gamma_k=0$
+\begin{equation}\label{eqn:sensor_outfov}
+P(Y_k|x_k)=
+\begin{cases}
+P(y_k|x_k)=0\\
+P(\emptyset|x_k)=1\\	
+\end{cases}
 \end{equation}
+where $
+\gamma_{k}=\mathds{1}_{\left\lbrace x_{k}\in\mathcal{F}_{k}\right\rbrace}$.
 
 \section{MPC-based Path Planning}\label{sec:method}
 \subsection{EKF with Limited Sensing Domain}\label{subseq:KF with FOV}

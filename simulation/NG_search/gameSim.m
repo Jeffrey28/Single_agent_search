@@ -17,11 +17,12 @@ for ii = 1:sim_len
     %% target state update
     fld = fld.targetMove();
     
-    %% observe and update target estimation
+    %% target estimation
     rbt.y = rbt.sensorGen(fld);
     display('measurement')
     display(rbt.y)
-    rbt = rbt.GSF(fld);
+%     rbt = rbt.GSF(fld);
+    rbt = rbt.PF(fld);
     display('weights')
     display(rbt.wt)
     display('covariance')
@@ -30,15 +31,19 @@ for ii = 1:sim_len
     display(rbt.est_pos);
     
     %% robot motion planning
-    
+    %
     [optz,optu] = rbt.ngPlanner(fld);
     rbt = rbt.updState(optu);
     display('robot state:')
     display(rbt.state);
+    %}
     
     % draw plot
-    sim.plotSim(rbt,fld)
-
+    sim.plotFilter(rbt,fld)
+%     pause()
+%     sim.plotTraj(rbt,fld)
+    
+    
     % terminating condition
 %     if trace(rbt.P) <= 1 && norm(fld.target.pos-rbt.est_pos) <= 2 && norm(rbt.state(1:2)-target.pos) <= 3
 %         display('target is localized')

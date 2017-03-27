@@ -25,12 +25,19 @@ classdef Robot
         y; % observation measurement
         
         % filtering
+        % xKF
         est_pos; % estimated target position
         P; % estimation covariance
         est_pos_hist;
         P_hist;
+        % GMM
         gmm_num; % # of gmm components
+        max_gmm_num; % max # of gmm components for gmm fitting purpose
         wt; % weigths of gmm components
+        % PF
+        particles; % array of particle positions [x;y]
+        gmm_mu; % array of mean [x;y]
+        gmm_sigma; % cell of covariance
         
         % path planning
         mpc_hor;
@@ -54,18 +61,24 @@ classdef Robot
             this.v_lb = inPara.v_lb;
             this.v_ub = inPara.v_ub;
             this.R = inPara.R;
-%             this.C = inPara.C;
             this.h = inPara.h;
             this.del_h = inPara.del_h;
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
+            
+            % filtering
+            this.sensor_type = inPara.sensor_type;
+            % xKF
             this.est_pos = inPara.est_pos;
             this.P = inPara.P;
             this.est_pos_hist = [];
             this.P_hist = [];        
+            % gmm
             this.gmm_num = inPara.gmm_num;
             this.wt = inPara.wt;
-            this.sensor_type = inPara.sensor_type;
+            % pf
+            this.max_gmm_num = inPara.max_gmm_num;
+            this.particles = inPara.particles;
             
             this.mpc_hor = inPara.mpc_hor;
             this.dt = inPara.dt;
@@ -100,12 +113,11 @@ classdef Robot
             tar_pos = fld.target.pos;
             % range-bearing sensor
             if strcmp(this.sensor_type,'rb')
-%                 if this.inFOV(tar_pos)
-                    y = this.h(tar_pos)+(mvnrnd([0;0],this.R))';
-%                     y = tar_pos+(mvnrnd([0;0],this.R))';
-%                 else
-%                     y = [-100;-100];
-%                 end
+                if this.inFOV(tar_pos)
+                    y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';
+                else
+                    y = [-100;-100];
+                end
             elseif strcmp(this.sensor_type,'ran')
                 if this.inFOV(tar_pos)
                     y = norm(tar_pos-this.state(1:2))+normrnd(0,this.R);
@@ -211,6 +223,88 @@ classdef Robot
             this.P_hist = [this.P_hist,tar_cov];
         end
         
+        function this = PF(this,fld)
+            % particle filter           
+            
+            % target
+            tar = fld.target;     
+            f = tar.f;
+            % sensor
+            h = this.h;
+            % measurement
+            y = this.y;
+            
+            particles = this.particles;
+            
+            %% particle filtering
+            np = size(particles,2); % number of particles
+            
+            % initalize particles weights
+            w = zeros(np,1);
+            
+            % state update: since we use the static target, no update is needed
+            pred_par = zeros(2,np); % predicted particle state
+            for ii = 1:np
+               pred_par(:,ii) = f(particles(:,ii));
+            end
+            
+            % weight update            
+            for ii = 1:np
+                if sum(y == -100) >= 1 
+                    % if the target is outside FOV.
+                    if this.inFOV(pred_par(:,ii))
+                        w(ii) = 0.01;
+                    else
+                        w(ii) = 0.99;
+                    end
+                else
+                    if this.inFOV(pred_par(:,ii))
+                        w(ii) = mvnpdf(y,this.h(pred_par(:,ii),this.state(1:2)),this.R);
+                    else
+                        w(ii) = 0.01;
+                    end
+                end
+            end
+            w = w/sum(w);
+            
+            % resampling
+            idx = randsample(1:np, np, true, w);
+            new_particles = particles(:,idx);
+            this.particles = new_particles;
+            
+            %%%%% may need to deal with practical issues in PF, to be
+            %%%%% filled later
+            
+            %% gmm fitting
+            max_gmm_num = this.max_gmm_num; % maximum gmm component number
+                        
+            gmm_model = cell(max_gmm_num,1);
+            opt = statset('MaxIter',1000);
+            AIC = zeros(max_gmm_num,1);
+            tic;
+            for kk = 1:max_gmm_num
+                gmm_model{kk} = fitgmdist(new_particles',kk,'Options',opt,...
+                    'Regularize',0.001,'CovType','full');
+                AIC(kk)= gmm_model{kk}.AIC;
+            end
+            display ('gmm fitting takes time as:');
+            toc;
+            
+            [minAIC,numComponents] = min(AIC);
+            
+            best_model = gmm_model{numComponents};
+            this.gmm_num = numComponents;
+            this.gmm_mu = best_model.mu';           
+            this.gmm_sigma = best_model.Sigma;
+            this.wt = best_model.PComponents';
+            
+            % convert the data form to be compatible with the main code
+            this.est_pos = this.gmm_mu(:);
+            for ii = 1:numComponents                
+                this.P{ii} = this.gmm_sigma(:,:,ii);
+            end
+        end
+        
         %% planning
         
         function [optz,optu] = ngPlanner(this,fld)            
@@ -258,7 +352,6 @@ classdef Robot
             zref = [];
             uref = [];
             while (1)
-                
                 
                 % obj
                 obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
