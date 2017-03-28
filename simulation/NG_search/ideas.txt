@@ -1,6 +1,11 @@
-3/23/17
+3/27/17
 
-Now the pf is there. should keep modifying so that it works under limited sensing FOV and make the planning part work (with basic version).
+
+now the basic code can run. but solving the optimization problem is very hard, usually no good result. I need to think about some good ways to deal with this problem.
 
 current issue:
-1. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP. But needs to keep thinking if I can make the convexification for the problem
+
+1. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP. 
+
+2. Needs to keep thinking if I can make the convexification for the problem.
+

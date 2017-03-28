@@ -195,7 +195,8 @@ The MPC-based path planner with planning horizon $N$ can be formulated as:
 The objective function is
 \begin{align}
 J(b_{1:N+1})&=\sum\limits_{k=1}^{N+1} H(b_k)\\ %+w_2\|x_{i+1}-z_{i+1}\|^2,
-& \approx -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log f(x^i_k).
+& \approx -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log f(x^i_k)\\
+& = -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log \sum\limits_{j=1}^{L}w_j\mathcal{N}(\mu^i_k;\mu^j_k,\Sigma^j_k).
 \end{align}
 The approximation is the $0$-order approximation of entropy.
 

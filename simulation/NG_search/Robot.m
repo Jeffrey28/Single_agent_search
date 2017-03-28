@@ -370,7 +370,7 @@ classdef Robot
                                     -x(2*ll-1:2*ll,ii+1))'/this.P{ll}*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2);
                             end
                         end
-                        obj = obj-this.wt(jj)*(tmp); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
+                        obj = obj-this.wt(jj)*log(tmp); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
                     end
                 end
                 

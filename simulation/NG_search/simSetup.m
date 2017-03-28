@@ -85,12 +85,12 @@ inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
 inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
 % PF
-inPara_rbt.max_gmm_num = 7;
+inPara_rbt.max_gmm_num = 3;
 [X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
 inPara_rbt.particles = [X(:),Y(:)]';
 
 % planning
-inPara_rbt.mpc_hor = 3;
+inPara_rbt.mpc_hor = 1;
 inPara_rbt.dt = dt;
 
 % simulation parameters
