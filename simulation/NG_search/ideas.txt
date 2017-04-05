@@ -1,11 +1,7 @@
-3/27/17
-
-
-now the basic code can run. but solving the optimization problem is very hard, usually no good result. I need to think about some good ways to deal with this problem.
+4/4/17
 
 current issue:
-
-1. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP. 
-
-2. Needs to keep thinking if I can make the convexification for the problem.
+1. make basic code without gamma
+2. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP.
+3. think about how to compute gamma: use MAP or whole pdf. more important conceptual question: what gamma should be may depend on what measurement to assume, MAP or whole pdf?
 
