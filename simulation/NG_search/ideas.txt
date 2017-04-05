@@ -1,6 +1,7 @@
-3/23/17
-
-Now the pf is there. should keep modifying so that it works under limited sensing FOV and make the planning part work (with basic version).
+4/4/17
 
 current issue:
-1. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP. But needs to keep thinking if I can make the convexification for the problem
+1. make basic code without gamma
+2. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP.
+3. think about how to compute gamma: use MAP or whole pdf. more important conceptual question: what gamma should be may depend on what measurement to assume, MAP or whole pdf?
+
