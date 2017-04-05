@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  3 APR 2017 18:10
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  5 APR 2017 11:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -798,7 +798,7 @@ r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
 </usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/loca
 l/texlive/2015/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/
 2015/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on formulation.pdf (2 pages, 155565 bytes).
+Output written on formulation.pdf (2 pages, 155547 bytes).
 PDF statistics:
  79 PDF objects out of 1000 (max. 8388607)
  58 compressed objects within 1 object stream
