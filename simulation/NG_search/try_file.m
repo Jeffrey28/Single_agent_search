@@ -151,6 +151,7 @@ box on
 %}
 
 %% test the sigmoid function
+%{
 x0 = 0;
 k = [0.1,0.5,1,2,5,10];
 x = -5:0.1:5;
@@ -160,3 +161,27 @@ for ii = 1:length(k)
     y = 1./(1+exp((k(ii)*(x-x0))));
     plot(x,y)
 end
+%}
+
+%% test the cvx planning result
+% for jjj = 1:this.gmm_num
+%     for iii = 1:N
+%         value((P(2*jjj-1:2*jjj,2*iii+1:2*iii+2)-P_pred(2*jjj-1:2*jjj,2*iii-1:2*iii)))*gamma_den...
+%             == -gamma_num*Kref(2*jjj-1:2*jjj,2*iii-1:2*iii)*C*value(P_pred(2*jjj-1:2*jjj,2*iii-1:2*iii))    
+%     end
+% end
+% 
+% for iii = 1:N
+%     for jjj = 1:this.gmm_num
+%         display(cond(value(P(2*jjj-1:2*jjj,2*iii+1:2*iii+2))))
+%     end
+% end
+
+A = sdpvar(4,2);
+x = sdpvar(3,1);
+y = x(1:2,1);
+constr = [[A(1:2,:) y;y' 1] >= 0, A(1,2) == -0.1, x>=0];
+constr = [constr, [A(3:4,:) y;y' 1] >= 0, A(1,2) == -0.1, x>=0];
+obj = sum(x);
+opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
+sol1 = optimize(constr,obj,opt);

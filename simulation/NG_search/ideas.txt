@@ -1,7 +1,7 @@
-4/4/17
+4/6/17
 
 current issue:
-1. make basic code work without gamma (not there yet, ngPlanner fails) 
+1. make basic code work without gamma (cvxPlanner has issues: the LMI constraint is understood as elementwise comparison. Need to define P as separate matrices, not an array. another possible issue: P is close to zero matrix, not sure if this will cause problems)
 2. the objective function seems hard to take expectation now. try to use the most basic version by assuming MAP.
 
 3. think about how to compute gamma: use MAP or whole pdf. more important conceptual question: what gamma should be may depend on what measurement to assume, MAP or whole pdf?
