@@ -354,6 +354,8 @@ classdef Robot
             
             zref = init_sol.zref;
             uref = init_sol.uref;
+            xref = init_sol.xref;
+            Kref = init_sol.Kref;
             while (1)
                 
                 % obj
@@ -367,7 +369,7 @@ classdef Robot
                         tmp = 0;
                         for ll = 1:this.gmm_num
                             % LMI
-                            constr = [constr,[P(2*ll-1:2*ll,2*ii:2*(ii+1)) x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+                            constr = [constr,[P(2*ll-1:2*ll,2*ii+1:2*(ii+1)) x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
                                 (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]>=0];
                         end                        
                     end
@@ -401,7 +403,7 @@ classdef Robot
                     % use the weighted mean as the MAP of target position                   
                     if isempty(zref)
                         tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
-                        gamma_den = 1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+                        gamma_den = 1; %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
                         % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
                     else                        
                         tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
@@ -435,7 +437,7 @@ classdef Robot
                         % covariance
                         constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
                         
-                        % update K using pesudo measurement
+%                         % update K using pesudo measurement
 %                         T = C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
 %                         constr = [constr, K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
                         
@@ -458,9 +460,9 @@ classdef Robot
                         if isempty(zref)
                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
                                 == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
-                        else
-                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                                == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+%                         else
+%                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+%                                 == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
                         end
                     end
                 end
@@ -474,7 +476,7 @@ classdef Robot
                     assign(z,zref)
                     assign(u,uref)
                 end
-                opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
+                opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
                 
                 sol1 = optimize(constr,obj,opt);
                 zref = value(z);
@@ -614,19 +616,21 @@ classdef Robot
                     
                     if isempty(zref)
                         tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
-                        gamma_den = 1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+                        gamma_den = 1;
+                        %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
                         % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
                     else                        
                         tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
                         tmp_v = tmp_mean-zref(1:2,ii+1);
-                        theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
-                        theta1 = zref(3,ii+1)-this.theta0;
-                        theta2 = zref(3,ii+1)+this.theta0;
-                        a1 = [sin(theta1);-cos(theta1)];
-                        a2 = [-sin(theta2);cos(theta2)];
-                        gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
-                            *(1+exp(alp*(tmp_v'*a1)))*...
-                            (1+exp(alp*(tmp_v'*a2)));
+                        gamma_den = 1;
+%                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
+%                         theta1 = zref(3,ii+1)-this.theta0;
+%                         theta2 = zref(3,ii+1)+this.theta0;
+%                         a1 = [sin(theta1);-cos(theta1)];
+%                         a2 = [-sin(theta2);cos(theta2)];
+%                         gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+%                             *(1+exp(alp*(tmp_v'*a1)))*...
+%                             (1+exp(alp*(tmp_v'*a2)));
 %                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
 %                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
                     end
@@ -728,7 +732,7 @@ classdef Robot
 %             optz = zref;
 %             optu = uref;
             %}
-            init_sol = struct('zref',zref,'uref',uref,'Kref',Kref);
+            init_sol = struct('zref',zref,'uref',uref,'Kref',Kref,'xref',xref);
             [optz,optu] = cvxPlanner(this,fld,init_sol);
             
         end

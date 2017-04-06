@@ -90,7 +90,7 @@ inPara_rbt.max_gmm_num = 3;
 inPara_rbt.particles = [X(:),Y(:)]';
 
 % planning
-inPara_rbt.mpc_hor = 1;
+inPara_rbt.mpc_hor = 3;
 inPara_rbt.dt = dt;
 
 % simulation parameters
