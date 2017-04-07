@@ -339,7 +339,13 @@ classdef Robot
             u = sdpvar(2,N,'full'); % robot control
             % estimation
             x = sdpvar(2*this.gmm_num,N+1,'full'); % target mean
-            P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
+%             P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
+            P = cell(this.gmm_num,N+1);
+            for ii = 1:N+1
+                for jj = 1:this.gmm_num
+                    P{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+                end
+            end
             
             % auxiliary variable
             %             tmp_M = sdpvar(2,2,'full');
@@ -351,7 +357,13 @@ classdef Robot
             
             % debug purpose
             x_pred = sdpvar(2*this.gmm_num,N,'full');
-            P_pred = sdpvar(2*this.gmm_num,2*N,'full');                       
+%             P_pred = sdpvar(2*this.gmm_num,2*N,'full');
+            P_pred = cell(this.gmm_num,N);
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    P_pred{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+                end
+            end            
             
             zref = init_sol.zref;
             uref = init_sol.uref;
@@ -370,8 +382,10 @@ classdef Robot
                         tmp = 0;
                         for ll = 1:this.gmm_num
                             % LMI
-                            constr = [constr,[P(2*ll-1:2*ll,2*ii+1:2*(ii+1)) x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
-                                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]+slack*eye(3,3)>=0];
+%                             constr = [constr,[P(2*ll-1:2*ll,2*ii+1:2*(ii+1)) x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+%                                 (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]+slack*eye(3,3)>=0];
+                            constr = [constr,[[P{ll,ii+1} x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+                                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]+slack*eye(3,3)>=0]:'LMI'];
                         end                        
                     end
                 end
@@ -380,7 +394,8 @@ classdef Robot
                 constr = [constr,z(:,1) == this.state];
                 constr = [constr,x(:,1) == this.est_pos(:)];
                 for jj = 1:this.gmm_num
-                    constr = [constr,P(2*jj-1:2*jj,1:2) == this.P{jj}];%[1 0;0 1]];
+%                     constr = [constr,P(2*jj-1:2*jj,1:2) == this.P{jj}];%[1 0;0 1]];
+                    constr = [constr,P{jj,1} == this.P{jj}];%[1 0;0 1]];
                 end
                 
                 % constraints on the go
@@ -436,7 +451,8 @@ classdef Robot
                         % mean
                         constr = [constr, x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))];
                         % covariance
-                        constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
+%                         constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
+                        constr = [constr,P_pred{jj,ii} == A*P{jj,ii}*A'+Q];
                         
 %                         % update K using pesudo measurement
 %                         T = C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
@@ -459,11 +475,13 @@ classdef Robot
                         constr = [constr,x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)];
                         % covariance
                         if isempty(zref)
-                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                                == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+%                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+%                                 == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+                            constr = [constr,(P{jj,ii+1}-P_pred{jj,ii})*gamma_den...
+                                == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}];%+phi];
                         else
-                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                                == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+                            constr = [constr,(P{jj,ii+1}-P_pred{jj,ii})*gamma_den...
+                                == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}];%+phi];
                         end
                     end
                 end
@@ -948,8 +966,7 @@ classdef Robot
                 dif = norm(is_in_fov-is_in_fov_approx,1);
 %                 if dif < 0.1*N
 %                     break
-%                 end
-                
+%                 end                
                 alp = alp*alp_inc;
 %             end
             

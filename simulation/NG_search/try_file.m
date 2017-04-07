@@ -177,11 +177,72 @@ end
 %     end
 % end
 
-A = sdpvar(4,2);
-x = sdpvar(3,1);
-y = x(1:2,1);
-constr = [[A(1:2,:) y;y' 1] >= 0, A(1,2) == -0.1, x>=0];
-constr = [constr, [A(3:4,:) y;y' 1] >= 0, A(1,2) == -0.1, x>=0];
-obj = sum(x);
+% % check how yalmip interpret LMI (in a wrong way as the elementwise inequality)
+% clear
+% A = sdpvar(4,2);
+% B = cell(2,1);
+% B{1} = sdpvar(2,2);
+% B{2} = sdpvar(2,2);
+% t = sdpvar(2,1);
+% x = sdpvar(4,1);
+% y = x(1:2,1);
+% % constr = [[A(1:2,:) y;y' 1] >= 0, A(1,2) == -0.1, x>=0];
+% % constr = [constr, [A(3:4,:) y;y' 1] >= 0, A(1,2) == -0.1, x>=0];
+% constr = [[B{1} x(1:2,1);x(1:2,1)' t(1,1)] >= 0, x>=0];
+% constr = [constr, [B{2} x(3:4,1);x(3:4,1)' t(2,1)] >= 0, t>=0];
+% obj = sum(x)+sum(t);
+% opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
+% sol1 = optimize(constr,obj,opt);
+
+% % check the computed value of P
+% for jjj = 1:this.gmm_num
+%     for iii = 1:N+1
+%         display(value(P{jjj,iii}))
+%     end
+% end
+
+% find a MWE to show the problem in recognizaing LMI constraints
+clear
+num = 1;
+N = 1;
+
+% define variables
+x = sdpvar(2*num,N+1,'full');
+t = sdpvar(num*num,N+1); % dummy variable for LMI
+
+P = cell(num,N+1);
+for ii = 1:N+1
+    for jj = 1:num
+        P{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+    end
+end
+
+% objective
+obj = sum(sum(t));
+
+% constraints
+% epigraph
+constr = [t>=0];
+
+for ii = 1:N+1
+    for jj = 1:num
+        constr = [constr,[P{jj,ii} >= 0]:'psd of P']; % a set of 2-by-2 symmetric matrices
+    end
+end
+
+for ii = 1:N
+    for jj = 1:num
+        tmp = 0;
+        for ll = 1:num
+            % LMI
+            constr = [constr,[[P{ll,ii+1} x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(num*(jj-1)+ll,ii+1)]>=0]:'LMI'];
+        end
+    end
+end
+% intentionally add this constraint to show, via the optimization result,
+% that LMI is interpreted as something else
+constr = [constr, P{1,1}(2,1) == -1, P{1,1}(1,2) == -1];
+
 opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
-sol1 = optimize(constr,obj,opt);
+sol = optimize(constr,obj,opt);
