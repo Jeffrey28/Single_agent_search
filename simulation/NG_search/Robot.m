@@ -792,19 +792,31 @@ classdef Robot
             % estimation
             x = sdpvar(2*this.gmm_num,N+1,'full'); % target mean
 %             P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
-            P = sdpvar(2*this.gmm_num,2*(N+1)); % a set of 2-by-2 symmetric matrices
+%             P = sdpvar(2*this.gmm_num,2*(N+1)); % a set of 2-by-2 symmetric matrices
+            P = cell(this.gmm_num,N+1);
+            for ii = 1:N+1
+                for jj = 1:this.gmm_num
+                    P{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+                end
+            end
             
             % auxiliary variable
             %             tmp_M = sdpvar(2,2,'full');
 %             K = sdpvar(2*this.gmm_num,2*N,'full');
-            K = sdpvar(2*this.gmm_num,2*N);
+            K = sdpvar(2*this.gmm_num,2*N,'full');
             %             phi = sdpvar(2,2,'full');
             %             tmp1 = sdpvar(2,N,'full');
             
-            % debug purpose
-            x_pred = sdpvar(2*this.gmm_num,N,'full');
-%             P_pred = sdpvar(2*this.gmm_num,2*N,'full');            
-            P_pred = sdpvar(2*this.gmm_num,2*N);
+%             % debug purpose
+%             x_pred = sdpvar(2*this.gmm_num,N,'full');
+% %             P_pred = sdpvar(2*this.gmm_num,2*N,'full');            
+% %             P_pred = sdpvar(2*this.gmm_num,2*N);
+%             P_pred = cell(this.gmm_num,N);
+%             for ii = 1:N
+%                 for jj = 1:this.gmm_num
+%                     P_pred{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+%                 end
+%             end
             
             zref = [];
             uref = [];
@@ -833,19 +845,20 @@ classdef Robot
                 
                 % constraints
                 % initial value
-                constr = [z(:,1) == this.state];
-                constr = [constr,x(:,1) == this.est_pos(:)];
+                constr = [[z(:,1) == this.state]:'init_z'];
+                constr = [constr,[x(:,1) == this.est_pos(:)]:'init_x'];
                 for jj = 1:this.gmm_num
-                    constr = [constr,P(2*jj-1:2*jj,1:2) == this.P{jj}];%[1 0;0 1]];
+%                     constr = [constr,[P(2*jj-1:2*jj,1:2) == this.P{jj}]:'init_P'];%[1 0;0 1]];
+                    constr = [constr,[P{jj,1} == this.P{jj}]:'init_P'];%[1 0;0 1]];
                 end
                 
                 % constraints on the go
                 for ii = 1:N
                     % robot state
                     if isempty(zref)
-                        constr = [constr,z(:,ii+1) == z(:,ii)+...
+                        constr = [constr,[z(:,ii+1) == z(:,ii)+...
                             [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
-                            u(:,ii)]*dt];
+                            u(:,ii)]*dt]:'robot motion'];
                     else
                         % linearize using previous result
                         constr = [constr,z(:,ii+1) == z(:,ii)+...
@@ -854,8 +867,8 @@ classdef Robot
                             u(:,ii)]*dt];
                     end
                     
-                    constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
-                        [fld.fld_cor(2);fld.fld_cor(4)]];
+                    constr = [constr,[[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
+                        [fld.fld_cor(2);fld.fld_cor(4)]]:'state bound'];
                     
                     % use the weighted mean as the MAP of target position
                     
@@ -892,14 +905,19 @@ classdef Robot
                         
                         % forward prediction
                         % mean
-                        constr = [constr, x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))];
+%                         constr = [constr, [x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))]:'pred_mean'];
+                        x_pred = f(x(2*jj-1:2*jj,ii));
                         % covariance
-                        constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
+%                         constr = [constr,[P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q]:'pred_cov'];
+%                         constr = [constr,[P_pred{jj,ii} == A*P{jj,ii}*A'+Q]:'pred_cov'];
+                        P_pred = A*P{jj,ii}*A'+Q;
                         
                         % update using pesudo measurement
-                        T = C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
-                        constr = [constr, K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
-                        
+                        T = C*P_pred*C'+R;
+%                         T = C*P_pred{jj,ii}*C'+R; % C*P_pred*C'+R
+%                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']:'K']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
+%                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred{jj,ii}*C']:'K'];
+                        constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred*C']:'K'];
                         %                     a = T(1,1);
                         %                     b = T(1,2);
                         %                     c = T(2,1);
@@ -914,19 +932,24 @@ classdef Robot
                         %%%%% note: for now, I assume the MAP as the target
                         %%%%% position, however, I should change this later
                         %%%%% when using GMM.
-                        constr = [constr,x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)];
+%                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
+                        constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred]:'upd_mean'];
                         % covariance
                         if isempty(zref)
-                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                                == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+%                             constr = [constr,[(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+%                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)]:'upd_cov'];%+phi];
+%                             constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gamma_den...
+%                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}]:'upd_cov'];
+                            constr = [constr,[(P{jj,ii+1}-P_pred)*gamma_den...
+                                == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred]:'upd_cov'];
                         else
                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
                         end
                     end
                 end
-                constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
-                    this.v_lb <= z(4,:) <= this.v_ub];
+                constr = [constr, [this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
+                    this.v_lb <= z(4,:) <= this.v_ub]:'input_bound'];
                 
                 % use the result from last iteration as the initial
                 % solution for current iteration
@@ -980,7 +1003,8 @@ classdef Robot
             % check the singularity of P
             for ii = 1:N
                 for jj = 1:this.gmm_num
-                    display(cond(value(P(2*jj-1:2*jj,2*ii+1:2*ii+2))))
+%                     display(cond(value(P(2*jj-1:2*jj,2*ii+1:2*ii+2))))
+                    display(cond(value(P{jj,ii})))
                 end
             end
             

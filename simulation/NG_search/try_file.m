@@ -201,48 +201,122 @@ end
 %     end
 % end
 
-% find a MWE to show the problem in recognizaing LMI constraints
-clear
-num = 1;
-N = 1;
+% % find a MWE to show the problem in recognizaing LMI constraints
+% clear
+% num = 1;
+% N = 1;
+% 
+% % define variables
+% x = sdpvar(2*num,N+1,'full');
+% t = sdpvar(num*num,N+1); % dummy variable for LMI
+% 
+% P = cell(num,N+1);
+% for ii = 1:N+1
+%     for jj = 1:num
+%         P{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+%     end
+% end
+% 
+% % objective
+% obj = sum(sum(t));
+% 
+% % constraints
+% % epigraph
+% constr = [t>=0];
+% 
+% for ii = 1:N+1
+%     for jj = 1:num
+%         constr = [constr,[P{jj,ii} >= 0]:'psd of P']; % a set of 2-by-2 symmetric matrices
+%     end
+% end
+% 
+% for ii = 1:N
+%     for jj = 1:num
+%         tmp = 0;
+%         for ll = 1:num
+%             % LMI
+%             constr = [constr,[[P{ll,ii+1} x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+%                 (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(num*(jj-1)+ll,ii+1)]>=0]:'LMI'];
+%         end
+%     end
+% end
+% % intentionally add this constraint to show, via the optimization result,
+% % that LMI is interpreted as something else
+% constr = [constr, P{1,1}(2,1) == -1, P{1,1}(1,2) == -1];
+% 
+% opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
+% sol = optimize(constr,obj,opt);
 
-% define variables
-x = sdpvar(2*num,N+1,'full');
-t = sdpvar(num*num,N+1); % dummy variable for LMI
-
-P = cell(num,N+1);
+%% test what composes variables in Ipopt
+%{
+% robot state and control
+N = 3;
+gmm_num = 3;
+wt = [1 1 1]; 
+z = sdpvar(4,N+1,'full'); % robot state
+u = sdpvar(2,N,'full'); % robot control
+% estimation
+x = sdpvar(2*gmm_num,N+1,'full'); % target mean
+%             P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
+%             P = sdpvar(2*this.gmm_num,2*(N+1)); % a set of 2-by-2 symmetric matrices
+P = cell(gmm_num,N+1);
 for ii = 1:N+1
-    for jj = 1:num
+    for jj = 1:gmm_num
         P{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
     end
 end
 
-% objective
-obj = sum(sum(t));
+% auxiliary variable
+%             tmp_M = sdpvar(2,2,'full');
+%             K = sdpvar(2*this.gmm_num,2*N,'full');
+K = sdpvar(2*gmm_num,2*N,'full');
+%             phi = sdpvar(2,2,'full');
+%             tmp1 = sdpvar(2,N,'full');
 
-% constraints
-% epigraph
-constr = [t>=0];
+%             % debug purpose
+%             x_pred = sdpvar(2*this.gmm_num,N,'full');
+% %             P_pred = sdpvar(2*this.gmm_num,2*N,'full');
+% %             P_pred = sdpvar(2*this.gmm_num,2*N);
+%             P_pred = cell(this.gmm_num,N);
+%             for ii = 1:N
+%                 for jj = 1:this.gmm_num
+%                     P_pred{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+%                 end
+%             end
 
-for ii = 1:N+1
-    for jj = 1:num
-        constr = [constr,[P{jj,ii} >= 0]:'psd of P']; % a set of 2-by-2 symmetric matrices
-    end
-end
+zref = [];
+uref = [];
+%             while (1)
 
+% obj
+obj = 0;%P(1,1,N+1)+P(2,2,N+1); % trace of last covariance
 for ii = 1:N
-    for jj = 1:num
-        tmp = 0;
-        for ll = 1:num
-            % LMI
-            constr = [constr,[[P{ll,ii+1} x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
-                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(num*(jj-1)+ll,ii+1)]>=0]:'LMI'];
-        end
+    for jj = 1:gmm_num
+        w = exp(-(x(2*jj-1:2*jj,ii+1)...
+            -x(2*ll-1:2*ll,ii+1))'*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2);
+        obj = obj+w;
     end
 end
-% intentionally add this constraint to show, via the optimization result,
-% that LMI is interpreted as something else
-constr = [constr, P{1,1}(2,1) == -1, P{1,1}(1,2) == -1];
+% for ii = 1:N
+%     for jj = 1:gmm_num
+%         tmp = 0;
+%         for ll = 1:gmm_num
+%             % obj uses the 0-order approximation
+%             %%% I assume that the covariance does not change
+%             %%% for now, which is the simplification. Will
+%             %%% change this later after making program work.
+%             if ll == jj
+%                 tmp = tmp+wt(ll);
+%             else
+%                 tmp = tmp+wt(ll)*exp(-(x(2*jj-1:2*jj,ii+1)...
+%                     -x(2*ll-1:2*ll,ii+1))'*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2);
+%             end
+%         end
+%         obj = obj-wt(jj)*log(tmp); % missing term: 1/2*E((x-mu)^T*g''(mu)*(x-mu))
+%     end
+% end
 
-opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
-sol = optimize(constr,obj,opt);
+constr = [x>=0];
+opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
+sol1 = optimize(constr,obj,opt);
+%}
