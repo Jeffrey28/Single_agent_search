@@ -307,7 +307,301 @@ classdef Robot
         
         %% planning
         
+        % try re-writing the problem using cvx solver
         function [optz,optu] = cvxPlanner(this,fld,init_sol)            
+            % use the multi-layer approach similar to Sachin's work. Fix
+            % the parameter for the sensor, solve path planning. Then
+            % refine the parameter until close to reality. In each
+            % iteration, a convex program is solved. The initial solution
+            % comes from ngPlanner
+            
+            % planing in non-Gaussian (GMM) belief space
+            N = this.mpc_hor;
+            dt = this.dt;
+            
+            % target 
+            tar = fld.target;
+            f = tar.f;
+            del_f = tar.del_f;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            Q = tar.Q;
+            
+            % sensor
+            h = this.h;    
+            del_h = this.del_h;
+            R = this.R; 
+            
+            % the parameter for the sensing boundary approximation
+            alp = 1;
+            alp_inc = 2; % increament paramter for alpha
+            
+            % set up simulation
+            % robot state and control
+            cvx_begin sdp
+            variables z(4,N+1) u(2,N) x(2*this.gmm_num,N+1)
+            variable P(2,2,this.gmm_num,N+1) symmetric
+            variable x_pred(2*this.gmm_num,N)
+            variable P_pred(2,2,this.gmm_num,N) symmetric
+            
+%             z = sdpvar(4,N+1,'full'); % robot state
+%             u = sdpvar(2,N,'full'); % robot control
+%             % estimation
+%             x = sdpvar(2*this.gmm_num,N+1,'full'); % target mean
+% %             P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
+%             P = cell(this.gmm_num,N+1);
+%             for ii = 1:N+1
+%                 for jj = 1:this.gmm_num
+%                     P{jj,ii} = sdpvar(2,2); % a set of 2-by-2 symmetric matrices
+%                 end
+%             end
+            
+            % auxiliary variable
+            %             tmp_M = sdpvar(2,2,'full');
+%             K = sdpvar(2*this.gmm_num,2*N,'full');
+            %             phi = sdpvar(2,2,'full');
+            %             tmp1 = sdpvar(2,N,'full');
+            variable t(this.gmm_num*this.gmm_num,N+1)
+            
+            
+%             t = sdpvar(this.gmm_num*this.gmm_num,N+1); % dummy variable for LMI
+%             slack = sdpvar(1);
+%             
+%             % debug purpose
+%             x_pred = sdpvar(2*this.gmm_num,N,'full');
+% %             P_pred = sdpvar(2*this.gmm_num,2*N,'full');
+%             P_pred = cell(this.gmm_num,N);
+%             for ii = 1:N
+%                 for jj = 1:this.gmm_num
+%                     P_pred{jj,ii} = sdpvar(2,2); % a set of 2-by-2 symmetric matrices
+%                 end
+%             end            
+            
+            zref = init_sol.zref;
+            uref = init_sol.uref;
+            xref = init_sol.xref;
+            Kref = init_sol.Kref;
+            while (1)                
+                % obj
+                obj = sum(sum(t));
+
+                % constraints
+                % epigraph for obj
+                t >= 0;
+                % LMI
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+                        tmp = 0;
+                        for ll = 1:this.gmm_num
+                            [P{ll,ii+1} x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+                                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]+slack*eye(3,3)>=0;
+                        end                        
+                    end
+                end    
+                            
+%                 constr = [t>=0,slack>=0];
+%                 for ii = 1:N
+%                     for jj = 1:this.gmm_num
+%                         tmp = 0;
+%                         for ll = 1:this.gmm_num
+%                             % LMI
+% %                             constr = [constr,[P(2*ll-1:2*ll,2*ii+1:2*(ii+1)) x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+% %                                 (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]+slack*eye(3,3)>=0];
+%                             constr = [constr,[[P{ll,ii+1} x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1);
+%                                 (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]+slack*eye(3,3)>=0]:'LMI'];
+%                         end                        
+%                     end
+%                 end
+                
+                % initial value
+                z(:,1) == this.state;
+                x(:,1) == this.est_pos(:);
+                for jj = 1:this.gmm_num
+                    P(:,:,jj,1) == this.P{jj};
+                end
+                
+%                 constr = [constr,z(:,1) == this.state];
+%                 constr = [constr,x(:,1) == this.est_pos(:)];
+%                 for jj = 1:this.gmm_num
+% %                     constr = [constr,P(2*jj-1:2*jj,1:2) == this.P{jj}];%[1 0;0 1]];
+%                     constr = [constr,P{jj,1} == this.P{jj}];%[1 0;0 1]];
+%                 end
+                
+                % constraints on the go
+                for ii = 1:N
+                    % robot state
+                    z(:,ii+1) == z(:,ii)+...
+                            [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            u(:,ii)]*dt;
+                    
+%                     if isempty(zref)
+%                         constr = [constr,z(:,ii+1) == z(:,ii)+...
+%                             [z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));...
+%                             u(:,ii)]*dt];
+%                     else
+%                         % linearize using previous result
+%                         constr = [constr,z(:,ii+1) == z(:,ii)+...
+%                             [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+%                             z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+%                             u(:,ii)]*dt];
+%                     end
+
+                      [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
+                        [fld.fld_cor(2);fld.fld_cor(4)];
+%                     constr = [constr,[fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=...
+%                         [fld.fld_cor(2);fld.fld_cor(4)]];
+                    
+                    % use the weighted mean as the MAP of target position                   
+                    if isempty(zref)
+                        tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
+                        gamma_den = 1; %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+                        % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
+                    else                        
+                        tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
+                        tmp_v = tmp_mean-zref(1:2,ii+1);
+                        gamma_den = 1; %%% temporarily set gamma to constant
+%                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
+%                         theta1 = zref(3,ii+1)-this.theta0;
+%                         theta2 = zref(3,ii+1)+this.theta0;
+%                         a1 = [sin(theta1);-cos(theta1)];
+%                         a2 = [-sin(theta2);cos(theta2)];
+%                         gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+%                             *(1+exp(alp*(tmp_v'*a1)))*...
+%                             (1+exp(alp*(tmp_v'*a2)));
+%                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
+%                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
+                    end
+                    gamma_num = 1;
+                    
+                    % target prediction
+                    for jj = 1:this.gmm_num
+                        A = del_f(x(2*jj-1:2*jj,ii));
+                        if isempty (zref)
+                            C = del_h(x(2*jj-1:2*jj,ii),z(1:2,ii));
+                        else
+                            C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+                        end
+                        
+                        % forward prediction
+%                         % mean
+%                         constr = [constr, x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))];
+%                         % covariance
+% %                         constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
+%                         constr = [constr,P_pred{jj,ii} == A*P{jj,ii}*A'+Q];
+                        % mean
+                        x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii));
+                        % covariance
+%                         constr = [constr,P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q];
+                        P_pred(:,:,jj,ii) == A*P(:,:,jj,ii)*A'+Q;
+                        
+%                         % update K using pesudo measurement
+%                         T = C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C'+R; % C*P_pred*C'+R
+%                         constr = [constr, K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
+                        
+                        %                     a = T(1,1);
+                        %                     b = T(1,2);
+                        %                     c = T(2,1);
+                        %                     d = T(2,2);
+                        %                     t = a*d-b*c;
+                        %                     T2 = [d -b; -c a]; % inv(CPC'+R)
+                        
+                        % since gamma is in factorial form, to avoid division, I
+                        % separate the denominator and numerator to two sides of
+                        % the equation
+                        
+                        % mean
+                        %%%%% note: for now, I assume the MAP as the target
+                        %%%%% position, however, I should change this later
+                        %%%%% when using GMM.
+                        x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii);
+                        % covariance                        
+                        (P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
+                            == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii);
+                        
+%                         % mean
+%                         %%%%% note: for now, I assume the MAP as the target
+%                         %%%%% position, however, I should change this later
+%                         %%%%% when using GMM.
+%                         constr = [constr,x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)];
+%                         % covariance
+%                         if isempty(zref)
+% %                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+% %                                 == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+%                             constr = [constr,(P{jj,ii+1}-P_pred{jj,ii})*gamma_den...
+%                                 == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}];%+phi];
+%                         else
+%                             constr = [constr,(P{jj,ii+1}-P_pred{jj,ii})*gamma_den...
+%                                 == -gamma_num*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}];%+phi];
+%                         end
+                    end
+                end
+                this.w_lb <= u(1,:) <= this.w_ub;
+                this.a_lb <= u(2,:) <= this.a_ub;
+                this.v_lb <= z(4,:) <= this.v_ub;
+                
+%                 constr = [constr, this.w_lb <= u(1,:) <= this.w_ub, this.a_lb <= u(2,:) <= this.a_ub...
+%                     this.v_lb <= z(4,:) <= this.v_ub];
+                
+%                 % use the result from last iteration as the initial
+%                 % solution for current iteration
+%                 
+%                 if ~isempty(zref)
+%                     assign(z,zref)
+%                     assign(u,uref)
+%                 end
+%                 opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
+                
+                
+                cvx_end
+                
+                sol1 = optimize(constr,obj,opt);
+                zref = value(z);
+                uref = value(u);
+                
+                % terminating condition: the actual in/out FOV is
+                % consistent with that of planning
+                is_in_fov = zeros(N,1);
+                is_in_fov_approx = zeros(N,1);
+                xref = value(x);
+                tmp_rbt = this;
+                %{
+                for ii = 1:N
+                    tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
+                    
+                    tmp_rbt.state = zref(:,ii+1);
+                    is_in_fov(ii) = tmp_rbt.inFOV(tmp_mean);
+                    
+                    tmp_v = tmp_mean-zref(1:2,ii+1);
+                    theta_ref = atan2(tmp_v(2),tmp_v(1));
+                    theta1 = zref(3,ii+1)-this.theta0;
+                    theta2 = zref(3,ii+1)+this.theta0;
+                    a1 = [sin(theta1);-cos(theta1)];
+                    a2 = [-sin(theta2);cos(theta2)];
+                    is_in_fov_approx(ii) = 1/((1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+                        *(1+exp(alp*(tmp_v'*a1)))*...
+                        (1+exp(alp*(tmp_v'*a2))));
+                    %(1+exp(-cos(zref(3,ii+1)-theta_ref)+cos(this.theta0))));
+                end
+                
+                dif = norm(is_in_fov-is_in_fov_approx,1);
+                if dif < 0.1*N
+                    break
+                end
+                %}
+                break
+                
+                alp = alp*alp_inc;
+            end
+            
+            optz = zref;
+            optu = uref;
+            %}
+        end
+        
+        %%% can delete this cvxPlanner2 if the above cvxPlanner2 works. In
+        %%% fact, the yalmip syntax makes it hard to put matrix into sdp
+        %%% format
+        function [optz,optu] = cvxPlanner2(this,fld,init_sol)            
+            %{            
             % use the multi-layer approach similar to Sachin's work. Fix
             % the parameter for the sensor, solve path planning. Then
             % refine the parameter until close to reality. In each
@@ -541,10 +835,10 @@ classdef Robot
             %}
         end
         
-        %%% can delete this cvxPlanner2 if the above cvxPlanner works. In
+        %%% can delete this cvxPlanner3 if the above cvxPlanner2 works. In
         %%% fact, the yalmip syntax makes it hard to put matrix into sdp
         %%% format
-        function [optz,optu] = cvxPlanner2(this,fld,init_sol)     
+        function [optz,optu] = cvxPlanner3(this,fld,init_sol)     
             %{
             % use the multi-layer approach similar to Sachin's work. Fix
             % the parameter for the sensor, solve path planning. Then
