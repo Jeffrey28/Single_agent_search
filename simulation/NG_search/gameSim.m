@@ -12,7 +12,7 @@ close all
 simSetup;
 %% %%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%% 
 
-for ii = 1 %:sim_len
+for ii = 1 :sim_len
     sprintf('Progress: %d',ii/sim_len)
     %% target state update
     fld = fld.targetMove();
@@ -40,7 +40,7 @@ for ii = 1 %:sim_len
     
     % draw plot
     sim.plotFilter(rbt,fld)
-%     pause()
+    pause()
 %     sim.plotTraj(rbt,fld)
     
     

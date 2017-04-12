@@ -11,7 +11,7 @@ classdef Robot
         v_ub;
         
         % sensor specs
-        sensor_type; 
+        sensor_type;
         theta0; % sensor range in angle
         r; % sensor range
         % linear sensor
@@ -72,7 +72,7 @@ classdef Robot
             this.est_pos = inPara.est_pos;
             this.P = inPara.P;
             this.est_pos_hist = [];
-            this.P_hist = [];        
+            this.P_hist = [];
             % gmm
             this.gmm_num = inPara.gmm_num;
             this.wt = inPara.wt;
@@ -104,7 +104,7 @@ classdef Robot
             [a,b] = this.FOV(this.state);
             flag = (a(1,:)*tar_pos-b(1) <= 0) && (a(2,:)*tar_pos-b(2) <= 0)...
                 && (norm(tar_pos-this.state(1:2)) <= this.r);
-%             flag = (norm(tar_pos-this.state(1:2)) <= this.r);
+            %             flag = (norm(tar_pos-this.state(1:2)) <= this.r);
         end
         
         %% measurement generation
@@ -166,7 +166,7 @@ classdef Robot
             this.P_hist = [this.P_hist,P_next];
         end
         
-        function this = GSF(this,fld)                                                
+        function this = GSF(this,fld)
             % target
             tar = fld.target;
             f = tar.f;
@@ -176,26 +176,26 @@ classdef Robot
             % sensor
             h = this.h;
             del_h = this.del_h;
-            R = this.R;            
+            R = this.R;
             % measurement
             y = this.y;
             
             % used for updating gmm component weights
-            alp = ones(this.gmm_num,1); 
+            alp = ones(this.gmm_num,1);
             
-            for ii = 1:this.gmm_num 
+            for ii = 1:this.gmm_num
                 % current estimation
                 P = this.P{ii};
                 x = this.est_pos(:,ii);
                 A = del_f(x);
                 % prediction
-                x_pred = f(x); %%% replace this one with new nonlinear model                                
+                x_pred = f(x); %%% replace this one with new nonlinear model
                 P_pred = A*P*A'+Q;
                 
                 % update
                 % sensor model linearization
                 C = del_h(x_pred);
-                                                
+                
                 if sum(y-[-100;-100]) ~= 0
                     % if an observation is obtained
                     K = P_pred*C'/(C*P_pred*C'+R);
@@ -224,10 +224,10 @@ classdef Robot
         end
         
         function this = PF(this,fld)
-            % particle filter           
+            % particle filter
             
             % target
-            tar = fld.target;     
+            tar = fld.target;
             f = tar.f;
             % sensor
             h = this.h;
@@ -245,12 +245,12 @@ classdef Robot
             % state update: since we use the static target, no update is needed
             pred_par = zeros(2,np); % predicted particle state
             for ii = 1:np
-               pred_par(:,ii) = f(particles(:,ii));
+                pred_par(:,ii) = f(particles(:,ii));
             end
             
-            % weight update            
+            % weight update
             for ii = 1:np
-                if sum(y == -100) >= 1 
+                if sum(y == -100) >= 1
                     % if the target is outside FOV.
                     if this.inFOV(pred_par(:,ii))
                         w(ii) = 0.01;
@@ -277,7 +277,7 @@ classdef Robot
             
             %% gmm fitting
             max_gmm_num = this.max_gmm_num; % maximum gmm component number
-                        
+            
             gmm_model = cell(max_gmm_num,1);
             opt = statset('MaxIter',1000);
             AIC = zeros(max_gmm_num,1);
@@ -294,13 +294,13 @@ classdef Robot
             
             best_model = gmm_model{numComponents};
             this.gmm_num = numComponents;
-            this.gmm_mu = best_model.mu';           
+            this.gmm_mu = best_model.mu';
             this.gmm_sigma = best_model.Sigma;
             this.wt = best_model.PComponents';
             
             % convert the data form to be compatible with the main code
             this.est_pos = this.gmm_mu(:);
-            for ii = 1:numComponents                
+            for ii = 1:numComponents
                 this.P{ii} = this.gmm_sigma(:,:,ii);
             end
         end
@@ -308,7 +308,7 @@ classdef Robot
         %% planning
         
         % try re-writing the problem using cvx solver
-        function [optz,optu] = cvxPlanner(this,fld,init_sol)            
+        function [optz,optu] = cvxPlanner(this,fld,init_sol)
             % use the multi-layer approach similar to Sachin's work. Fix
             % the parameter for the sensor, solve path planning. Then
             % refine the parameter until close to reality. In each
@@ -319,16 +319,16 @@ classdef Robot
             N = this.mpc_hor;
             dt = this.dt;
             
-            % target 
+            % target
             tar = fld.target;
             f = tar.f;
-            del_f = tar.del_f;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            del_f = tar.del_f;
             Q = tar.Q;
             
             % sensor
-            h = this.h;    
+            h = this.h;
             del_h = this.del_h;
-            R = this.R; 
+            R = this.R;
             
             % the parameter for the sensing boundary approximation
             alp = 1;
@@ -347,7 +347,7 @@ classdef Robot
             variable t(this.gmm_num*this.gmm_num,N+1)
             
             % obj
-            minimize sum(t(:))      
+            minimize sum(t(:))
             
             zref = init_sol.zref;
             uref = init_sol.uref;
@@ -367,7 +367,7 @@ classdef Robot
                             end
                             [P(:,:,ll,ii+1) (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/scale_factor;
                                 (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))'/scale_factor t(this.gmm_num*(jj-1)+ll,ii+1)]>=0;
-                        end                        
+                        end
                     end
                 end
                 
@@ -377,18 +377,18 @@ classdef Robot
                 for jj = 1:this.gmm_num
                     P(:,:,jj,1) == this.P{jj};
                 end
-                               
+                
                 % constraints on the go
                 for ii = 1:N
                     % linearize using previous result
                     % robot state
                     z(:,ii+1) == z(:,ii)+...
-                            [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
-                            z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
-                            u(:,ii)]*dt;
-                        [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+                        [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                        z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                        u(:,ii)]*dt;
+                    [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
                     
-                    % use the weighted mean as the MAP of target position                   
+                    % use the weighted mean as the MAP of target position
                     
                     tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
                     gamma_den = 1;
@@ -418,9 +418,16 @@ classdef Robot
                         %%%%% position, however, I should change this later
                         %%%%% when using GMM.
                         x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii);
-                        % covariance                        
-                        triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
-                            == -gamma_num*triu(Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii));
+                        % covariance
+                        tmp = 0;
+                        for ll = 1:this.gmm_num
+                            %%% note: gamma depends on ll, C depends
+                            %%% only on jj
+                            tmp = tmp+this.wt(ll)*gamma_num/gamma_den*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii);
+                        end
+                        triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)) == -triu(tmp);
+%                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
+%                             == -gamma_num*triu(Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii));
                     end
                 end
                 this.w_lb <= u(1,:) <= this.w_ub;
@@ -472,7 +479,7 @@ classdef Robot
             %}
         end
         
-        function [optz,optu] = ngPlanner(this,fld)            
+        function [optz,optu] = ngPlanner(this,fld)
             % use the multi-layer approach similar to Sachin's work. Fix
             % the parameter for the sensor, solve path planning. Then
             % refine the parameter until close to reality.
@@ -481,16 +488,16 @@ classdef Robot
             N = this.mpc_hor;
             dt = this.dt;
             
-            % target 
+            % target
             tar = fld.target;
             f = tar.f;
-            del_f = tar.del_f;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            del_f = tar.del_f;
             Q = tar.Q;
             
             % sensor
-            h = this.h;    
+            h = this.h;
             del_h = this.del_h;
-            R = this.R; 
+            R = this.R;
             
             % the parameter for the sensing boundary approximation
             alp = 1;
@@ -506,6 +513,14 @@ classdef Robot
             for ii = 1:N+1
                 for jj = 1:this.gmm_num
                     P{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
+                end
+            end
+            
+            x_pred = sdpvar(2*this.gmm_num,N,'full'); % target mean
+            P_pred = cell(this.gmm_num,N);
+            for ii = 1:N+1
+                for jj = 1:this.gmm_num
+                    P_pred{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
                 end
             end
             
@@ -542,7 +557,7 @@ classdef Robot
                 constr = [[z(:,1) == this.state]:'init_z'];
                 constr = [constr,[x(:,1) == this.est_pos(:)]:'init_x'];
                 for jj = 1:this.gmm_num
-%                     constr = [constr,[P(2*jj-1:2*jj,1:2) == this.P{jj}]:'init_P'];%[1 0;0 1]];
+                    %                     constr = [constr,[P(2*jj-1:2*jj,1:2) == this.P{jj}]:'init_P'];%[1 0;0 1]];
                     constr = [constr,[P{jj,1} == this.P{jj}]:'init_P'];%[1 0;0 1]];
                 end
                 
@@ -571,20 +586,20 @@ classdef Robot
                         gamma_den = 1;
                         %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
                         % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
-                    else                        
+                    else
                         tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
                         tmp_v = tmp_mean-zref(1:2,ii+1);
                         gamma_den = 1;
-%                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
-%                         theta1 = zref(3,ii+1)-this.theta0;
-%                         theta2 = zref(3,ii+1)+this.theta0;
-%                         a1 = [sin(theta1);-cos(theta1)];
-%                         a2 = [-sin(theta2);cos(theta2)];
-%                         gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
-%                             *(1+exp(alp*(tmp_v'*a1)))*...
-%                             (1+exp(alp*(tmp_v'*a2)));
-%                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
-%                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
+                        %                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
+                        %                         theta1 = zref(3,ii+1)-this.theta0;
+                        %                         theta2 = zref(3,ii+1)+this.theta0;
+                        %                         a1 = [sin(theta1);-cos(theta1)];
+                        %                         a2 = [-sin(theta2);cos(theta2)];
+                        %                         gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+                        %                             *(1+exp(alp*(tmp_v'*a1)))*...
+                        %                             (1+exp(alp*(tmp_v'*a2)));
+                        %                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
+                        %                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
                     end
                     gamma_num = 1;
                     
@@ -599,19 +614,19 @@ classdef Robot
                         
                         % forward prediction
                         % mean
-%                         constr = [constr, [x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))]:'pred_mean'];
-                        x_pred = f(x(2*jj-1:2*jj,ii));
+                        constr = [constr, [x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii))]:'pred_mean'];
+                        %                         x_pred = f(x(2*jj-1:2*jj,ii));
                         % covariance
-%                         constr = [constr,[P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q]:'pred_cov'];
-%                         constr = [constr,[P_pred{jj,ii} == A*P{jj,ii}*A'+Q]:'pred_cov'];
-                        P_pred = A*P{jj,ii}*A'+Q;
+                        %                         constr = [constr,[P_pred(2*jj-1:2*jj,2*ii-1:2*ii) == A*(P(2*jj-1:2*jj,2*ii-1:2*ii))*A'+Q]:'pred_cov'];
+                        constr = [constr,[P_pred{jj,ii} == A*P{jj,ii}*A'+Q]:'pred_cov'];
+                        %                         P_pred = A*P{jj,ii}*A'+Q;
                         
                         % update using pesudo measurement
-                        T = C*P_pred*C'+R;
-%                         T = C*P_pred{jj,ii}*C'+R; % C*P_pred*C'+R
-%                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']:'K']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
-%                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred{jj,ii}*C']:'K'];
-                        constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred*C']:'K'];
+                        %                         T = C*P_pred*C'+R;
+                        T = C*P_pred{jj,ii}*C'+R; % C*P_pred*C'+R
+                        %                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']:'K']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
+                        constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred{jj,ii}*C']:'K'];
+                        %                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred*C']:'K'];
                         %                     a = T(1,1);
                         %                     b = T(1,2);
                         %                     c = T(2,1);
@@ -626,19 +641,30 @@ classdef Robot
                         %%%%% note: for now, I assume the MAP as the target
                         %%%%% position, however, I should change this later
                         %%%%% when using GMM.
-%                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
-                        constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred]:'upd_mean'];
+                        % not incorporate predictive measurement
+                        %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
+                        %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred]:'upd_mean'];
+                        % incorporate predictive measurement
+                        %%% needs to resume from here.
+                        constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
+                        
                         % covariance
                         if isempty(zref)
-%                             constr = [constr,[(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-%                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)]:'upd_cov'];%+phi];
-%                             constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gamma_den...
-%                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}]:'upd_cov'];
-                            constr = [constr,[(P{jj,ii+1}-P_pred)*gamma_den...
-                                == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred]:'upd_cov'];
-                        else
-                            constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                                == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+                            %                             constr = [constr,[(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+                            %                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)]:'upd_cov'];%+phi];
+                            tmp = 0;
+                            for ll = 1:this.gmm_num
+                                %%% note: gamma depends on ll, C depends
+                                %%% only on jj
+                                tmp = tmp+this.wt(ll)*gamma_num/gamma_den*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii};
+                            end
+                            constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})...
+                                == -tmp]:'upd_cov'];
+                            %                             constr = [constr,[(P{jj,ii+1}-P_pred)*gamma_den...
+                            %                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred]:'upd_cov'];
+                            %                         else
+                            %                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
+                            %                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
                         end
                     end
                 end
@@ -684,29 +710,31 @@ classdef Robot
                 end
                 
                 dif = norm(is_in_fov-is_in_fov_approx,1);
-%                 if dif < 0.1*N
-%                     break
-%                 end                
+                %                 if dif < 0.1*N
+                %                     break
+                %                 end
                 alp = alp*alp_inc;
-%             end
-            
-%             optz = zref;
-%             optu = uref;
-            %}
-            
-            % check the singularity of P
-            for ii = 1:N
-                for jj = 1:this.gmm_num
-%                     display(cond(value(P(2*jj-1:2*jj,2*ii+1:2*ii+2))))
-                    display(cond(value(P{jj,ii})))
-                end
-            end
-            
-            display(value(P))
                 
-            init_sol = struct('zref',zref,'uref',uref,'Kref',Kref,'xref',xref);
-            [optz,optu] = cvxPlanner(this,fld,init_sol);
-            
+                %             end
+                
+                %             optz = zref;
+                %             optu = uref;
+                %}
+                
+                % check the singularity of P
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+                        %                     display(cond(value(P(2*jj-1:2*jj,2*ii+1:2*ii+2))))
+                        display(cond(value(P{jj,ii})))
+                    end
+                end
+                
+                display(value(P))
+                
+                init_sol = struct('zref',zref,'uref',uref,'Kref',Kref,'xref',xref);
+                [optz,optu] = cvxPlanner(this,fld,init_sol);
+                
+%             end
         end
         
         function [optz,optu] = Planner(this,fld)
@@ -862,7 +890,7 @@ classdef Robot
             optu = value(u);
             %}
         end
-
+        
         function [optz,optu] = Planner2(this,fld)
             %{
             % two layer process
@@ -957,7 +985,7 @@ classdef Robot
             opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
             
             sol1 = optimize(constr1,obj,opt);
-            zref = value(z);            
+            zref = value(z);
             optz = value(z);
             optu = value(u);
             

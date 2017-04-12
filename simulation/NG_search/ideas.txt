@@ -1,5 +1,5 @@
-4/11/17
+4/12/17
 
 current issue:
-1. use the approximate form of constraint (expectation over peaks) and try the simulation.
-2. make basic code work with linearzied gamma
+1. make basic code work with linearzied gamma
+2. put the cvx planner in the iteration loop (increase alpha). The ideal framework is that the ngPlanner is only used at the beginning. All the subsequent plan is solved using the cvx planner (at next step, the last-step robot state is approximated by extrapolation).
