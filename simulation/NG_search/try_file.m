@@ -320,3 +320,76 @@ constr = [x>=0];
 opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
 sol1 = optimize(constr,obj,opt);
 %}
+
+%% check what is going wrong in cvxPlanner
+% compute the values by using the reference values
+
+% variables used for testing
+zt = zeros(4,N+1);
+ut = zeros(2,N);
+xt = zeros(2*this.gmm_num,N+1);
+Pt = zeros(2,2,this.gmm_num,N+1);
+x_predt = zeros(2*this.gmm_num,N);
+P_predt = zeros(2,2,this.gmm_num,N);
+
+t = cell(this.gmm_num*this.gmm_num,N+1);
+
+% initial value
+zt(:,1) = this.state;
+xt(:,1) = this.est_pos(:);
+for jj = 1:this.gmm_num
+    Pt(:,:,jj,1) = this.P{jj};
+end
+
+% constraints on the go
+for ii = 1:N
+    % robot state
+    zt(:,ii+1) = zt(:,ii)+...
+        [zt(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(zt(3,ii)-zref(3,ii));
+        zt(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(zt(3,ii)-zref(3,ii));
+        ut(:,ii)]*dt;
+    
+    gamma_den = 1; %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+    % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
+    gamma_num = 1;
+    
+    % target prediction
+    for jj = 1:this.gmm_num
+        A = del_f(xt(2*jj-1:2*jj,ii));       
+        C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+        
+        % mean
+        x_predt(2*jj-1:2*jj,ii) = f(xt(2*jj-1:2*jj,ii));
+        % covariance
+        P_predt(:,:,jj,ii) = A*Pt(:,:,jj,ii)*A'+Q;
+      
+        % mean
+        xt(2*jj-1:2*jj,ii+1) = x_predt(2*jj-1:2*jj,ii);
+        % covariance
+        Pt(:,:,jj,ii+1)...
+            = P_predt(:,:,jj,ii)-gamma_num/gamma_den*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_predt(:,:,jj,ii);       
+    end
+end
+
+% possible error is that -0 and 0. now only constrain the upper triangle
+% elements in equality constraint.
+% badly scaled problem is also a cause of problem: Pt is too small compared
+% to xt_ll-xt_jj
+
+cvx_begin sdp
+variable tt(this.gmm_num*this.gmm_num,N)
+variable PPt(3,3,this.gmm_num,this.gmm_num,N) nonnegative
+minimize sum(tt(:))
+tt(:) >= 0;
+for ii = 1:3%N
+    for jj = 1:3%this.gmm_num
+        for ll = 1:3%this.gmm_num
+%             tt(this.gmm_num*(jj-1)+ll,ii) >=...
+%                 (xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1))'/Pt(:,:,ll,ii+1)*(xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1));
+            triu(PPt(:,:,jj,ll,ii)) == ...
+            triu([Pt(:,:,ll,ii+1) (xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1))/10;
+                (xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1))'/10 tt(this.gmm_num*(jj-1)+ll,ii)]);
+        end
+    end
+end
+cvx_end
