@@ -1,5 +1,5 @@
-4/9/17
+4/11/17
 
 current issue:
-1. make basic code work without gamma (the formulation in cvxPlanner sometimes works, sometimes not. So I think I need to use cvx to write this part to avoid the confusion caused by 'full'. Another possible issue: P is close to zero matrix, not sure if this will cause problems)
-2. talk to George about stochastic MPC (where to take expectation)
+1. use the approximate form of constraint (expectation over peaks) and try the simulation.
+2. make basic code work with linearzied gamma

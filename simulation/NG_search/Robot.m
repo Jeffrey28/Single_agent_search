@@ -502,8 +502,6 @@ classdef Robot
             u = sdpvar(2,N,'full'); % robot control
             % estimation
             x = sdpvar(2*this.gmm_num,N+1,'full'); % target mean
-%             P = sdpvar(2*this.gmm_num,2*(N+1),'full'); % a set of 2-by-2 symmetric matrices
-%             P = sdpvar(2*this.gmm_num,2*(N+1)); % a set of 2-by-2 symmetric matrices
             P = cell(this.gmm_num,N+1);
             for ii = 1:N+1
                 for jj = 1:this.gmm_num
@@ -512,22 +510,7 @@ classdef Robot
             end
             
             % auxiliary variable
-            %             tmp_M = sdpvar(2,2,'full');
-%             K = sdpvar(2*this.gmm_num,2*N,'full');
             K = sdpvar(2*this.gmm_num,2*N,'full');
-            %             phi = sdpvar(2,2,'full');
-            %             tmp1 = sdpvar(2,N,'full');
-            
-%             % debug purpose
-%             x_pred = sdpvar(2*this.gmm_num,N,'full');
-% %             P_pred = sdpvar(2*this.gmm_num,2*N,'full');            
-% %             P_pred = sdpvar(2*this.gmm_num,2*N);
-%             P_pred = cell(this.gmm_num,N);
-%             for ii = 1:N
-%                 for jj = 1:this.gmm_num
-%                     P_pred{jj,ii} = sdpvar(2,2,'full'); % a set of 2-by-2 symmetric matrices
-%                 end
-%             end
             
             zref = [];
             uref = [];
