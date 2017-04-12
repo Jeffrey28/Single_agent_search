@@ -361,9 +361,12 @@ classdef Robot
                 for ii = 1:N
                     for jj = 1:this.gmm_num
                         for ll = 1:this.gmm_num
-                            %%%%% need to rescale the variable
-                            [P(:,:,ll,ii+1) (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1));
-                                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))' t(this.gmm_num*(jj-1)+ll,ii+1)]>=0;
+                            scale_factor = norm(xref(2*jj-1:2*jj,ii+1)-xref(2*ll-1:2*ll,ii+1));
+                            if scale_factor == 0
+                                scale_factor = 1;
+                            end
+                            [P(:,:,ll,ii+1) (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/scale_factor;
+                                (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))'/scale_factor t(this.gmm_num*(jj-1)+ll,ii+1)]>=0;
                         end                        
                     end
                 end
@@ -386,10 +389,9 @@ classdef Robot
                         [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
                     
                     % use the weighted mean as the MAP of target position                   
-                    if isempty(zref)
-                        tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
-                        gamma_den = 1; 
-                    end
+                    
+                    tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
+                    gamma_den = 1;
                     gamma_num = 1;
                     
                     % target prediction
