@@ -322,6 +322,7 @@ sol1 = optimize(constr,obj,opt);
 %}
 
 %% check what is going wrong in cvxPlanner
+%{
 % compute the values by using the reference values
 
 % variables used for testing
@@ -393,3 +394,60 @@ for ii = 1:3%N
     end
 end
 cvx_end
+%}
+
+%% compare the linearization and original result of the bell-shaped sensor
+% range function
+
+% figure('Position', [500 50 800 700])
+
+% model parameters
+alp1 = 1;
+alp2 = 10;
+
+x0 = 0;
+theta_bar = 0;
+theta0 = pi/3;
+
+% reference value for linearization
+z_ref = 5;
+theta_ref = pi/3;
+
+% define sensor model
+f1 = @(z) 1/(1+alp1*(x0-z)^2);
+f2 = @(theta) 1/(1+exp(alp2*(-cos(theta-theta_bar)+cos(theta0))));
+% exact model
+f= @(z,theta) f1(z)*f2(theta);
+% gradient
+grad = @(z,theta) [2*alp1*(x0-z)*f1(z_ref)^2*f2(theta_ref);...
+    -f2(theta_ref)^2*f1(z_ref)*exp(alp2*(-cos(theta-theta_bar)+cos(theta0)))*alp2*sin(theta-theta_bar)];
+% linearized model
+f_aprx = @(z,theta) f(z_ref,theta_ref)+grad(z_ref,theta_ref)'*[z-z_ref;theta-theta_ref];
+
+% test set. in the vinicity of reference value
+theta_set = linspace(theta_ref*0.9,theta_ref*1.1,30);
+z_set = linspace(z_ref*0.9,z_ref*1.1,30);
+
+% simulation
+v = zeros(length(theta_set),length(z_set));
+v_aprx = zeros(length(theta_set),length(z_set));
+
+for ff = 1:length(theta_set)
+    for gg = 1:length(z_set)
+        v(ff,gg) = f(z_set(gg),theta_set(ff)); %1/(1+(z_set(gg)-x0)^2)*1/(1+exp(10*(-cos(theta_set(ff)-theta_ref1)+cos(theta0))));
+        v_aprx(ff,gg) = f_aprx(z_set(gg),theta_set(ff));
+    end
+end
+v_diff = v-v_aprx;
+v_diff_ratio = v_diff./v;
+
+figure(1)
+surf(theta_set,z_set,v)
+figure(2)
+surf(theta_set,z_set,v_aprx)
+% set(gca,'fontsize',30);
+% xlabel('Angle','FontSize',30)
+% ylabel('Distace','FontSize',30)
+% zlabel('Function Value','FontSize',30)
+% title('Approximate Function for \gamma_k')
+box on

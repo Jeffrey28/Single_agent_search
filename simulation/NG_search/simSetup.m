@@ -54,14 +54,35 @@ inPara_rbt.del_g = @(z,u) z+u*dt;
 % sensor
 %%% needs further revision
 inPara_rbt.sensor_type = sensor_type;
+inPara_rbt.theta0 = 60/180*pi;
+inPara_rbt.range = 5;%4.5;
 if strcmp(sensor_type,'rb')
     % range-bearing sensor
 %     inPara_rbt.h = @(x) x-inPara_rbt.state(1:2);
 %     inPara_rbt.del_h = @(x) eye(2);
 %     inPara_rbt.R = 5*eye(2);
-    inPara_rbt.h = @(x,y) x.^2-y.^2; %%%%% change this in the future to be linear, not quadratic
-    inPara_rbt.del_h = @(x,y) [2*x(1) 0; 0 2*x(2)]; % y is the robot state.
+    inPara_rbt.h = @(x,z) x.^2-z.^2; %%%%% change this in the future to be linear, not quadratic
+    inPara_rbt.del_h = @(x,z) [2*x(1) 0; 0 2*x(2)]; % z is the robot state.
     inPara_rbt.R = 5*eye(2);
+    
+    % define gamma model
+    % model parameters
+    alp1 = 1;
+    alp2 = 10;
+    % two parts, one related to 
+    
+    gam_den1 = @(z,x0) 1/(1+alp1*(x0-z)^2); %%% this part does not involve range information. revise!
+    gam_den2 = @(theta,theta_bar) 1/(1+exp(alp2*(-cos(theta-theta_bar)+cos(inPara_rbt.theta0))));
+    gam_den = @(z,x0,theta,theta_bar) (gam_den1(x0,z)*gam_den2(theta,theta_bar));
+    % exact model
+    gam = @(z,x0,theta,theta_bar) 1/gam_den(z,x0,theta,theta_bar);
+    % gradient
+    gam_grad = @(z,x0,theta,theta_bar,theta_ref) [2*alp1*(x0-z)/(gam_den1(z_ref,x0)^2*gam_den2(theta_ref,theta_bar));...
+        -exp(alp2*(-cos(theta-theta_bar)+cos(theta0)))*alp2*sin(theta-theta_bar)/(gam_den2(theta_ref,theta_bar)^2*gam_den1(z_ref,x0))];
+    % linearized model
+    gam_aprx = @(z,x0,theta,theta_bar,theta_ref) gam(z_ref,x0,theta_ref,theta_bar)...
+        +gam_grad(z,x0,theta,theta_bar,theta_ref)'*[z-z_ref;theta-theta_ref];
+    
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
     % % range-only sensor
@@ -73,9 +94,11 @@ elseif strcmp(sensor_type,'br')
     % inPara_rbt.C_brg = eye(2);
     % inPara_rbt.R_brg = 0.5;
 end
-
-inPara_rbt.theta0 = 60/180*pi;
-inPara_rbt.range = 5;%4.5;
+inPara_rbt.alp1 = alp1;
+inPara_rbt.alp2 = alp2;
+inPara_rbt.gam_den = gam_den;
+inPara_rbt.gam = gam;
+inPara_rbt.gam_aprx = gam_aprx;
 
 % estimation initialization
 % xKF

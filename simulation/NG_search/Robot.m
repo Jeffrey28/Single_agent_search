@@ -498,6 +498,12 @@ classdef Robot
             h = this.h;
             del_h = this.del_h;
             R = this.R;
+            alp1 = this.alp1;
+            alp2 = this.alp2;
+            gam_den1 = this.gam_den1;
+            gam_den2 = this.gam_den2;
+            gam = this.gam;
+            gam_aprx = this.gam_aprx;
             
             % the parameter for the sensing boundary approximation
             alp = 1;
@@ -581,26 +587,26 @@ classdef Robot
                     
                     % use the weighted mean as the MAP of target position
                     
-                    if isempty(zref)
-                        tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
-                        gamma_den = 1;
-                        %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
-                        % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
-                    else
-                        tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
-                        tmp_v = tmp_mean-zref(1:2,ii+1);
-                        gamma_den = 1;
-                        %                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
-                        %                         theta1 = zref(3,ii+1)-this.theta0;
-                        %                         theta2 = zref(3,ii+1)+this.theta0;
-                        %                         a1 = [sin(theta1);-cos(theta1)];
-                        %                         a2 = [-sin(theta2);cos(theta2)];
-                        %                         gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
-                        %                             *(1+exp(alp*(tmp_v'*a1)))*...
-                        %                             (1+exp(alp*(tmp_v'*a2)));
-                        %                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
-                        %                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
-                    end
+%                     if isempty(zref)
+%                         tmp_mean = reshape(x(:,ii+1),2,this.gmm_num)*this.wt;
+% %                         gamma_den = 1;
+%                         gamma_den = 1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+%                         1+sum((tmp_mean-z(1:2,ii+1)).^2);
+%                     else
+%                         tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
+%                         tmp_v = tmp_mean-zref(1:2,ii+1);
+%                         gamma_den = 1;
+%                         %                         theta_ref = atan2(tmp_v(2),tmp_v(1)); % angle from the sensor to the target
+%                         %                         theta1 = zref(3,ii+1)-this.theta0;
+%                         %                         theta2 = zref(3,ii+1)+this.theta0;
+%                         %                         a1 = [sin(theta1);-cos(theta1)];
+%                         %                         a2 = [-sin(theta2);cos(theta2)];
+%                         %                         gamma_den = (1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
+%                         %                             *(1+exp(alp*(tmp_v'*a1)))*...
+%                         %                             (1+exp(alp*(tmp_v'*a2)));
+%                         %                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
+%                         %                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
+%                     end
                     gamma_num = 1;
                     
                     % target prediction
@@ -641,30 +647,25 @@ classdef Robot
                         %%%%% note: for now, I assume the MAP as the target
                         %%%%% position, however, I should change this later
                         %%%%% when using GMM.
-                        % not incorporate predictive measurement
                         %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
                         %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred]:'upd_mean'];
-                        % incorporate predictive measurement
-                        %%% needs to resume from here.
                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
                         
+                        %%%%% resume from here 4/12/17 need to define
+                        %%%%% theta_bar using an initial solution. also
+                        %%%%% needs to revise cvxPlanner part.
                         % covariance
                         if isempty(zref)
-                            %                             constr = [constr,[(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                            %                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)]:'upd_cov'];%+phi];
-                            tmp = 0;
-                            for ll = 1:this.gmm_num
-                                %%% note: gamma depends on ll, C depends
-                                %%% only on jj
-                                tmp = tmp+this.wt(ll)*gamma_num/gamma_den*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii};
-                            end
-                            constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})...
-                                == -tmp]:'upd_cov'];
-                            %                             constr = [constr,[(P{jj,ii+1}-P_pred)*gamma_den...
-                            %                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred]:'upd_cov'];
-                            %                         else
-                            %                             constr = [constr,(P(2*jj-1:2*jj,2*ii+1:2*ii+2)-P_pred(2*jj-1:2*jj,2*ii-1:2*ii))*gamma_den...
-                            %                                 == -gamma_num*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)];%+phi];
+                            constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gamma_den(z(1:2,ii+1),x_pred(2*jj-1:2*jj,ii),z(3,ii+1),theta_bar(ii+1))...
+                                == -K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)]:'upd_cov'];
+%                             tmp = 0;
+%                             for ll = 1:this.gmm_num
+%                                 %%% note: gamma depends on ll, C depends
+%                                 %%% only on jj
+%                                 tmp = tmp+this.wt(ll)*gamma_num/gamma_den*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii};
+%                             end
+%                             constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})...
+%                                 == -tmp]:'upd_cov'];
                         end
                     end
                 end
@@ -736,6 +737,7 @@ classdef Robot
                 
 %             end
         end
+        
         
         function [optz,optu] = Planner(this,fld)
             %{
