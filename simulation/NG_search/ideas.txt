@@ -1,5 +1,5 @@
 4/12/17
 
 current issue:
-1. make basic code work with linearzied gamma (not done yet)
+1. make basic code work with linearzied gamma (code is there, but infeasible. needs to think what is wrong.)
 2. put the cvx planner in the iteration loop (increase alpha). The ideal framework is that the ngPlanner is only used at the beginning. All the subsequent plan is solved using the cvx planner (at next step, the last-step robot state is approximated by extrapolation).

@@ -71,17 +71,24 @@ if strcmp(sensor_type,'rb')
     alp2 = 10;
     % two parts, one related to 
     
-    gam_den1 = @(z,x0) 1/(1+alp1*(x0-z)^2); %%% this part does not involve range information. revise!
-    gam_den2 = @(theta,theta_bar) 1/(1+exp(alp2*(-cos(theta-theta_bar)+cos(inPara_rbt.theta0))));
-    gam_den = @(z,x0,theta,theta_bar) (gam_den1(x0,z)*gam_den2(theta,theta_bar));
+    gam_den1 = @(z,x0) (1+alp1*norm(x0-z)^2); %%% this part does not involve range information. revise!
+    gam_den2 = @(theta,theta_bar) (1+exp(alp2*(-cos(theta-theta_bar)+cos(inPara_rbt.theta0))));
+    gam_den = @(z,theta,x0,theta_bar) (gam_den1(x0,z)*gam_den2(theta,theta_bar));
     % exact model
-    gam = @(z,x0,theta,theta_bar) 1/gam_den(z,x0,theta,theta_bar);
+    gam = @(z,theta,x0,theta_bar) 1/gam_den(z,theta,x0,theta_bar);
     % gradient
-    gam_grad = @(z,x0,theta,theta_bar,theta_ref) [2*alp1*(x0-z)/(gam_den1(z_ref,x0)^2*gam_den2(theta_ref,theta_bar));...
-        -exp(alp2*(-cos(theta-theta_bar)+cos(theta0)))*alp2*sin(theta-theta_bar)/(gam_den2(theta_ref,theta_bar)^2*gam_den1(z_ref,x0))];
+    gam_grad = @(z,theta,x0,theta_bar) [2*alp1*(x0-z)/(gam_den1(z,x0)^2*gam_den2(theta,theta_bar));...
+        -alp2*sin(theta-theta_bar)*(gam_den2(theta,theta_bar)-1)/...
+        (gam_den2(theta,theta_bar)^2*gam_den1(z,x0))];
     % linearized model
-    gam_aprx = @(z,x0,theta,theta_bar,theta_ref) gam(z_ref,x0,theta_ref,theta_bar)...
-        +gam_grad(z,x0,theta,theta_bar,theta_ref)'*[z-z_ref;theta-theta_ref];
+    gam_aprx = @(z,theta,x0,theta_bar,z_ref,theta_ref) gam(z_ref,theta_ref,x0,theta_bar)...
+        +gam_grad(z_ref,theta_ref,x0,theta_bar)'*[z-z_ref;theta-theta_ref];
+    % linearized update rule for covariance
+    p_aprx = @(z,theta,p1,p2,x0,theta_bar,t1,t2,z_ref,theta_ref,p1_ref,p2_ref) p1-...
+        gam(z_ref,theta_ref,x0,theta_bar)*(t1*p1_ref+t2*p2_ref)+...
+        (1-gam(z_ref,theta_ref,x0,theta_bar)*t1)*(p1-p1_ref)-...
+        gam(z_ref,theta_ref,x0,theta_bar)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
+        gam_grad(z_ref,theta_ref,x0,theta_bar)'*([z-z_ref;theta-theta_ref]);
     
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
@@ -99,6 +106,7 @@ inPara_rbt.alp2 = alp2;
 inPara_rbt.gam_den = gam_den;
 inPara_rbt.gam = gam;
 inPara_rbt.gam_aprx = gam_aprx;
+inPara_rbt.p_aprx = p_aprx;
 
 % estimation initialization
 % xKF
@@ -113,10 +121,10 @@ inPara_rbt.max_gmm_num = 3;
 inPara_rbt.particles = [X(:),Y(:)]';
 
 % planning
-inPara_rbt.mpc_hor = 3;
+inPara_rbt.mpc_hor = 3;%3;
 inPara_rbt.dt = dt;
 
 % simulation parameters
 inPara_rbt.max_step = sim_len;
-inPara_rbt.gam = 1;
+% inPara_rbt.gam = 1;
 rbt = Robot(inPara_rbt);

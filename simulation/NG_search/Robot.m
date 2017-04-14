@@ -21,6 +21,14 @@ classdef Robot
         del_h; % gradient of h
         R; % covariance for sensor model
         
+        % sensor modeling
+        gam; % function handle for gamma
+        gam_den; % function handle for the denominator of gamma
+        gam_aprx; % function handle for the linearized gamma
+        p_aprx; % function handle for the element of the linearized covriance matrix
+        alp1; % parameters in gam
+        alp2; % parameters in gam
+        
         % observation
         y; % observation measurement
         
@@ -43,7 +51,6 @@ classdef Robot
         mpc_hor;
         dt;
         optu;
-        gam; % coefficient for sigmoid function
         
         % performance metrics
         ml_pos;
@@ -60,11 +67,21 @@ classdef Robot
             this.w_ub = inPara.w_ub;
             this.v_lb = inPara.v_lb;
             this.v_ub = inPara.v_ub;
+            
+            % sensor specs
             this.R = inPara.R;
             this.h = inPara.h;
             this.del_h = inPara.del_h;
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
+            
+            % gamma modeling
+            this.gam = inPara.gam; % function handle for gamma
+            this.gam_den = inPara.gam_den; % function handle for the denominator of gamma
+            this.gam_aprx = inPara.gam_aprx; % function handle for the linearized gamma
+            this.p_aprx = inPara.p_aprx; % function handle for the element of the linearized covriance matrix
+            this.alp1 = inPara.alp1; % parameters in gam
+            this.alp2 = inPara.alp2;
             
             % filtering
             this.sensor_type = inPara.sensor_type;
@@ -329,6 +346,11 @@ classdef Robot
             h = this.h;
             del_h = this.del_h;
             R = this.R;
+%             alp1 = this.alp1;
+%             alp2 = this.alp2;
+%             gam = this.gam;
+%             gam_aprx = this.gam_aprx;
+           	p_aprx = this.p_aprx;
             
             % the parameter for the sensing boundary approximation
             alp = 1;
@@ -353,6 +375,7 @@ classdef Robot
             uref = init_sol.uref;
             xref = init_sol.xref;
             Kref = init_sol.Kref;
+            P_pred_ref = init_sol.P_pred_ref;
             while (1)
                 % constraints
                 % epigraph for obj
@@ -390,9 +413,7 @@ classdef Robot
                     
                     % use the weighted mean as the MAP of target position
                     
-                    tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
-                    gamma_den = 1;
-                    gamma_num = 1;
+%                     tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
                     
                     % target prediction
                     for jj = 1:this.gmm_num
@@ -419,13 +440,34 @@ classdef Robot
                         %%%%% when using GMM.
                         x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii);
                         % covariance
-                        tmp = 0;
+                        
+                        theta_bar = zeros(this.gmm_num,N+1);
+                        for ll = 1:this.gmm_num
+                            tmp_vec = xref(2*ll-1:2*ll,:)-zref(1:2,:);
+                            theta_bar(ll,:) = atan2(tmp_vec(1,:),tmp_vec(2,:));
+                        end
+                        T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C;
+                        expression tmp(ll,2,2);
                         for ll = 1:this.gmm_num
                             %%% note: gamma depends on ll, C depends
                             %%% only on jj
-                            tmp = tmp+this.wt(ll)*gamma_num/gamma_den*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii);
+                            tmp(ll,1,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                 T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
+                            tmp(ll,1,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii));
+%                             tmp(ll,2,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+%                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+%                                 T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
+                            tmp(ll,2,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii));
                         end
-                        triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)) == -triu(tmp);
+                        
+                        P(:,:,jj,ii+1) == squeeze(sum(tmp,1));
+                        
+%                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)) == -triu(tmp);
 %                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
 %                             == -gamma_num*triu(Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii));
                     end
@@ -500,16 +542,27 @@ classdef Robot
             R = this.R;
             alp1 = this.alp1;
             alp2 = this.alp2;
-            gam_den1 = this.gam_den1;
-            gam_den2 = this.gam_den2;
             gam = this.gam;
             gam_aprx = this.gam_aprx;
+            gam_den = this.gam_den;
             
             % the parameter for the sensing boundary approximation
             alp = 1;
             alp_inc = 2; % increament paramter for alpha
             
-            % set up simulation
+            % initial solution for approximation
+            % open loop prediction of gmm component mean
+            x_ol_pred = zeros(2*this.gmm_num,N+1);
+            x_ol_pred(:,1) = this.est_pos(:);
+            for ii = 1:N                 
+                x_ol_pred(:,ii+1) = f(x_ol_pred(:,ii));
+            end
+            
+            [~,idx] = max(this.wt);
+            tmp_vec = x_ol_pred(2*idx-1:2*idx,1)-this.state(1:2);
+            theta_bar = atan2(tmp_vec(2),tmp_vec(1));
+            
+            % set up
             % robot state and control
             z = sdpvar(4,N+1,'full'); % robot state
             u = sdpvar(2,N,'full'); % robot control
@@ -607,7 +660,7 @@ classdef Robot
 %                         %                         gamma_den = 1+(1+sum((tmp_mean-z(1:2,ii+1)).^2))*...
 %                         %                             (1+exp(-cos(z(3,ii+1)-theta_ref)+cos(this.theta0)));
 %                     end
-                    gamma_num = 1;
+%                     gamma_num = 1;
                     
                     % target prediction
                     for jj = 1:this.gmm_num
@@ -649,15 +702,17 @@ classdef Robot
                         %%%%% when using GMM.
                         %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
                         %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred]:'upd_mean'];
-                        constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
+                        constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];                        
                         
-                        %%%%% resume from here 4/12/17 need to define
-                        %%%%% theta_bar using an initial solution. also
-                        %%%%% needs to revise cvxPlanner part.
                         % covariance
-                        if isempty(zref)
-                            constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gamma_den(z(1:2,ii+1),x_pred(2*jj-1:2*jj,ii),z(3,ii+1),theta_bar(ii+1))...
-                                == -K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(2*jj-1:2*jj,2*ii-1:2*ii)]:'upd_cov'];
+                        % if the robot can replan reasonably fast, then it
+                        % can be fine to use the initial theta_bar as the
+                        % approximation
+                        
+                        if isempty(zref) 
+                            constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gam_den(z(1:2,ii+1),z(3,ii+1),...
+                                x_ol_pred(2*jj-1:2*jj,ii+1),theta_bar)...
+                                == -K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}]:'upd_cov']; %x_pred(2*jj-1:2*jj,ii)
 %                             tmp = 0;
 %                             for ll = 1:this.gmm_num
 %                                 %%% note: gamma depends on ll, C depends
@@ -685,7 +740,14 @@ classdef Robot
                 zref = value(z);
                 uref = value(u);
                 Kref = value(K);
-                
+                % convert P into the same form as the one used in
+                % cvxPlanner
+                P_pred_ref = zeros(2,2,this.gmm_num,N);
+                for ii = 1:N
+                    for jj = 1:this.gmm_num                
+                        P_pred_ref(:,:,jj,ii) = value(P_pred{jj,ii});
+                    end
+                end
                 % terminating condition: the actual in/out FOV is
                 % consistent with that of planning
                 is_in_fov = zeros(N,1);
@@ -732,7 +794,7 @@ classdef Robot
                 
                 display(value(P))
                 
-                init_sol = struct('zref',zref,'uref',uref,'Kref',Kref,'xref',xref);
+                init_sol = struct('zref',zref,'uref',uref,'Kref',Kref,'xref',xref,'P_pred_ref',P_pred_ref);
                 [optz,optu] = cvxPlanner(this,fld,init_sol);
                 
 %             end
