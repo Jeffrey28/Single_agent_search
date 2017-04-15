@@ -346,9 +346,9 @@ classdef Robot
             h = this.h;
             del_h = this.del_h;
             R = this.R;
-%             alp1 = this.alp1;
-%             alp2 = this.alp2;
-%             gam = this.gam;
+            alp1 = this.alp1;
+            alp2 = this.alp2;
+            gam = this.gam;
 %             gam_aprx = this.gam_aprx;
            	p_aprx = this.p_aprx;
             
@@ -357,26 +357,30 @@ classdef Robot
             alp_inc = 2; % increament paramter for alpha
             
             % set up simulation
-            % robot state and control
-            cvx_begin sdp
-            variables z(4,N+1) u(2,N) x(2*this.gmm_num,N+1)
-            variable P(2,2,this.gmm_num,N+1) symmetric
-            % debug purpose
-            variable x_pred(2*this.gmm_num,N)
-            variable P_pred(2,2,this.gmm_num,N) symmetric
-            
-            % auxiliary variable
-            variable t(this.gmm_num*this.gmm_num,N+1)
-            
-            % obj
-            minimize sum(t(:))
             
             zref = init_sol.zref;
             uref = init_sol.uref;
             xref = init_sol.xref;
             Kref = init_sol.Kref;
             P_pred_ref = init_sol.P_pred_ref;
+            
             while (1)
+                % robot state and control
+                cvx_begin sdp
+                variables z(4,N+1) u(2,N) x(2*this.gmm_num,N+1)
+                variable P(2,2,this.gmm_num,N+1) symmetric
+                % debug purpose
+                variable x_pred(2*this.gmm_num,N)
+                variable P_pred(2,2,this.gmm_num,N) symmetric
+                
+                % auxiliary variable
+                variable t(this.gmm_num*this.gmm_num,N+1)
+                
+                % obj
+                minimize sum(t(:))
+                
+                
+            
                 % constraints
                 % epigraph for obj
                 t(:) >= 0;
@@ -398,7 +402,7 @@ classdef Robot
                 z(:,1) == this.state;
                 x(:,1) == this.est_pos(:);
                 for jj = 1:this.gmm_num
-                    P(:,:,jj,1) == this.P{jj};
+                    triu(P(:,:,jj,1)) == triu(this.P{jj});
                 end
                 
                 % constraints on the go
@@ -447,25 +451,25 @@ classdef Robot
                             theta_bar(ll,:) = atan2(tmp_vec(1,:),tmp_vec(2,:));
                         end
                         T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C;
-                        expression tmp(ll,2,2);
+                        expression tmp(ll,2,2)
                         for ll = 1:this.gmm_num
                             %%% note: gamma depends on ll, C depends
                             %%% only on jj
                             tmp(ll,1,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
-                                 T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
+                                 T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2);
                             tmp(ll,1,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
                                 P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
-                                T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii));
+                                T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii),alp1,alp2);
 %                             tmp(ll,2,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
 %                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
 %                                 T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
                             tmp(ll,2,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
-                                P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
-                                T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii));
+                                P_pred(2,2,jj,ii),P_pred(1,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2);
                         end
                         
-                        P(:,:,jj,ii+1) == squeeze(sum(tmp,1));
+                        triu(P(:,:,jj,ii+1)) == triu(squeeze(sum(tmp,1)));
                         
 %                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)) == -triu(tmp);
 %                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
@@ -478,47 +482,54 @@ classdef Robot
                 
                 cvx_end
                 
+                % assign value for next iteration
                 zref = z;
                 uref = u;
-                xref = x;
+                xref = x;                
+                P_pred_ref = P_pred;
+                
+                % coompute Kref using Ricatti equation 
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+                        C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+                        Kref(2*jj-1:2*jj,2*ii-1:2*ii) = P_pred(1,2,jj,ii)*C'/(C*P_pred(1,2,jj,ii)*C'+R);                        
+                    end
+                end
                 
                 % terminating condition: the actual in/out FOV is
                 % consistent with that of planning
-                is_in_fov = zeros(N,1);
-                is_in_fov_approx = zeros(N,1);
+                is_in_fov = zeros(this.gmm_num,N);
+                is_in_fov_approx = zeros(this.gmm_num,N);
                 tmp_rbt = this;
-                %{
+                
                 for ii = 1:N
-                    tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
-                    
-                    tmp_rbt.state = zref(:,ii+1);
-                    is_in_fov(ii) = tmp_rbt.inFOV(tmp_mean);
-                    
-                    tmp_v = tmp_mean-zref(1:2,ii+1);
-                    theta_ref = atan2(tmp_v(2),tmp_v(1));
-                    theta1 = zref(3,ii+1)-this.theta0;
-                    theta2 = zref(3,ii+1)+this.theta0;
-                    a1 = [sin(theta1);-cos(theta1)];
-                    a2 = [-sin(theta2);cos(theta2)];
-                    is_in_fov_approx(ii) = 1/((1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
-                        *(1+exp(alp*(tmp_v'*a1)))*...
-                        (1+exp(alp*(tmp_v'*a2))));
-                    %(1+exp(-cos(zref(3,ii+1)-theta_ref)+cos(this.theta0))));
+                    for jj = 1:this.gmm_num
+                        tar_pos = xref(2*jj-1:2*jj,ii+1); % use each gmm component mean as a possible target position
+                        tmp_rbt.state = zref(:,ii+1);
+                        is_in_fov(jj,ii) = tmp_rbt.inFOV(tar_pos);
+                        
+                        tmp_v = tar_pos-zref(1:2,ii+1);
+                        theta_bar = atan2(tmp_v(2),tmp_v(1));
+                        is_in_fov_approx(jj,ii) = gam(zref(1:2,ii+1),zref(3,ii+1),tar_pos,theta_bar,alp1,alp2);
+                    end
                 end
                 
-                dif = norm(is_in_fov-is_in_fov_approx,1);
-                if dif < 0.1*N
+                dif = max(max(abs(is_in_fov-is_in_fov_approx)));
+                if dif < 0.05
                     break
                 end
-                %}
-                break
+                pause
+                alp1 = alp1*alp_inc;
+                alp2 = alp2*alp_inc;
                 
-                alp = alp*alp_inc;
+                display ('Robot.m lien 534')
+                display (alp1)
+                display (alp2)
             end
             
             optz = zref;
             optu = uref;
-            %}
+%             }
         end
         
         function [optz,optu] = ngPlanner(this,fld)
@@ -549,6 +560,12 @@ classdef Robot
             % the parameter for the sensing boundary approximation
             alp = 1;
             alp_inc = 2; % increament paramter for alpha
+            
+            %%% resume from here 4/14/17
+            %%% extrapolate last-step solution as the seed solution for
+            %%% current iteration. If this strategy does not work, then use
+            %%% sequential cvx programming for all remaining planning work.
+            %%% 
             
             % initial solution for approximation
             % open loop prediction of gmm component mean
@@ -711,7 +728,7 @@ classdef Robot
                         
                         if isempty(zref) 
                             constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gam_den(z(1:2,ii+1),z(3,ii+1),...
-                                x_ol_pred(2*jj-1:2*jj,ii+1),theta_bar)...
+                                x_ol_pred(2*jj-1:2*jj,ii+1),theta_bar,this.alp1,this.alp2)...
                                 == -K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred{jj,ii}]:'upd_cov']; %x_pred(2*jj-1:2*jj,ii)
 %                             tmp = 0;
 %                             for ll = 1:this.gmm_num
