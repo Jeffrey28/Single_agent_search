@@ -12,11 +12,12 @@ close all
 simSetup;
 % [sim_len,sim,rbt,fld] = simSetup2();
 %% %%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%% 
+% optimal solution for seeding ngPlanner
+optz = [];
+optu = [];
 
 for ii = 1:sim_len
-    sprintf('Progress: %d',ii/sim_len)
-    %% target state update
-    fld = fld.targetMove();
+    sprintf('Progress: %d',ii/sim_len)    
     
     %% target estimation
     rbt.y = rbt.sensorGen(fld);
@@ -31,9 +32,12 @@ for ii = 1:sim_len
     display('estimated position')
     display(rbt.est_pos);
     
+    %% target state update
+    fld = fld.targetMove();
+    
     %% robot motion planning
     %
-    [optz,optu] = rbt.ngPlanner(fld);
+    [optz,optu] = rbt.ngPlanner(fld,optz,optu);
     rbt = rbt.updState(optu);
     display('robot state:')
     display(rbt.state);
@@ -41,8 +45,8 @@ for ii = 1:sim_len
     
     % draw plot
     sim.plotFilter(rbt,fld)
+    sim.plotTraj(rbt,fld)
     pause()
-%     sim.plotTraj(rbt,fld)
     
     
     % terminating condition

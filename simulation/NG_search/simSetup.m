@@ -55,7 +55,7 @@ inPara_rbt.del_g = @(z,u) z+u*dt;
 %%% needs further revision
 inPara_rbt.sensor_type = sensor_type;
 inPara_rbt.theta0 = 60/180*pi;
-inPara_rbt.range = 5;%4.5;
+inPara_rbt.range = 20;%4.5;
 if strcmp(sensor_type,'rb')
     % range-bearing sensor
 %     inPara_rbt.h = @(x) x-inPara_rbt.state(1:2);

@@ -1,6 +1,5 @@
-4/12/17
+4/17/17
 
 current issue:
 
-1. put the cvx planner in the iteration loop (increase alpha). feed cvx solution to ngPlanner (with extrapolation to the next step).
-2. The intial solution for ngPlanner needs a better choice. Current one gives infeasiblity a lot of times.
+1. the model of FOV is not good. The approximated one always gives values close to 0. This forces the sensor to NOT detect the target.

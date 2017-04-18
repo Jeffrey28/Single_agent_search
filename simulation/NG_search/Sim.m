@@ -21,10 +21,8 @@ classdef Sim
             clf(f_hd);
             hold on
             
-            
             xlen = fld.fld_cor(2)-fld.fld_cor(1);
             ylen = fld.fld_cor(4)-fld.fld_cor(3);
-            
             
             [X,Y] = meshgrid((fld.fld_cor(1)+0.5):(fld.fld_cor(2)-0.5),...
                 (fld.fld_cor(3)+0.5):(fld.fld_cor(4))-0.5);
@@ -56,20 +54,20 @@ classdef Sim
         
         function plotTraj(this,rbt,fld)
             % Plotting for trajectory (path planning part)
-            shading interp
-            contourf(prob_map','LineColor','none');
-            load('MyColorMap','mymap')
-            colormap(mymap);
-            colorbar
+%             shading interp
+%             contourf(prob_map','LineColor','none');
+%             load('MyColorMap','mymap')
+%             colormap(mymap);
+%             colorbar
             
-            hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',3);
+            hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',5);
             set(hdl1,'MarkerFaceColor','r');
             set(hdl1,'MarkerEdgeColor','r');
             set(hdl1,'Color','r');
             set(hdl1,'LineStyle','-');
             set(hdl1,'Marker','o');
             
-            hdl2 = plot(fld.target.traj(1,:),fld.target.traj(2,:),'b','markers',3);
+            hdl2 = plot(fld.target.traj(1,:),fld.target.traj(2,:),'b','markers',5);
             set(hdl2,'MarkerFaceColor','b');
             set(hdl2,'MarkerEdgeColor','b');%
             set(hdl2,'Color','b');

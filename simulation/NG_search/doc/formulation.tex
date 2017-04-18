@@ -186,8 +186,8 @@ The MPC-based path planner with planning horizon $N$ can be formulated as:
 \begin{subequations}
 	\begin{align}
 	\min_{u_{1:N}}\; & J(b_{1:N+1},u_{1:N})\\
-	\text{s.t. }\; & z_{k+1}=f(z_k,u^r_k),\\
-	& b_{k+1}=g(b_k,u^r_k),\\
+	\text{s.t. }\; & z_{k+1}=f(z_k,u^r_k),\label{subeqn:rbt_dyn}\\
+	& b_{k+1}=g(b_k,u^r_k),\label{subeqn:est_upd}\\
 	& z_{k+1}\in\mathcal{X}, \, u^r_{k+1}\in\mathcal{U},\\
 	& k=1,\dots,N,
 	\end{align}\label{eqn:MPC}
@@ -216,7 +216,48 @@ In the planning, use $\gamma$ to update the estimation. This makes sense since i
 In the MPC, I may need to include the uncertainty into the obj. It seems that the only uncertainty comes from $\gamma$ in \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 The idea is that, since $\gamma$ is dependent on the underlying distribution of $x^i_{k+1|k}$, we can either assume MAP for the target position or use integral to compute the expected update of \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 
-\subsection{iterative quadratic programming formulation}
+\section{Sequential optimization framework}
+The problem uses two-layer of optimization. In the first layer, a non-convex problem is solved and the solution is provided to the second layer, which uses a convex optimization. (NOTE: may need to compare with iterative LQR).
+\subsection{nonconvex programming}
+The purpose of this layer is to find a good reference state for cvxPlanner to linearize around. The formulation uses the one defined in \Cref{eqn:MPC}.
+
+\textbf{simplification}:
+\begin{itemize}
+	\item objective: the covariance matrix is assumed constant in planning horizon.
+	\item weights of gmm are assumed constant.
+	\item mean propagation: open-loop using the system dynamics, no measurement is used.
+	\item covariance propagation: compute the gamma assuming the mean of a gmm component as the target position to update the covariance of the corresponding gmm component. $\bar{\theta}$ takes the value of the initial guess.
+\end{itemize}
+
+\textbf{Initial solution}:
+\begin{itemize}
+	\item At the beginning of the planning, use straight line constant acceleration model to generate initial guess. Later can change to motion primitives and try multiple initial guesses (similar to what John Schulman's work does).
+	\item When cvxPlanner is used, use the solution of cvxPlanner with one-step extrapolation as the initial guess for ngPlanner in next round.
+\end{itemize}
+
+\textbf{Possible changes}: 
+\begin{itemize}
+	\item whether using initial guess to approximate A, C.
+	\item it is unclear to me whether I should us ngPlanner at all (after the first step). I may be able to use cvxPlanner only for the rest of whole search process.
+\end{itemize}
+
+\subsection{iterative convex programming formulation}
+This layer uses sequential convex programming to plan a trajectory. 
+
+\textbf{Simplification}:
+\begin{itemize}
+	\item use the convex relaxation of $0$-th order approximation of entropy in the objective function.
+	\item linearize \cref{subeqn:rbt_dyn} around reference trajectory.
+	\item linearize \cref{subeqn:est_upd} around reference trajectory.  Especially, the $K$ is assumed to use the reference value.
+	\item A,C all uses the value of reference state.
+\end{itemize}
+
+\textbf{possible changes}:
+\begin{itemize}
+	\item the sensor FOV approximation is bad. only gives value 1 in very small state range.
+\end{itemize}
+
+\subsubsection{Approximating the Objective Function}
 We can obtain the upper bound of \Cref{eqn:approx_obj} using Jensen's inequality:
 \begin{align*}
 &-\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log \sum\limits_{j=1}^L\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
@@ -240,6 +281,9 @@ P^j_{k|k} & \hat{x}^i_{k|k}-\hat{x}^j_{k|k}\\
 %The objective function is quadratic in $x$.
 %The second step (C(ovariance)-step) fixes $\hat{x}^i_{k|k}$ using the result from the last iteration and solve for $P^j_{k|k}$. 
 %The objective function is quadratic in $x$.
+
+
+
 
 \section{possible extensions}
 This section compiles the possible contributions I can make in this and other following works. The previous sections are the actual implementation of what I will do in this work.
