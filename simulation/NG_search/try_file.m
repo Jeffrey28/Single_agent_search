@@ -397,57 +397,74 @@ cvx_end
 %}
 
 %% compare the linearization and original result of the bell-shaped sensor
-% range function
-
-% figure('Position', [500 50 800 700])
-
+clear
 % model parameters
-alp1 = 1;
-alp2 = 10;
+alp1 = 20;
+alp2 = 20;
+alp3 = 20;
 
-x0 = 0;
-theta_bar = 0;
 theta0 = pi/3;
+r = 20;
+tar_pos = [20;20]; 
 
 % reference value for linearization
-z_ref = 5;
+z_ref = [10;10];
 theta_ref = pi/3;
 
+%%% resume from here 4/18/17
 % define sensor model
-f1 = @(z) 1/(1+alp1*(x0-z)^2);
-f2 = @(theta) 1/(1+exp(alp2*(-cos(theta-theta_bar)+cos(theta0))));
+% determine if the target is in sensor FOV
+inFOV = @(z,theta,tar_pos) ([sin(theta-theta0),-cos(theta-theta0)]*(tar_pos-z) <= 0) &&...
+    ([-sin(theta+theta0),cos(theta+theta0)]*(tar_pos-z) <= 0)...
+                && (norm(tar_pos-z) <= r);       
+% gamma
+gam_den1 = @(z,x0,alp) 1+exp(alp*(sum((x0-z).^2)-r^2));
+gam_den2 = @(z,x0,theta,alp) 1+exp(alp*[sin(theta-theta0),-cos(theta-theta0)]*(x0-z));
+gam_den3 = @(z,x0,theta,alp) 1+exp(alp*[-sin(theta+theta0),cos(theta+theta0)]*(x0-z));
+gam_den = @(z,theta,x0,alp1,alp2,alp3) gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3);
 % exact model
-f= @(z,theta) f1(z)*f2(theta);
+gam = @(z,theta,x0,alp1,alp2,alp3) 1/gam_den(z,theta,x0,alp1,alp2,alp3);
 % gradient
-grad = @(z,theta) [2*alp1*(x0-z)*f1(z_ref)^2*f2(theta_ref);...
-    -f2(theta_ref)^2*f1(z_ref)*exp(alp2*(-cos(theta-theta_bar)+cos(theta0)))*alp2*sin(theta-theta_bar)];
+gam_den1_grad = @(z,x0,alp)  [(gam_den1(z,x0,alp)-1)*alp*(z-x0);0];
+gam_den2_grad = @(z,x0,theta,alp)  (gam_den2(z,x0,theta,alp)-1)*alp*[-sin(theta-theta0);cos(theta-theta0);[cos(theta-theta0),sin(theta-theta0)]*(x0-z)];
+gam_den3_grad = @(z,x0,theta,alp)  (gam_den3(z,x0,theta,alp)-1)*alp*[sin(theta+theta0);-cos(theta+theta0);[cos(theta+theta0),sin(theta+theta0)]*(z-x0)];
+gam_grad = @(z,theta,x0,alp1,alp2,alp3) -(gam_den1_grad(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
+    gam_den1(z,x0,alp1)*gam_den2_grad(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
+    gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3_grad(z,x0,theta,alp3))/...
+    (gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3))^2;
 % linearized model
-f_aprx = @(z,theta) f(z_ref,theta_ref)+grad(z_ref,theta_ref)'*[z-z_ref;theta-theta_ref];
+gam_aprx = @(z,theta,x0,z_ref,theta_ref,alp1,alp2,alp3) gam(z_ref,theta_ref,x0,alp1,alp2,alp3)...
+    +gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*[z-z_ref;theta-theta_ref];
 
 % test set. in the vinicity of reference value
-theta_set = linspace(theta_ref*0.9,theta_ref*1.1,30);
-z_set = linspace(z_ref*0.9,z_ref*1.1,30);
+theta_set = linspace(theta_ref*0.7,theta_ref*1.2,30);
+z_set = [linspace(z_ref(1)*0.7,z_ref(1)*1.2,30);linspace(z_ref(2)*0.5,z_ref(2)*1.2,30)];
 
-% simulation
-v = zeros(length(theta_set),length(z_set));
-v_aprx = zeros(length(theta_set),length(z_set));
+% compare the computed gamma, gamma_aprx, inFOV
+v = zeros(length(theta_set),length(z_set)); % computed using gam
+v_aprx = zeros(length(theta_set),length(z_set)); % computed using gam_aprx
+v_fov = zeros(length(theta_set),length(z_set)); % computed using inFOV
 
 for ff = 1:length(theta_set)
-    for gg = 1:length(z_set)
-        v(ff,gg) = f(z_set(gg),theta_set(ff)); %1/(1+(z_set(gg)-x0)^2)*1/(1+exp(10*(-cos(theta_set(ff)-theta_ref1)+cos(theta0))));
-        v_aprx(ff,gg) = f_aprx(z_set(gg),theta_set(ff));
+    for gg = 1:size(z_set,2)
+        v(ff,gg) = gam(z_set(:,gg),theta_set(ff),tar_pos,alp1,alp2,alp3);
+        v_aprx(ff,gg) = gam_aprx(z_set(:,gg),theta_set(ff),tar_pos,z_ref,theta_ref,alp1,alp2,alp3);
+        v_fov(ff,gg) = inFOV(z_set(:,gg),theta_set(ff),tar_pos);
     end
-end
-v_diff = v-v_aprx;
-v_diff_ratio = v_diff./v;
+end 
+v_diff1 = v-v_aprx;
+v_diff2 = v-v_fov;
+v_diff3 = v_aprx-v_fov;
 
 figure(1)
-surf(theta_set,z_set,v)
+surf(z_set(1,:),theta_set,v)
+title('gamma')
+xlabel('z')
+ylabel('\theta')
 figure(2)
-surf(theta_set,z_set,v_aprx)
-% set(gca,'fontsize',30);
-% xlabel('Angle','FontSize',30)
-% ylabel('Distace','FontSize',30)
-% zlabel('Function Value','FontSize',30)
-% title('Approximate Function for \gamma_k')
-box on
+surf(z_set(1,:),theta_set,v_aprx)
+title('approximate gamma')
+figure(3)
+surf(z_set(1,:),theta_set,v_fov)
+title('exact FOV')
+

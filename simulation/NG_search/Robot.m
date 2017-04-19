@@ -28,6 +28,7 @@ classdef Robot
         p_aprx; % function handle for the element of the linearized covriance matrix
         alp1; % parameters in gam
         alp2; % parameters in gam
+        alp3; % parameters in gam
         
         % observation
         y; % observation measurement
@@ -82,6 +83,7 @@ classdef Robot
             this.p_aprx = inPara.p_aprx; % function handle for the element of the linearized covriance matrix
             this.alp1 = inPara.alp1; % parameters in gam
             this.alp2 = inPara.alp2;
+            this.alp3 = inPara.alp3;
             
             % filtering
             this.sensor_type = inPara.sensor_type;
@@ -348,6 +350,7 @@ classdef Robot
             R = this.R;
             alp1 = this.alp1;
             alp2 = this.alp2;
+            alp3 = this.alp3;
             gam = this.gam;
             gam_aprx = this.gam_aprx;
            	p_aprx = this.p_aprx;
@@ -449,17 +452,17 @@ classdef Robot
                             %%% note: gamma depends on ll, C depends
                             %%% only on jj
                             tmp(ll,1,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
-                                P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
-                                 T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2);
+                                P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                 T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
                             tmp(ll,1,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
-                                P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
-                                T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii),alp1,alp2);
+                                P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii),alp1,alp2,alp3);
 %                             tmp(ll,2,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
 %                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
 %                                 T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
                             tmp(ll,2,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
-                                P_pred(2,2,jj,ii),P_pred(1,2,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
-                                T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2);
+                                P_pred(2,2,jj,ii),P_pred(1,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
                         end
                         
                         triu(P(:,:,jj,ii+1)) == triu(squeeze(sum(tmp,1)));
@@ -483,14 +486,19 @@ classdef Robot
                 
                 for ii = 1:N
                     for jj = 1:this.gmm_num
+                        % actual inFOV
                         tar_pos = x(2*jj-1:2*jj,ii+1); % use each gmm component mean as a possible target position
                         tmp_rbt.state = z(:,ii+1);
                         is_in_fov(jj,ii) = tmp_rbt.inFOV(tar_pos);
                         
+                        % exact gamma
+                        
+                        
+                        % approximated inFOV
                         tmp_v = tar_pos-z(1:2,ii+1);
                         theta_bar = atan2(tmp_v(2),tmp_v(1));
                         is_in_fov_approx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
-                            tar_pos,theta_bar,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2);
+                            tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
                     end
                 end
                 
@@ -516,10 +524,12 @@ classdef Robot
                 
                 alp1 = alp1*alp_inc;
                 alp2 = alp2*alp_inc;
+                alp3 = alp3*alp_inc;
                 
-                display ('Robot.m line 518')
+                display ('Robot.m line 522')
                 display (alp1)
                 display (alp2)
+                display (alp3)
             end
             
             optz = zref;
@@ -714,7 +724,7 @@ classdef Robot
                         
 %                         if isempty(zref) 
                             constr = [constr,[(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gam_den(z(1:2,ii+1),z(3,ii+1),...
-                                x_olp(2*jj-1:2*jj,ii+1),theta_bar(jj),this.alp1,this.alp2)...
+                                x_olp(2*jj-1:2*jj,ii+1),this.alp1,this.alp2,this.alp3)...
                                 == -K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii)]:'upd_cov'];
 %                             constr = [constr,[(P{jj,ii+1}-P_pred{jj,ii})*gam_den(z(1:2,ii+1),z(3,ii+1),...
 %                                 x_ol_pred(2*jj-1:2*jj,ii+1),theta_bar(jj),this.alp1,this.alp2)...
@@ -745,6 +755,7 @@ classdef Robot
                 zref = value(z);
                 uref = value(u);
                 Kref = value(K);
+                xref = value(x);
                 P_pred = value(P_pred);
 %                 
 %                 % convert P into the same form as the one used in
@@ -892,7 +903,7 @@ classdef Robot
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
             this.traj = [this.traj,this.state];
             % range-bearing sensor
-            this.h = @(x) x-this.state(1:2);
+%             this.h = @(x) x-this.state(1:2);
         end
     end
 end

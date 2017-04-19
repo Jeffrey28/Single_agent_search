@@ -68,9 +68,11 @@ if strcmp(sensor_type,'rb')
     % define gamma model
     % model parameters
     alp1 = 1;
-    alp2 = 10;
-    % two parts, one related to 
+    alp2 = 1;
+    alp3 = 1;
     
+    % the gamma model used in ACC 17
+    %{
     gam_den1 = @(z,x0,alp1) (1+alp1*norm(x0-z)^2); %%% this part does not involve range information. revise!
     gam_den2 = @(theta,theta_bar,alp2) (1+exp(alp2*(-cos(theta-theta_bar)+cos(inPara_rbt.theta0))));
     gam_den = @(z,theta,x0,theta_bar,alp1,alp2) (gam_den1(z,x0,alp1)*gam_den2(theta,theta_bar,alp2));
@@ -89,6 +91,32 @@ if strcmp(sensor_type,'rb')
         (1-gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)*t1)*(p1-p1_ref)-...
         gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
         gam_grad(z_ref,theta_ref,x0,theta_bar,alp1,alp2)'*([z-z_ref;theta-theta_ref]);
+    %}
+    
+    % gamma model
+    gam_den1 = @(z,x0,alp) 1+exp(alp*(sum((x0-z).^2)-inPara_rbt.range^2));
+    gam_den2 = @(z,x0,theta,alp) 1+exp(alp*[sin(theta-inPara_rbt.theta0),-cos(theta-inPara_rbt.theta0)]*(x0-z)); 
+    gam_den3 = @(z,x0,theta,alp) 1+exp(alp*[-sin(theta+inPara_rbt.theta0),cos(theta+inPara_rbt.theta0)]*(x0-z));
+    gam_den = @(z,theta,x0,alp1,alp2,alp3) gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3);
+    % exact model
+    gam = @(z,theta,x0,alp1,alp2,alp3) 1/gam_den(z,theta,x0,alp1,alp2,alp3);
+    % gradient
+    gam_den1_grad = @(z,x0,alp)  [(gam_den1(z,x0,alp)-1)*alp*(z-x0);0];
+    gam_den2_grad = @(z,x0,theta,alp)  (gam_den2(z,x0,theta,alp)-1)*alp*[-sin(theta-inPara_rbt.theta0);cos(theta-inPara_rbt.theta0);[cos(theta-inPara_rbt.theta0),sin(theta-inPara_rbt.theta0)]*(x0-z)];
+    gam_den3_grad = @(z,x0,theta,alp)  (gam_den3(z,x0,theta,alp)-1)*alp*[sin(theta+inPara_rbt.theta0);-cos(theta+inPara_rbt.theta0);[cos(theta+inPara_rbt.theta0),sin(theta+inPara_rbt.theta0)]*(z-x0)];
+    gam_grad = @(z,theta,x0,alp1,alp2,alp3) -(gam_den1_grad(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
+        gam_den1(z,x0,alp1)*gam_den2_grad(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
+        gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3_grad(z,x0,theta,alp3))/...
+        (gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3))^2;    
+    % linearized model
+    gam_aprx = @(z,theta,x0,z_ref,theta_ref,alp1,alp2,alp3) gam(z_ref,theta_ref,x0,alp1,alp2,alp3)...
+        +gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*[z-z_ref;theta-theta_ref];
+    % linearized update rule for covariance
+    p_aprx = @(z,theta,p1,p2,x0,t1,t2,z_ref,theta_ref,p1_ref,p2_ref,alp1,alp2,alp3) p1-...
+        gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*(t1*p1_ref+t2*p2_ref)+...
+        (1-gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*t1)*(p1-p1_ref)-...
+        gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
+        gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*([z-z_ref;theta-theta_ref]);
     
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
@@ -103,6 +131,7 @@ elseif strcmp(sensor_type,'br')
 end
 inPara_rbt.alp1 = alp1;
 inPara_rbt.alp2 = alp2;
+inPara_rbt.alp3 = alp3;
 inPara_rbt.gam_den = gam_den;
 inPara_rbt.gam = gam;
 inPara_rbt.gam_aprx = gam_aprx;
