@@ -327,7 +327,7 @@ classdef Robot
         %% planning
         
         % try re-writing the problem using cvx solver
-        function [optz,optu] = cvxPlanner(this,fld,init_sol)
+        function [optz,optu] = cvxPlanner(this,fld,optz,optu) % cvxPlanner(this,fld,init_sol)
             % use the multi-layer approach similar to Sachin's work. Fix
             % the parameter for the sensor, solve path planning. Then
             % refine the parameter until close to reality. In each
@@ -361,11 +361,25 @@ classdef Robot
             
             % set up simulation
             
-            zref = init_sol.zref;
-            uref = init_sol.uref;
-            xref = init_sol.xref;
-            Kref = init_sol.Kref;
-            P_pred_ref = init_sol.P_pred_ref;
+            if isempty(optz)
+                prev_state = [];
+            else
+                prev_state = struct('optz',optz,'optu',optu);
+            end
+            
+            init_sol = genInitState(this,fld,prev_state);
+            
+            zref = init_sol.z;
+            uref = init_sol.u;
+            xref = init_sol.x;
+            Kref = init_sol.K;
+            P_pred_ref = init_sol.P_pred;
+            
+%             zref = init_sol.zref;
+%             uref = init_sol.uref;
+%             xref = init_sol.xref;
+%             Kref = init_sol.Kref;
+%             P_pred_ref = init_sol.P_pred_ref;
             
             while (1)
                 % robot state and control
@@ -481,28 +495,28 @@ classdef Robot
                 % terminating condition: the actual in/out FOV is
                 % consistent with that of planning
                 is_in_fov = zeros(this.gmm_num,N);
-                is_in_fov_approx = zeros(this.gmm_num,N);
+                gamma_exact = zeros(this.gmm_num,N);
+                gamma_aprx = zeros(this.gmm_num,N);
                 tmp_rbt = this;
                 
                 for ii = 1:N
                     for jj = 1:this.gmm_num
-                        % actual inFOV
                         tar_pos = x(2*jj-1:2*jj,ii+1); % use each gmm component mean as a possible target position
+                        % actual inFOV                        
                         tmp_rbt.state = z(:,ii+1);
                         is_in_fov(jj,ii) = tmp_rbt.inFOV(tar_pos);
                         
                         % exact gamma
-                        
+                        gamma_exact(jj,ii) = gam(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,alp1,alp2,alp3);
                         
                         % approximated inFOV
-                        tmp_v = tar_pos-z(1:2,ii+1);
-                        theta_bar = atan2(tmp_v(2),tmp_v(1));
-                        is_in_fov_approx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
+                        gamma_aprx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
                             tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
                     end
                 end
                 
-                dif = max(max(abs(is_in_fov-is_in_fov_approx)));
+                dif = max(max(abs(is_in_fov-gamma_aprx)));
                 if dif < 0.05
                     break
                 end               
@@ -572,12 +586,12 @@ classdef Robot
             %%% sequential cvx programming for all remaining planning work.
             %%%             
             % initial solution for approximation
-%             zref = [];
-%             x_ol_pred = zeros(2*this.gmm_num,N+1);
-%             x_ol_pred(:,1) = this.est_pos(:);
-%             for ii = 1:N
-%                 x_ol_pred(:,ii+1) = f(x_ol_pred(:,ii));
-%             end
+            zref = [];
+            x_ol_pred = zeros(2*this.gmm_num,N+1);
+            x_ol_pred(:,1) = this.est_pos(:);
+            for ii = 1:N
+                x_ol_pred(:,ii+1) = f(x_ol_pred(:,ii));
+            end
 %             
 %             theta_bar = zeros(this.gmm_num,1);
 %             for jj = 1:this.gmm_num           
@@ -593,7 +607,7 @@ classdef Robot
             init_sol = genInitState(this,fld,prev_state);
             % open-loop prediction of target
             x_olp = init_sol.x_olp;            
-            theta_bar = init_sol.theta_bar;
+%             theta_bar = init_sol.theta_bar;
             
             % set up
             % robot state and control
@@ -698,21 +712,9 @@ classdef Robot
                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(:,:,jj,ii)*C']:'K'];
                         %                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred(2*jj-1:2*jj,2*ii-1:2*ii)*C']:'K']; % define K=P_pred*C'(C*P_pred*C'+T)^-1
 %                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred{jj,ii}*C']:'K'];
-                        %                         constr = [constr, [K(2*jj-1:2*jj,2*ii-1:2*ii)*T == P_pred*C']:'K'];
-                        %                     a = T(1,1);
-                        %                     b = T(1,2);
-                        %                     c = T(2,1);
-                        %                     d = T(2,2);
-                        %                     t = a*d-b*c;
-                        %                     T2 = [d -b; -c a]; % inv(CPC'+R)
                         
-                        % since gamma is in factorial form, to avoid division, I
-                        % separate the denominator and numerator to two sides of
-                        % the equation
+                        
                         % mean
-                        %%%%% note: for now, I assume the MAP as the target
-                        %%%%% position, however, I should change this later
-                        %%%%% when using GMM.
                         %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];
                         %                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred]:'upd_mean'];
                         constr = [constr,[x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii)]:'upd_mean'];                        
@@ -757,39 +759,7 @@ classdef Robot
                 Kref = value(K);
                 xref = value(x);
                 P_pred = value(P_pred);
-%                 
-%                 % convert P into the same form as the one used in
-%                 % cvxPlanner
-%                 P_pred_ref = zeros(2,2,this.gmm_num,N);
-%                 for ii = 1:N
-%                     for jj = 1:this.gmm_num                
-%                         P_pred_ref(:,:,jj,ii) = value(P_pred{jj,ii});
-%                     end
-%                 end
 
-%                 % terminating condition: the actual in/out FOV is
-%                 % consistent with that of planning
-%                 is_in_fov = zeros(N,1);
-%                 is_in_fov_approx = zeros(N,1);
-%                 xref = value(x);
-%                 tmp_rbt = this;
-%                 for ii = 1:N
-%                     tmp_mean = reshape(xref(:,ii+1),2,this.gmm_num)*this.wt;
-%                     
-%                     tmp_rbt.state = zref(:,ii+1);
-%                     is_in_fov(ii) = tmp_rbt.inFOV(tmp_mean);
-%                     
-%                     tmp_v = tmp_mean-zref(1:2,ii+1);
-%                     theta_ref = atan2(tmp_v(2),tmp_v(1));
-%                     theta1 = zref(3,ii+1)-this.theta0;
-%                     theta2 = zref(3,ii+1)+this.theta0;
-%                     a1 = [sin(theta1);-cos(theta1)];
-%                     a2 = [-sin(theta2);cos(theta2)];
-%                     is_in_fov_approx(ii) = 1/((1+exp(alp*(sum((tmp_v).^2)-this.r^2)))...
-%                         *(1+exp(alp*(tmp_v'*a1)))*...
-%                         (1+exp(alp*(tmp_v'*a2))));
-%                 end
-%                 
 %                 dif = norm(is_in_fov-is_in_fov_approx,1);
 %                 alp = alp*alp_inc;
                 
@@ -832,7 +802,7 @@ classdef Robot
             end            
             init_state.x_olp = x_olp;
             init_state.x = x_olp;
-            init_state.x_pred = x_olp(:,2:end);
+            init_state.x_pred = x_olp(:,2:end);                        
             
             % get z,u
             if isempty(prev_state)
@@ -841,6 +811,8 @@ classdef Robot
                 
                 u = [0;0.5]*ones(1,N);
                 z = zeros(4,N+1);
+                
+                z(:,1) = this.state;
                 
                 for ii = 1:N
                     z(:,ii+1) = z(:,ii)+...

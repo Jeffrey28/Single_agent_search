@@ -1,5 +1,9 @@
 4/18/17
 
-current issue:
 
-1. fixed a bug in the gamma computation. Now ngPlanner has issue. Check if I can only use cvxPlanner.
+the code now only uses cvxPlanner. 
+
+current issue:
+1. in the termination condition, the computed gamma and inFOV seems to differ a lot. check what happens here.
+2. The scaling of gamma seems to cause infeasibility issue. needs to fix this.
+3. debug the whole program, think about using motion primitive for multiple initial guesses.

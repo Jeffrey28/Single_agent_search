@@ -37,7 +37,8 @@ for ii = 1:sim_len
     
     %% robot motion planning
     %
-    [optz,optu] = rbt.ngPlanner(fld,optz,optu);
+%     [optz,optu] = rbt.ngPlanner(fld,optz,optu);
+    [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
     rbt = rbt.updState(optu);
     display('robot state:')
     display(rbt.state);
