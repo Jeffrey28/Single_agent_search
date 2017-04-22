@@ -2,3 +2,6 @@
 *.m~
 *.swp
 *.asv
+*.aux
+*.log
+*.synctex.gz

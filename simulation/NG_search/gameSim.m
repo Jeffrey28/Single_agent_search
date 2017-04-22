@@ -23,8 +23,9 @@ for ii = 1:sim_len
     rbt.y = rbt.sensorGen(fld);
     display('measurement')
     display(rbt.y)
+    rbt = rbt.KF(fld);
 %     rbt = rbt.GSF(fld);
-    rbt = rbt.PF(fld);
+%     rbt = rbt.PF(fld);
     display('weights')
     display(rbt.wt)
     display('covariance')
@@ -32,22 +33,25 @@ for ii = 1:sim_len
     display('estimated position')
     display(rbt.est_pos);
     
+    sim.plotFilter_kf(rbt,fld)
+    
     %% target state update
     fld = fld.targetMove();
     
     %% robot motion planning
     %
 %     [optz,optu] = rbt.ngPlanner(fld,optz,optu);
-    [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
+%     [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
+    [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
     rbt = rbt.updState(optu);
     display('robot state:')
     display(rbt.state);
     %}
     
     % draw plot
-    sim.plotFilter(rbt,fld)
+%     sim.plotFilter(rbt,fld)    
     sim.plotTraj(rbt,fld)
-    pause()
+%     pause()
     
     
     % terminating condition

@@ -7,7 +7,7 @@ set(0,'DefaultFigureWindowStyle','docked');% docked
 
 sim_len = 100;
 dt = 0.5;
-sensor_type = 'rb'; % rb, ran, br
+sensor_type = 'lin'; % rb, ran, br
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type);
 sim = Sim(inPara_sim);
@@ -21,7 +21,7 @@ target.B = [0;0]; %[0.3;-0.3];
 % nonlinear model, used for EKF
 target.f = @(x) x;
 target.del_f = @(x) eye(2);
-target.Q = 0.01*eye(2); % Covariance of process noise model for the target
+target.Q = 1*eye(2); % Covariance of process noise model for the target
 target.model_idx = 1;
 target.traj = target.pos;
 
@@ -39,7 +39,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [20;20;pi/4;0];%[40;40;pi/2;0];%;
+inPara_rbt.state = [25;15;pi/4;0];%[40;40;pi/2;0];%;
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -55,7 +55,7 @@ inPara_rbt.del_g = @(z,u) z+u*dt;
 %%% needs further revision
 inPara_rbt.sensor_type = sensor_type;
 inPara_rbt.theta0 = 60/180*pi;
-inPara_rbt.range = 20;%4.5;
+inPara_rbt.range = 15;%4.5;
 if strcmp(sensor_type,'rb')
     % range-bearing sensor
 %     inPara_rbt.h = @(x) x-inPara_rbt.state(1:2);
@@ -67,9 +67,10 @@ if strcmp(sensor_type,'rb')
     
     % define gamma model
     % model parameters
-    alp1 = 1;
-    alp2 = 1;
-    alp3 = 1;
+    alp1 = 2;
+    alp2 = 2;
+    alp3 = 2;
+    thr = 30;
     
     % the gamma model used in ACC 17
     %{
@@ -94,6 +95,8 @@ if strcmp(sensor_type,'rb')
     %}
     
     % gamma model
+    % this part is moved to Robot.m
+    %{
     gam_den1 = @(z,x0,alp) 1+exp(alp*(sum((x0-z).^2)-inPara_rbt.range^2));
     gam_den2 = @(z,x0,theta,alp) 1+exp(alp*[sin(theta-inPara_rbt.theta0),-cos(theta-inPara_rbt.theta0)]*(x0-z)); 
     gam_den3 = @(z,x0,theta,alp) 1+exp(alp*[-sin(theta+inPara_rbt.theta0),cos(theta+inPara_rbt.theta0)]*(x0-z));
@@ -117,6 +120,7 @@ if strcmp(sensor_type,'rb')
         (1-gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*t1)*(p1-p1_ref)-...
         gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
         gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*([z-z_ref;theta-theta_ref]);
+    %}
     
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
@@ -128,19 +132,35 @@ elseif strcmp(sensor_type,'br')
     % bearing-only sensor
     % inPara_rbt.C_brg = eye(2);
     % inPara_rbt.R_brg = 0.5;
+elseif strcmp(sensor_type,'lin')
+    % lienar sensor model for KF use
+    inPara_rbt.h = @(x,z) x-z; %%%%% change this in the future to be linear, not quadratic
+    inPara_rbt.del_h = @(x,z) [1 0; 0 1]; % z is the robot state.
+    inPara_rbt.R = 5*eye(2);
+    
+    % define gamma model
+    % model parameters
+    alp1 = 2;
+    alp2 = 2;
+    alp3 = 2;
+    thr = 30;
 end
 inPara_rbt.alp1 = alp1;
 inPara_rbt.alp2 = alp2;
 inPara_rbt.alp3 = alp3;
-inPara_rbt.gam_den = gam_den;
-inPara_rbt.gam = gam;
-inPara_rbt.gam_aprx = gam_aprx;
-inPara_rbt.p_aprx = p_aprx;
+inPara_rbt.thr = thr;
+% inPara_rbt.gam_den = gam_den;
+% inPara_rbt.gam = gam;
+% inPara_rbt.gam_aprx = gam_aprx;
+% inPara_rbt.p_aprx = p_aprx;
 
 % estimation initialization
-% xKF
-inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];
-inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
+% KF
+inPara_rbt.est_pos = target.pos+ [5;-5]; 
+inPara_rbt.P = [100 0; 0 100];
+% % xKF
+% inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];
+% inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
 % GSF
 inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
@@ -150,7 +170,7 @@ inPara_rbt.max_gmm_num = 3;
 inPara_rbt.particles = [X(:),Y(:)]';
 
 % planning
-inPara_rbt.mpc_hor = 3;%3;
+inPara_rbt.mpc_hor = 10;%3;
 inPara_rbt.dt = dt;
 
 % simulation parameters

@@ -52,6 +52,47 @@ classdef Sim
             drawnow
         end
         
+        function plotFilter_kf(this,rbt,fld)
+            % Plotting for estimation process
+            tmp_fig_cnt = this.fig_cnt;
+            f_hd = figure (tmp_fig_cnt); % handle for plot of a single robot's target PDF
+            clf(f_hd);
+            hold on
+            
+            xlen = fld.fld_cor(2)-fld.fld_cor(1);
+            ylen = fld.fld_cor(4)-fld.fld_cor(3);
+            
+            [X,Y] = meshgrid((fld.fld_cor(1)+0.5):(fld.fld_cor(2)-0.5),...
+                (fld.fld_cor(3)+0.5):(fld.fld_cor(4))-0.5);
+            
+            % draw prob map (based on the estimated mean and cov)
+            %{
+            prob_map = zeros(xlen,ylen);
+            pts = [X(:),Y(:)];
+            for ii = 1:rbt.gmm_num
+                tmp_prob = mvnpdf(pts,(rbt.est_pos(:,ii))',rbt.P{ii});
+                tmp_prob = (reshape(tmp_prob,ylen,xlen))';
+                prob_map = prob_map+rbt.wt(ii)*tmp_prob;
+            end
+            %}
+            
+            % draw prob map
+            prob_map_kf = zeros(ylen,xlen);
+            for ii = 1:ylen
+                for jj = 1:xlen
+                    prob_map_kf(jj,ii) = exp(-([X(jj,ii);Y(jj,ii)]-rbt.est_pos)'/(2*rbt.P)*([X(jj,ii);Y(jj,ii)]-rbt.est_pos));
+                end
+            end
+            prob_map_kf = prob_map_kf/sum(sum(prob_map_kf));            
+            
+            shading interp
+            contourf(prob_map_kf,'LineColor','none');
+            load('MyColorMap','mymap')
+            colormap(mymap);
+            colorbar        
+            drawnow
+        end
+        
         function plotTraj(this,rbt,fld)
             % Plotting for trajectory (path planning part)
 %             shading interp
@@ -91,6 +132,7 @@ classdef Sim
             box on
             axis equal
             drawnow
-        end
+        end                
+        
     end
 end

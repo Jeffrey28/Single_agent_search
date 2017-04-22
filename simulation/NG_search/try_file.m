@@ -399,9 +399,9 @@ cvx_end
 %% compare the linearization and original result of the bell-shaped sensor
 clear
 % model parameters
-alp1 = 20;
-alp2 = 20;
-alp3 = 20;
+alp1 = 10;
+alp2 = 10;
+alp3 = 10;
 
 theta0 = pi/3;
 r = 20;
