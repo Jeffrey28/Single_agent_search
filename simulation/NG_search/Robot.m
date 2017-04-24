@@ -31,6 +31,10 @@ classdef Robot
         alp3; % parameters in gam
         thr; % the threshold to avoid very large exponential function value
         
+        % trust region
+        tr_inc; % increment factor of trust region
+        tr_dec; % decrement factor of trust region
+        
         % observation
         y; % observation measurement
         
@@ -86,6 +90,10 @@ classdef Robot
             this.alp2 = inPara.alp2;
             this.alp3 = inPara.alp3;
             this.thr = inPara.thr;
+            
+            % trust region
+            this.tr_inc = inPara.tr_inc;
+            this.tr_dec = inPara.tr_dec;
             
             % filtering
             this.sensor_type = inPara.sensor_type;
@@ -361,16 +369,16 @@ classdef Robot
             alp1 = this.alp1;
             alp2 = this.alp2;
             alp3 = this.alp3;
+            alp_inc = 2; % increament paramter for alphatr_inc
             gam = @this.gam;
             gam_aprx = @this.gam_aprx;
            	p_aprx = @this.p_aprx;
             
-            % the parameter for the sensing boundary approximation
-            alp = 1;
-            alp_inc = 2; % increament paramter for alpha
+            % trust region
+            tr_inc = this.tr_inc;
+            tr_dec = this.tr_dec;
             
-            % set up simulation
-            
+            % set up simulation            
             if isempty(optz)
                 prev_state = [];
             else
@@ -500,7 +508,7 @@ classdef Robot
                 this.a_lb <= u(2,:) <= this.a_ub;
                 this.v_lb <= z(4,:) <= this.v_ub;
                 
-                cvx_end
+                cvx_end                                
                 
                 % assign value for next iteration
                 zref = z;
@@ -581,15 +589,16 @@ classdef Robot
             alp1 = this.alp1;
             alp2 = this.alp2;
             alp3 = this.alp3;
+            alp_inc = 2; % increament paramter for alpha
             gam = @this.gam;
             gam_aprx = @this.gam_aprx;
            	p_aprx = @this.p_aprx;
             
-            % the parameter for the sensing boundary approximation
-            alp_inc = 2; % increament paramter for alpha
+            % trust region
+            tr_inc = this.tr_inc;
+            tr_dec = this.tr_dec;
             
-            % set up simulation
-            
+            % set up simulation             
             if isempty(optz)
                 prev_state = [];
             else
@@ -610,41 +619,70 @@ classdef Robot
 %             Kref = init_sol.Kref;
 %             P_pred_ref = init_sol.P_pred_ref;
             
+            % outer loop: change alpha in \gamma modeling
             while (1)
-                % robot state and control
-                cvx_begin sdp
-                variables z(4,N+1) u(2,N) x(2,N+1)
-                variable P(2,2,N+1) semidefinite
-                % debug purpose
-                variable x_pred(2,N)
-                variable P_pred(2,2,N) semidefinite
+                % inner loop: change the trust region
                 
-                % auxiliary variable
-                expression t(N+1,1)
-                % obj
-                for ii = 1:N+1
-                    t(ii) = trace(P(:,:,ii));
+                % trust region for approximating gamma. Trust region is the
+                % stepsize of change, i.e. abs(z-zref)
+                tr = zeros(3,N); % bound of stepsize
+                for ii = 1:N
+                    for jj = 1:3
+                        tmp = 0.1*zref(jj,ii+1);
+                        if tmp == 0
+                            % the trust region of heading change is smaller than
+                            % the trust region for position
+                            if jj == 3                                
+                                tmp = 0.1;
+                            else
+                                tmp = 1;
+                            end
+                        end
+                        tr(jj,ii) = abs(tmp);                      
+                    end
                 end
                 
-                minimize sum(t)
-                
-                % initial value
-                z(:,1) == this.state;
-                x(:,1) == this.est_pos(:);
-                triu(P(:,:,1)) == triu(this.P);
-                
-                % constraints on the go
-                for ii = 1:N
-                    % linearize using previous result
-                    % robot state
-                    z(:,ii+1) == z(:,ii)+...
-                        [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
-                        z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
-                        u(:,ii)]*dt;
-                    [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];                    
+                while(1)
+                    %% solving sequential cvx
+                    % trust region
                     
-                    % target prediction
-%                     for jj = 1:this.gmm_num
+                    % robot state and control
+                    cvx_begin sdp
+                    variables z(4,N+1) u(2,N) x(2,N+1)
+                    variable P(2,2,N+1) semidefinite
+                    % debug purpose
+                    variable x_pred(2,N)
+                    variable P_pred(2,2,N) semidefinite
+                    
+                    % auxiliary variable
+                    expression t(N+1,1)
+                    % obj
+                    for ii = 1:N+1
+                        t(ii) = trace(P(:,:,ii));
+                    end
+                    
+                    minimize sum(t)
+                    
+                    % initial value
+                    z(:,1) == this.state;
+                    x(:,1) == this.est_pos(:);
+                    triu(P(:,:,1)) == triu(this.P);
+                    
+                    % constraints on the go
+                    for ii = 1:N
+                        % linearize using previous result
+                        % robot state
+                        z(:,ii+1) == z(:,ii)+...
+                            [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            u(:,ii)]*dt;
+                        [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+                        
+                        % trust region constraints
+                        [-tr(:,ii) <= z(1:3,ii+1)-zref(1:3,ii+1) <= tr(:,ii)];
+                        
+                        % target prediction
+                        %                     for jj = 1:this.gmm_num
                         A = del_f(x(:,ii));
                         if isempty (zref)
                             C = del_h(x(:,ii),z(1:2,ii));
@@ -663,10 +701,9 @@ classdef Robot
                         %%%%% affected by measurement in planning
                         x(:,ii+1) == x_pred(:,ii);
                         
-                        % covariance                                                
+                        % covariance
                         T = Kref(:,2*ii-1:2*ii)*C;
                         expression tmp(2,2)
-                        display('line 669')
                         tmp(1,1) = p_aprx(z(1:2,ii+1),z(3,ii+1),...
                             P_pred(1,1,ii),P_pred(2,1,ii),xref(:,ii+1),...
                             T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,ii),P_pred_ref(2,1,ii),alp1,alp2,alp3);
@@ -679,41 +716,110 @@ classdef Robot
                         
                         triu(P(:,:,ii+1)) == triu(tmp);
                         
-%                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)) == -triu(tmp);
-%                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
-%                             == -gamma_num*triu(Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii));
-%                     end
-                end
-                this.w_lb <= u(1,:) <= this.w_ub;
-                this.a_lb <= u(2,:) <= this.a_ub;
-                this.v_lb <= z(4,:) <= this.v_ub;
-                
-                cvx_end
-                
-                if strcmp(cvx_status,'Infeasible')
-                    display('inf')
-                end
-                               
-                display('Robot.m line 707')
-                
-                % debug purpose. also used to terminating condition below
-                is_in_fov = zeros(N,1);
-                gamma_exact = zeros(N,1); 
-                gamma_aprx = zeros(N,1);
-                tmp_rbt = this;
-                for ii = 1:N
-                    tar_pos = x(:,ii+1); % use each gmm component mean as a possible target position
-                    % actual inFOV
-                    tmp_rbt.state = z(:,ii+1);
-                    is_in_fov(ii) = tmp_rbt.inFOV(tar_pos);
+                        %                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)) == -triu(tmp);
+                        %                         triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii))*gamma_den...
+                        %                             == -gamma_num*triu(Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii));
+                        %                     end
+                    end
+                    this.w_lb <= u(1,:) <= this.w_ub;
+                    this.a_lb <= u(2,:) <= this.a_ub;
+                    this.v_lb <= z(4,:) <= this.v_ub;
                     
-                    % exact gamma
-                    gamma_exact(ii) = gam(z(1:2,ii+1),z(3,ii+1),...
-                        tar_pos,alp1,alp2,alp3);
+                    cvx_end
+                   
+                    % if infeasbile
+                    if strcmp(cvx_status,'Infeasible')
+                        display('Robot.m line 727')
+                        error('inf')
+                    end
                     
-                    % approximated inFOV
-                    gamma_aprx(ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
-                        tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
+                    %% determine whether to change the trust region 
+                    %%% this part is not useful here, since we don't
+                    %%% approximate the objective function when using KF   
+                    %{                                   
+                    % compare the change in the objective function.
+                    % true objective values
+                    obj_prev = this.obj(xref,Pref);
+                    obj_cur = this.obj(x,P);
+                    % approximate objective values
+                    obj_aprx_prev = this.obj_aprx(xref,Pref);
+                    obj_aprx_cur = cvx_optval;
+                    %}
+                    
+                    % here we use the difference between the actual gamma and
+                    % gamma_aprx to decide the region.
+                    is_in_fov = zeros(N,1);
+                    gamma_exact = zeros(N,1);
+                    gamma_aprx = zeros(N,1);
+                    tmp_rbt = this;
+                    for ii = 1:N
+                        tar_pos = x(:,ii+1); % use each gmm component mean as a possible target position
+                        % actual inFOV
+                        tmp_rbt.state = z(:,ii+1);
+                        is_in_fov(ii) = tmp_rbt.inFOV(tar_pos);
+                        
+                        % exact gamma
+                        gamma_exact(ii) = gam(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,alp1,alp2,alp3);
+                        
+                        % approximated inFOV
+                        gamma_aprx(ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
+                        
+                    end
+                    
+                    % ratio = (gamma_aprx-gamma_exact)/gamma_exact
+                    tmp_ratio = zeros(N,1);
+                    for ii = 1:N
+                        tmp_ratio(ii) = abs((gamma_aprx(ii)-gamma_exact(ii))/max(gamma_exact(ii),0.001));
+                    end
+                    
+                    tmp_z_dif = zeros(3,N+1);
+                    inc_flag = false(3,1); % if true, increase the trust region                   
+                    
+                    % if the difference between exact and estimated gamma
+                    % is small, either increase the trust region or jump
+                    % out the inner while loop
+                    if max(tmp_ratio) <= 0.1                        
+                        % determine if the optimal solution reaches the 
+                        % trust region boundary
+                        for ii = 1:N+1
+                            tmp_z_dif(:,ii) = z(1:3,ii)-zref(1:3,ii);                            
+                        end
+                        
+                        for jj = 1:3
+                           if max(abs(abs(tmp_z_dif(jj,:))-tr(jj))) <= 0.001
+                                inc_flag(jj) = true;
+                                break
+                           end                                                       
+                        end
+                        
+%                         for jj = 1:3
+%                             if inc_flag(jj)
+%                                 tr(jj,:) = tr(jj,:)*tr_inc;
+%                             end
+%                         end
+                        if sum(inc_flag) > 0
+                            tr = tr*tr_inc;
+                            cprintf('Red','Robot.m line 798. trust region enlarged\n')
+                        else
+                            % if no increment is needed, break from the
+                            % inner loop
+                            cprintf('Cyan','Robot.m line 802. trust region unchanged\n')
+                            break
+                        end                        
+                        display(tr)
+                        
+                    % shrink trust region
+                    else
+                        tr = tr*tr_dec;
+%                         for jj = 1:3
+%                             tr(jj,:) = tr(jj,:)*tr_dec;
+%                         end
+                        cprintf('Green','Robot.m line 812. trust region shrinked\n')
+                        display(tr)
+                    end
+                    
                 end
                 
                 % assign value for next iteration
@@ -721,8 +827,9 @@ classdef Robot
                 uref = u;
                 xref = x;                
                 P_pred_ref = P_pred;
+                Pref = P;
                 
-                % coompute Kref using Ricatti equation 
+                % compute Kref using Ricatti equation 
                 for ii = 1:N
                     C = del_h(xref(:,ii),zref(1:2,ii));
                     Kref(:,2*ii-1:2*ii) = P_pred(:,:,ii)*C'/(C*P_pred(:,:,ii)*C'+R);
@@ -732,21 +839,23 @@ classdef Robot
                 % consistent with that of planning
                 dif = max(abs(is_in_fov-gamma_exact));
                 if dif < 0.2
-                    display ('Robot.m line 735')
-                    display(P)
+%                     display ('Robot.m line 829')
+%                     display(P)
                     break
+                else
+                    cprintf('Blue','Robot.m line 842  gamma_exact is not close')
+                    display(is_in_fov)
+                    display(gamma_exact)
                 end                               
                 
                 alp1 = alp1*alp_inc;
                 alp2 = alp2*alp_inc;
                 alp3 = alp3*alp_inc;
                 
-                display ('Robot.m line 744')
+%                 display ('Robot.m line 838')
 %                 display (alp1)
 %                 display (alp2)
 %                 display (alp3)
-                
-                
             end
             
             optz = zref;
@@ -1183,8 +1292,18 @@ classdef Robot
 %             this.h = @(x) x-this.state(1:2);
         end
         
-        %% sensor model approximation
+        %% objective function
+        % compute the exact value of objective function
+        function val = obj()
+            val = 1;
+        end
         
+        % compute the approximate value of objective function
+        function val = obj_aprx()
+            val = 1;          
+        end
+        
+        %% sensor model approximation
         % denominator of gamma
         function gam_d = gam_den(this,z,theta,x0,alp1,alp2,alp3)
             gam_d = this.gam_den1(z,x0,alp1)*this.gam_den2(z,x0,theta,alp2)*this.gam_den3(z,x0,theta,alp3);
@@ -1256,14 +1375,14 @@ classdef Robot
         function p = p_aprx(this,z,theta,p1,p2,x0,t1,t2,z_ref,theta_ref,p1_ref,p2_ref,alp1,alp2,alp3) 
             gam_ref = this.gam(z_ref,theta_ref,x0,alp1,alp2,alp3);            
             gam_grad_ref = this.gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3);
-            display('Robot.m line 1252')
+%             display('Robot.m line 1252')
             
-            display(gam_ref)
+%             display(gam_ref)
             if abs(gam_ref) < 10^-4
                 gam_ref = 0;
             end
             
-            display(gam_grad_ref)
+%             display(gam_grad_ref)
             tmp_idx = abs(gam_grad_ref) < 10^-4;
             gam_grad_ref(tmp_idx) = 0;
            

@@ -5,12 +5,20 @@ addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 100;
+sim_len = 50;
 dt = 0.5;
-sensor_type = 'lin'; % rb, ran, br
+plan_mode = 'lin'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
-inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type);
+if strcmp(plan_mode,'lin')
+    sensor_type = 'lin'; % rb, ran, br, lin
+else
+    sensor_type = 'rb'; % rb, ran, br, lin
+end
+
+inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
+
+save_video = true;
 
 %% Set field %%%
 % target info
@@ -21,7 +29,7 @@ target.B = [0;0]; %[0.3;-0.3];
 % nonlinear model, used for EKF
 target.f = @(x) x;
 target.del_f = @(x) eye(2);
-target.Q = 1*eye(2); % Covariance of process noise model for the target
+target.Q = 0.01*eye(2); % Covariance of process noise model for the target
 target.model_idx = 1;
 target.traj = target.pos;
 
@@ -63,13 +71,13 @@ if strcmp(sensor_type,'rb')
 %     inPara_rbt.R = 5*eye(2);
     inPara_rbt.h = @(x,z) x.^2-z.^2; %%%%% change this in the future to be linear, not quadratic
     inPara_rbt.del_h = @(x,z) [2*x(1) 0; 0 2*x(2)]; % z is the robot state.
-    inPara_rbt.R = 5*eye(2);
+    inPara_rbt.R = 1*eye(2);
     
     % define gamma model
     % model parameters
-    alp1 = 2;
-    alp2 = 2;
-    alp3 = 2;
+    alp1 = 10;
+    alp2 = 10;
+    alp3 = 10;
     thr = 30;
     
     % the gamma model used in ACC 17
@@ -140,15 +148,17 @@ elseif strcmp(sensor_type,'lin')
     
     % define gamma model
     % model parameters
-    alp1 = 2;
-    alp2 = 2;
-    alp3 = 2;
+    alp1 = 10;
+    alp2 = 10;
+    alp3 = 10;
     thr = 30;
 end
-inPara_rbt.alp1 = alp1;
+inPara_rbt.alp1 = alp1; % parameters in gam
 inPara_rbt.alp2 = alp2;
 inPara_rbt.alp3 = alp3;
-inPara_rbt.thr = thr;
+inPara_rbt.thr = thr; % the threshold to avoid very large exponential function value
+inPara_rbt.tr_inc = 5; % increment factor of trust region
+inPara_rbt.tr_dec = 1/2; % decrement factor of trust region
 % inPara_rbt.gam_den = gam_den;
 % inPara_rbt.gam = gam;
 % inPara_rbt.gam_aprx = gam_aprx;

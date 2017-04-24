@@ -65,17 +65,6 @@ classdef Sim
             [X,Y] = meshgrid((fld.fld_cor(1)+0.5):(fld.fld_cor(2)-0.5),...
                 (fld.fld_cor(3)+0.5):(fld.fld_cor(4))-0.5);
             
-            % draw prob map (based on the estimated mean and cov)
-            %{
-            prob_map = zeros(xlen,ylen);
-            pts = [X(:),Y(:)];
-            for ii = 1:rbt.gmm_num
-                tmp_prob = mvnpdf(pts,(rbt.est_pos(:,ii))',rbt.P{ii});
-                tmp_prob = (reshape(tmp_prob,ylen,xlen))';
-                prob_map = prob_map+rbt.wt(ii)*tmp_prob;
-            end
-            %}
-            
             % draw prob map
             prob_map_kf = zeros(ylen,xlen);
             for ii = 1:ylen
@@ -115,7 +104,7 @@ classdef Sim
             %     set(hdl2,'LineStyle','-');
             set(hdl2,'Marker','*');
             
-            legend('pdf','robot','target');%,'estimated target')
+%             legend('pdf','robot','target');%,'estimated target')
             
             % draw FOV
 %             a1 = rbt.traj(3,end)-rbt.theta0;  % A random direction

@@ -16,6 +16,11 @@ simSetup;
 optz = [];
 optu = [];
 
+% save figures to video
+vidObj = VideoWriter('search-using-linear-model.avi');
+vidObj.FrameRate = 2;
+open(vidObj);
+
 for ii = 1:sim_len
     sprintf('Progress: %d',ii/sim_len)    
     
@@ -33,26 +38,38 @@ for ii = 1:sim_len
     display('estimated position')
     display(rbt.est_pos);
     
-    sim.plotFilter_kf(rbt,fld)
+    if strcmp(plan_mode,'lin')
+        sim.plotFilter_kf(rbt,fld)
+    elseif strcmp(plan_mode,'nl')
+        sim.plotFilter(rbt,fld)
+    end
     
     %% target state update
     fld = fld.targetMove();
     
     %% robot motion planning
     %
-%     [optz,optu] = rbt.ngPlanner(fld,optz,optu);
-%     [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
-    [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+    if strcmp(plan_mode,'lin')
+        [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+    elseif strcmp(plan_mode,'nl')
+%         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
+    end
+    
     rbt = rbt.updState(optu);
     display('robot state:')
     display(rbt.state);
     %}
     
     % draw plot
-%     sim.plotFilter(rbt,fld)    
     sim.plotTraj(rbt,fld)
 %     pause()
-    
+
+    % save the plot as a video
+    frame_hdl = getframe(gcf);
+    if save_video
+        writeVideo(vidObj,frame_hdl);
+    end   
     
     % terminating condition
 %     if trace(rbt.P) <= 1 && norm(fld.target.pos-rbt.est_pos) <= 2 && norm(rbt.state(1:2)-target.pos) <= 3
@@ -61,6 +78,8 @@ for ii = 1:sim_len
 %     end     
    %}
 end
+
+close(vidObj);
 
 %% save simulation result
 % save('test4_offset')
