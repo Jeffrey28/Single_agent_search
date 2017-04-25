@@ -17,25 +17,36 @@ optz = [];
 optu = [];
 
 % save figures to video
-vidObj = VideoWriter('search-using-linear-model.avi');
-vidObj.FrameRate = 2;
-open(vidObj);
+if save_video
+    if strcmp(plan_mode,'lin')
+        vidObj = VideoWriter(sprintf('search-using-KF-%s.avi',date));
+    elseif strcmp(plan_mode,'nl')
+        vidObj = VideoWriter(sprintf('search-using-PF-%s.avi',date));
+    end
+    vidObj.FrameRate = 2;
+    open(vidObj);
+end
 
 for ii = 1:sim_len
-    sprintf('Progress: %d',ii/sim_len)    
+    sprintf('gameSim.m, line %d, Progress: %d',MFileLineNr(),ii/sim_len)    
     
     %% target estimation
     rbt.y = rbt.sensorGen(fld);
-    display('measurement')
+    sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
     display(rbt.y)
-    rbt = rbt.KF(fld);
-%     rbt = rbt.GSF(fld);
-%     rbt = rbt.PF(fld);
-    display('weights')
+    
+    if strcmp(plan_mode,'lin')
+        rbt = rbt.KF(fld);
+    elseif strcmp(plan_mode,'nl')
+        %     rbt = rbt.GSF(fld);
+        rbt = rbt.PF(fld);
+    end
+    
+    sprintf('gameSim.m, line %d, weights', MFileLineNr())
     display(rbt.wt)
-    display('covariance')
+    sprintf('gameSim.m, line %d, covariance', MFileLineNr())
     display(rbt.P);
-    display('estimated position')
+    sprintf('gameSim.m, line %d, estimated position', MFileLineNr())
     display(rbt.est_pos);
     
     if strcmp(plan_mode,'lin')
@@ -57,7 +68,7 @@ for ii = 1:sim_len
     end
     
     rbt = rbt.updState(optu);
-    display('robot state:')
+    sprintf('gameSim.m, line %d, robot state:', MFileLineNr())
     display(rbt.state);
     %}
     
@@ -79,7 +90,9 @@ for ii = 1:sim_len
    %}
 end
 
-close(vidObj);
+if save_video
+    close(vidObj);
+end
 
 %% save simulation result
 % save('test4_offset')

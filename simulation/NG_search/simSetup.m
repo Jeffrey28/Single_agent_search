@@ -7,18 +7,18 @@ set(0,'DefaultFigureWindowStyle','docked');% docked
 
 sim_len = 50;
 dt = 0.5;
-plan_mode = 'lin'; % choose the mode of simulation: linear: use KF. nl: use gmm
+plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
-else
+elseif strcmp(plan_mode,'nl')
     sensor_type = 'rb'; % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = true;
+save_video = false;
 
 %% Set field %%%
 % target info
@@ -72,15 +72,31 @@ if strcmp(sensor_type,'rb')
     inPara_rbt.h = @(x,z) x.^2-z.^2; %%%%% change this in the future to be linear, not quadratic
     inPara_rbt.del_h = @(x,z) [2*x(1) 0; 0 2*x(2)]; % z is the robot state.
     inPara_rbt.R = 1*eye(2);
-    
-    % define gamma model
-    % model parameters
-    alp1 = 10;
-    alp2 = 10;
-    alp3 = 10;
-    thr = 30;
-    
-    % the gamma model used in ACC 17
+    % inPara_rbt.dist_rb = 20;
+elseif strcmp(sensor_type,'ran')
+    % % range-only sensor
+    % inPara_rbt.C_ran = eye(2);
+    % inPara_rbt.R_ran = 5;
+    % inPara_rbt.dist_rb = 50;
+elseif strcmp(sensor_type,'br')
+    % bearing-only sensor
+    % inPara_rbt.C_brg = eye(2);
+    % inPara_rbt.R_brg = 0.5;
+elseif strcmp(sensor_type,'lin')
+    % lienar sensor model for KF use
+    inPara_rbt.h = @(x,z) x-z; %%%%% change this in the future to be linear, not quadratic
+    inPara_rbt.del_h = @(x,z) [1 0; 0 1]; % z is the robot state.
+    inPara_rbt.R = 5*eye(2);    
+end
+
+% define gamma model
+% model parameters
+alp1 = 10;
+alp2 = 10;
+alp3 = 10;
+thr = 30;
+
+% the gamma model used in ACC 17
     %{
     gam_den1 = @(z,x0,alp1) (1+alp1*norm(x0-z)^2); %%% this part does not involve range information. revise!
     gam_den2 = @(theta,theta_bar,alp2) (1+exp(alp2*(-cos(theta-theta_bar)+cos(inPara_rbt.theta0))));
@@ -101,83 +117,34 @@ if strcmp(sensor_type,'rb')
         gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
         gam_grad(z_ref,theta_ref,x0,theta_bar,alp1,alp2)'*([z-z_ref;theta-theta_ref]);
     %}
-    
-    % gamma model
-    % this part is moved to Robot.m
-    %{
-    gam_den1 = @(z,x0,alp) 1+exp(alp*(sum((x0-z).^2)-inPara_rbt.range^2));
-    gam_den2 = @(z,x0,theta,alp) 1+exp(alp*[sin(theta-inPara_rbt.theta0),-cos(theta-inPara_rbt.theta0)]*(x0-z)); 
-    gam_den3 = @(z,x0,theta,alp) 1+exp(alp*[-sin(theta+inPara_rbt.theta0),cos(theta+inPara_rbt.theta0)]*(x0-z));
-    gam_den = @(z,theta,x0,alp1,alp2,alp3) gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3);
-    % exact model
-    gam = @(z,theta,x0,alp1,alp2,alp3) 1/gam_den(z,theta,x0,alp1,alp2,alp3);
-    % gradient
-    gam_den1_grad = @(z,x0,alp)  [(gam_den1(z,x0,alp)-1)*alp*(z-x0);0];
-    gam_den2_grad = @(z,x0,theta,alp)  (gam_den2(z,x0,theta,alp)-1)*alp*[-sin(theta-inPara_rbt.theta0);cos(theta-inPara_rbt.theta0);[cos(theta-inPara_rbt.theta0),sin(theta-inPara_rbt.theta0)]*(x0-z)];
-    gam_den3_grad = @(z,x0,theta,alp)  (gam_den3(z,x0,theta,alp)-1)*alp*[sin(theta+inPara_rbt.theta0);-cos(theta+inPara_rbt.theta0);[cos(theta+inPara_rbt.theta0),sin(theta+inPara_rbt.theta0)]*(z-x0)];
-    gam_grad = @(z,theta,x0,alp1,alp2,alp3) -(gam_den1_grad(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
-        gam_den1(z,x0,alp1)*gam_den2_grad(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
-        gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3_grad(z,x0,theta,alp3))/...
-        (gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3))^2;    
-    % linearized model
-    gam_aprx = @(z,theta,x0,z_ref,theta_ref,alp1,alp2,alp3) gam(z_ref,theta_ref,x0,alp1,alp2,alp3)...
-        +gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*[z-z_ref;theta-theta_ref];
-    % linearized update rule for covariance
-    p_aprx = @(z,theta,p1,p2,x0,t1,t2,z_ref,theta_ref,p1_ref,p2_ref,alp1,alp2,alp3) p1-...
-        gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*(t1*p1_ref+t2*p2_ref)+...
-        (1-gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*t1)*(p1-p1_ref)-...
-        gam(z_ref,theta_ref,x0,alp1,alp2,alp3)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
-        gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*([z-z_ref;theta-theta_ref]);
-    %}
-    
-    % inPara_rbt.dist_rb = 20;
-elseif strcmp(sensor_type,'ran')
-    % % range-only sensor
-    % inPara_rbt.C_ran = eye(2);
-    % inPara_rbt.R_ran = 5;
-    % inPara_rbt.dist_rb = 50;
-elseif strcmp(sensor_type,'br')
-    % bearing-only sensor
-    % inPara_rbt.C_brg = eye(2);
-    % inPara_rbt.R_brg = 0.5;
-elseif strcmp(sensor_type,'lin')
-    % lienar sensor model for KF use
-    inPara_rbt.h = @(x,z) x-z; %%%%% change this in the future to be linear, not quadratic
-    inPara_rbt.del_h = @(x,z) [1 0; 0 1]; % z is the robot state.
-    inPara_rbt.R = 5*eye(2);
-    
-    % define gamma model
-    % model parameters
-    alp1 = 10;
-    alp2 = 10;
-    alp3 = 10;
-    thr = 30;
-end
+
 inPara_rbt.alp1 = alp1; % parameters in gam
 inPara_rbt.alp2 = alp2;
 inPara_rbt.alp3 = alp3;
 inPara_rbt.thr = thr; % the threshold to avoid very large exponential function value
 inPara_rbt.tr_inc = 5; % increment factor of trust region
 inPara_rbt.tr_dec = 1/2; % decrement factor of trust region
-% inPara_rbt.gam_den = gam_den;
-% inPara_rbt.gam = gam;
-% inPara_rbt.gam_aprx = gam_aprx;
-% inPara_rbt.p_aprx = p_aprx;
 
 % estimation initialization
-% KF
-inPara_rbt.est_pos = target.pos+ [5;-5]; 
-inPara_rbt.P = [100 0; 0 100];
-% % xKF
-% inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];
-% inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
-% GSF
-inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
-inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
-% PF
-inPara_rbt.max_gmm_num = 3;
-[X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
-inPara_rbt.particles = [X(:),Y(:)]';
+if strcmp(plan_mode,'lin')
+    % KF
+    inPara_rbt.est_pos = target.pos+ [5;-5];
+    inPara_rbt.P = [100 0; 0 100];
+elseif strcmp(plan_mode,'nl')    
+    % xKF
+    % inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];
+    % inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
+    
+    % GSF
+%     inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
+%     inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
+    % PF
+    inPara_rbt.max_gmm_num = 3;
+    [X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
+    inPara_rbt.particles = [X(:),Y(:)]';
+    inPara_rbt.est_pos = target.pos+ [5;-5];
+    inPara_rbt.P = {[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
+end
 
 % planning
 inPara_rbt.mpc_hor = 10;%3;

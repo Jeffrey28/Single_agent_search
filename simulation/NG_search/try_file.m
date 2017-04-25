@@ -397,6 +397,7 @@ cvx_end
 %}
 
 %% compare the linearization and original result of the bell-shaped sensor
+%{
 clear
 % model parameters
 alp1 = 10;
@@ -467,4 +468,9 @@ title('approximate gamma')
 figure(3)
 surf(z_set(1,:),theta_set,v_fov)
 title('exact FOV')
+%}
+
+%% test dbstack
+a = 1;
+b = dbstack;
 
