@@ -22,7 +22,7 @@ save_video = false;
 
 %% Set field %%%
 % target info
-target.pos = [20;30];
+target.pos = [20.5;30.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.3;-0.3];
@@ -47,7 +47,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [25;15;pi/4;0];%[40;40;pi/2;0];%;
+inPara_rbt.state = [25;15;pi/2;0];%[40;40;pi/2;0];%;
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -62,16 +62,16 @@ inPara_rbt.del_g = @(z,u) z+u*dt;
 % sensor
 %%% needs further revision
 inPara_rbt.sensor_type = sensor_type;
-inPara_rbt.theta0 = 60/180*pi;
-inPara_rbt.range = 15;%4.5;
+inPara_rbt.theta0 = 60/180*pi; %60/180
+inPara_rbt.range = 10;%15 4.5;
 if strcmp(sensor_type,'rb')
     % range-bearing sensor
 %     inPara_rbt.h = @(x) x-inPara_rbt.state(1:2);
 %     inPara_rbt.del_h = @(x) eye(2);
 %     inPara_rbt.R = 5*eye(2);
-    inPara_rbt.h = @(x,z) x.^2-z.^2; %%%%% change this in the future to be linear, not quadratic
+    inPara_rbt.h = @(x,z) x.^2-z.^2; %%%%% change this in the future. Note, R should be scaled accordingly, o.w. all particles may have very small/large weights
     inPara_rbt.del_h = @(x,z) [2*x(1) 0; 0 2*x(2)]; % z is the robot state.
-    inPara_rbt.R = 1*eye(2);
+    inPara_rbt.R = 25*eye(2);
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
     % % range-only sensor

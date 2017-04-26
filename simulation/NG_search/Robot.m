@@ -131,17 +131,24 @@ classdef Robot
         function flag = inFOV(this,tar_pos)
             [a,b] = this.FOV(this.state);
             flag = (a(1,:)*tar_pos-b(1) <= 0) && (a(2,:)*tar_pos-b(2) <= 0)...
-                && (norm(tar_pos-this.state(1:2)) <= this.r);
+                && (norm(tar_pos-this.state(1:2)) <= this.r);            
         end
         
         %% measurement generation
         % generate a random measurement
         function y = sensorGen(this,fld)
             tar_pos = fld.target.pos;
-            % range-bearing sensor
+            
+            % draw FOV and target position. for debug purpose
+            this.drawFOV(this.state,fld,'cur')
+            hold on
+            plot(fld.target.pos(1),fld.target.pos(2),'b','markers',5,'Marker','*');
+                        
             if strcmp(this.sensor_type,'rb')
+                % range-bearing sensor
                 if this.inFOV(tar_pos)
                     y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';
+                    display(mvnpdf(y,this.h(tar_pos,this.state(1:2)),this.R))
                 else
                     y = [-100;-100];
                 end
@@ -153,11 +160,11 @@ classdef Robot
                 end
             elseif strcmp(this.sensor_type,'lin')
                 if this.inFOV(tar_pos)
-                    y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';
+                    y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';                    
                 else
                     y = [-100;-100];
                 end
-            end            
+            end
         end
         
         %% filtering
@@ -289,15 +296,15 @@ classdef Robot
                 if sum(y == -100) >= 1
                     % if the target is outside FOV.
                     if this.inFOV(pred_par(:,ii))
-                        w(ii) = 0.01;
+                        w(ii) = 10^-20;
                     else
-                        w(ii) = 0.99;
+                        w(ii) = 1;
                     end
                 else
                     if this.inFOV(pred_par(:,ii))
                         w(ii) = mvnpdf(y,this.h(pred_par(:,ii),this.state(1:2)),this.R);
                     else
-                        w(ii) = 0.01;
+                        w(ii) = 10^-20;
                     end
                 end
             end
@@ -390,6 +397,7 @@ classdef Robot
             uref = init_sol.u;
             xref = init_sol.x;
             Kref = init_sol.K;
+            Pref = init_sol.P;
             P_pred_ref = init_sol.P_pred;
 
             % outer loop: change alpha in \gamma modeling
@@ -399,21 +407,23 @@ classdef Robot
                 % trust region for approximating gamma. Trust region is the
                 % stepsize of change, i.e. abs(z-zref)
                 tr = zeros(3,N); % bound of stepsize
-                for ii = 1:N
-                    for jj = 1:3
-                        tmp = 0.1*zref(jj,ii+1);
-                        if tmp == 0
-                            % the trust region of heading change is smaller than
-                            % the trust region for position
-                            if jj == 3
-                                tmp = 0.1;
-                            else
-                                tmp = 1;
-                            end
-                        end
-                        tr(jj,ii) = abs(tmp);
-                    end
-                end
+                tr(1:2,:) = 3*ones(2,N);
+                tr(3,:) = pi/5*ones(1,N);
+%                 for ii = 1:N
+%                     for jj = 1:3
+%                         tmp = 0.1*zref(jj,ii+1);
+%                         if tmp == 0
+%                             % the trust region of heading change is smaller than
+%                             % the trust region for position
+%                             if jj == 3
+%                                 tmp = 0.1;
+%                             else
+%                                 tmp = 1;
+%                             end
+%                         end
+%                         tr(jj,ii) = abs(tmp);
+%                     end
+%                 end
                 
                 while (1)
                     % robot state and control
@@ -426,12 +436,9 @@ classdef Robot
                     
                     % auxiliary variable
                     variable t(this.gmm_num*this.gmm_num,N+1)
-                    
-                    % obj
-                    minimize sum(t(:))
-                    
-                    % constraints
-                    % epigraph for obj
+                    expression obj
+                                       
+                    % epigraph for t
                     t(:) >= 0;
                     % LMI
                     for ii = 1:N
@@ -446,7 +453,18 @@ classdef Robot
                             end
                         end
                     end
+                    % obj 
+                    obj = 0;
+                    for ii = 1:N
+                        for jj = 1:this.gmm_num
+                            obj = obj+this.wt(jj)*sum(t(this.gmm_num*(jj-1)+1:this.gmm_num*jj,ii+1));
+                        end
+                    end
                     
+                    % obj
+                    minimize(obj) %sum(t(:))
+                    
+                    % constraints
                     % initial value
                     z(:,1) == this.state;
                     x(:,1) == this.est_pos(:);
@@ -463,6 +481,9 @@ classdef Robot
                             z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
                             u(:,ii)]*dt;
                         [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+                        
+                        % trust region constraints
+                        [-tr(:,ii) <= z(1:3,ii+1)-zref(1:3,ii+1) <= tr(:,ii)];
                         
                         % target prediction
                         for jj = 1:this.gmm_num
@@ -525,16 +546,22 @@ classdef Robot
                     end
                     
                     %% determine whether to change the trust region
-                    %%% this part is not useful here, since we don't
-                    %%% approximate the objective function when using KF
-                    %{
+                    %
+                    
+                    %%%%%%%%%% resume from here 4/26/17
+                    %%%%% debug the value difference between cvx_optval and
+                    %%%%% cmpObjAprx
+                    
                     % compare the change in the objective function.
                     % true objective values
-                    obj_prev = this.obj(xref,Pref);
-                    obj_cur = this.obj(x,P);
+                    obj_prev = this.cmpObj(xref,Pref);
+                    obj_cur = this.cmpObj(x,P);
                     % approximate objective values
-                    obj_aprx_prev = this.obj_aprx(xref,Pref);
+                    obj_aprx_prev = this.cmpObjAprx(xref,Pref);
                     obj_aprx_cur = cvx_optval;
+                    % used to debug this.cmpObjAprx
+                    display(cvx_optval)
+                    display(this.cmpObjAprx(x,P))
                     %}
                     
                     % here we use the difference between the actual gamma and
@@ -560,11 +587,12 @@ classdef Robot
                         end
                     end
                     
-                    % ratio = (gamma_aprx-gamma_exact)/gamma_exact
-                    tmp_ratio = zeros(this.gmm_num,N);
+%                     tmp_ratio = zeros(this.gmm_num,N);
+                    tmp_dif = zeros(this.gmm_num,N);
                     for ii = 1:N
                         for jj = 1:this.gmm_num
-                            tmp_ratio(jj,ii) = abs((gamma_aprx(jj,ii)-gamma_exact(jj,ii))/max(gamma_exact(jj,ii),0.001));
+                            tmp_dif(jj,ii) = abs(gamma_aprx(jj,ii)-gamma_exact(jj,ii));
+%                             tmp_ratio(jj,ii) = abs((gamma_aprx(jj,ii)-gamma_exact(jj,ii))/max(gamma_exact(jj,ii),0.001));
                         end
                     end
                     
@@ -574,7 +602,8 @@ classdef Robot
                     % if the difference between exact and estimated gamma
                     % is small, either increase the trust region or jump
                     % out the inner while loop
-                    if max(tmp_ratio) <= 0.1
+                    % if max(tmp_ratio) <= 0.1
+                    if max(tmp_dif) <= 0.2
                         % determine if the optimal solution reaches the
                         % trust region boundary
                         for ii = 1:N+1
@@ -729,8 +758,6 @@ classdef Robot
                 
                 while(1)
                     %% solving sequential cvx
-                    % trust region
-                    
                     % robot state and control
                     cvx_begin sdp
                     variables z(4,N+1) u(2,N) x(2,N+1)
@@ -1361,14 +1388,36 @@ classdef Robot
         end
         
         %% objective function
-        % compute the exact value of objective function
-        function val = obj()
-            val = 1;
+        % compute the exact value (using 0-th approx) of objective function
+        function val = cmpObj(this,x,P)
+            N = this.mpc_hor;
+            val = 0;
+            for ii = 1:N+1
+               for jj = 1:this.gmm_num    
+                   tmp = 0;
+                   for kk = 1:this.gmm_num
+                       tmp = tmp+mvnpdf(x(2*kk-1:2*kk,ii),x(2*jj-1:2*jj,ii),P(:,:,jj,ii));
+                   end
+                   val = val+this.wt(jj)*log(tmp);
+               end
+            end
+            val = -val;
         end
         
         % compute the approximate value of objective function
-        function val = obj_aprx()
-            val = 1;          
+        function val = cmpObjAprx(this,x,P)
+            N = this.mpc_hor;
+            val = 0;
+            for ii = 1:N+1
+               for jj = 1:this.gmm_num    
+                   tmp = 0;
+                   for kk = 1:this.gmm_num
+                       tmp = tmp+log(mvnpdf(x(2*kk-1:2*kk,ii),x(2*jj-1:2*jj,ii),P(:,:,jj,ii)));
+                   end
+                   val = val+this.wt(jj)*tmp;
+               end
+            end        
+            val = -val;
         end
         
         %% sensor model approximation
@@ -1469,7 +1518,6 @@ classdef Robot
         function plotSeedTraj(this,z,x,fld)
             % Plotting for the seed trajectory, i.e. the one
             % fromgenInitState_kf
-            N = this.mpc_hor;
             
             hdl1 = plot(z(1,:),z(2,:),'k','markers',1);
             set(hdl1,'MarkerFaceColor','k');
@@ -1487,28 +1535,28 @@ classdef Robot
             
             
             % draw FOV
-            for ii = 1:N+1
-                a1 = z(3,ii)-this.theta0;  % A random direction
-                a2 = z(3,ii)+this.theta0;
-                t = linspace(a1,a2,50);
-                x0 = z(1,ii);
-                y0 = z(2,ii);
-                x1 = z(1,ii) + this.r*cos(t);
-                y1 = z(2,ii) + this.r*sin(t);
-                plot([x0,x1,x0],[y0,y1,y0],'k--','LineWidth',0.5)
-            end            
-            
-            xlim([fld.fld_cor(1),fld.fld_cor(2)]);
-            ylim([fld.fld_cor(3),fld.fld_cor(4)]);
-            box on
-            axis equal
-            drawnow
+            this.drawFOV(z,fld,'plan')
+%             for ii = 1:N+1
+%                 a1 = z(3,ii)-this.theta0;  % A random direction
+%                 a2 = z(3,ii)+this.theta0;
+%                 t = linspace(a1,a2,50);
+%                 x0 = z(1,ii);
+%                 y0 = z(2,ii);
+%                 x1 = z(1,ii) + this.r*cos(t);
+%                 y1 = z(2,ii) + this.r*sin(t);
+%                 plot([x0,x1,x0],[y0,y1,y0],'k--','LineWidth',0.5)
+%             end            
+%             
+%             xlim([fld.fld_cor(1),fld.fld_cor(2)]);
+%             ylim([fld.fld_cor(3),fld.fld_cor(4)]);
+%             box on
+%             axis equal
+%             drawnow
         end
         
         function plotPlannedTraj(this,z,x,fld)
             % Plotting for the planned trajectory, i.e. the one
             % cvxPlanner_kf
-            N = this.mpc_hor;
             
             hdl1 = plot(z(1,:),z(2,:),'r','markers',1);
             set(hdl1,'MarkerFaceColor','r');
@@ -1526,17 +1574,50 @@ classdef Robot
             
             
             % draw FOV
-            for ii = 1:N+1
-                a1 = z(3,ii)-this.theta0;  % A random direction
-                a2 = z(3,ii)+this.theta0;
+            this.drawFOV(z,fld,'plan')
+%             for ii = 1:N+1
+%                 a1 = z(3,ii)-this.theta0;  % A random direction
+%                 a2 = z(3,ii)+this.theta0;
+%                 t = linspace(a1,a2,50);
+%                 x0 = z(1,ii);
+%                 y0 = z(2,ii);
+%                 x1 = z(1,ii) + this.r*cos(t);
+%                 y1 = z(2,ii) + this.r*sin(t);
+%                 plot([x0,x1,x0],[y0,y1,y0],'r--','LineWidth',0.5)
+%             end
+%             
+%             xlim([fld.fld_cor(1),fld.fld_cor(2)]);
+%             ylim([fld.fld_cor(3),fld.fld_cor(4)]);
+%             box on
+%             axis equal
+%             drawnow
+        end
+        
+        function drawFOV(this,z,fld,fov_mode)
+            if strcmp(fov_mode,'plan')
+                % draw the FOV for planned robot state
+                N = this.mpc_hor;
+                for ii = 1:N+1
+                    a1 = z(3,ii)-this.theta0;  % A random direction
+                    a2 = z(3,ii)+this.theta0;
+                    t = linspace(a1,a2,50);
+                    x0 = z(1,ii);
+                    y0 = z(2,ii);
+                    x1 = z(1,ii) + this.r*cos(t);
+                    y1 = z(2,ii) + this.r*sin(t);
+                    plot([x0,x1,x0],[y0,y1,y0],'r--','LineWidth',0.5)
+                end
+            elseif strcmp(fov_mode,'cur')
+                % draw the FOV for current robot state
+                a1 = z(3)-this.theta0;  % A random direction
+                a2 = z(3)+this.theta0;
                 t = linspace(a1,a2,50);
-                x0 = z(1,ii);
-                y0 = z(2,ii);
-                x1 = z(1,ii) + this.r*cos(t);
-                y1 = z(2,ii) + this.r*sin(t);
+                x0 = z(1);
+                y0 = z(2);
+                x1 = z(1) + this.r*cos(t);
+                y1 = z(2) + this.r*sin(t);
                 plot([x0,x1,x0],[y0,y1,y0],'r--','LineWidth',0.5)
             end
-            
             xlim([fld.fld_cor(1),fld.fld_cor(2)]);
             ylim([fld.fld_cor(3),fld.fld_cor(4)]);
             box on

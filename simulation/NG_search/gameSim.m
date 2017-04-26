@@ -30,6 +30,9 @@ end
 for ii = 1:sim_len
     sprintf('gameSim.m, line %d, Progress: %d',MFileLineNr(),ii/sim_len)    
     
+    %% target moves
+    fld = fld.targetMove();
+    
     %% target estimation
     rbt.y = rbt.sensorGen(fld);
     sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
@@ -54,9 +57,7 @@ for ii = 1:sim_len
     elseif strcmp(plan_mode,'nl')
         sim.plotFilter(rbt,fld)
     end
-    
-    %% target state update
-    fld = fld.targetMove();
+   
     
     %% robot motion planning
     %

@@ -370,6 +370,7 @@ We can obtain the upper bound of \Cref{eqn:approx_obj} using Jensen's inequality
 &\leq -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L\log\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
 &=\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})^T[P^j_{k|k}]^{-1}(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})
 \end{align*}
+\textcolor{red}{Note: there is a term missing here and it's not a constant! It involves $P^j_{k|k}$. I need to think if this removal makes sense or not.}
 The upper bound is tight when all GMM components become equivalent.
 
 Note that this is NOT a quadratic objective function, but it is convex! (matrix-fractional function).
