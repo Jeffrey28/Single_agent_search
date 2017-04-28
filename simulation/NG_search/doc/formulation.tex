@@ -241,6 +241,13 @@ P^j_{k|k} & \hat{x}^i_{k|k}-\hat{x}^j_{k|k}\\
 %The second step (C(ovariance)-step) fixes $\hat{x}^i_{k|k}$ using the result from the last iteration and solve for $P^j_{k|k}$. 
 %The objective function is quadratic in $x$.
 
+\section{An approximate stochastic MPC framework for dealing with GMM components}
+\Cref{subeqn:upd_mean,subeqn:upd_cov} can be modified to accommodate GMM components as follows:
+\begin{align}
+\hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\sum\limits_j w_j\gamma_{k+1}(\hat{x}^j_{k+1|k})K^i_{k+1}(h(\hat{x}^j_{k+1|k})-h(\hat{x}^i_{k+1|k}))\label{subeqn:upd_mean_gmm}\\
+P^i_{k+1|k+1}&=P^i_{k+1|k}-\sum\limits_j w_j\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k}\label{subeqn:upd_cov_gmm},
+\end{align}
+
 \section{possible extensions}
 This section compiles the possible contributions I can make in this and other following works. The previous sections are the actual implementation of what I will do in this work.
 \begin{enumerate}
