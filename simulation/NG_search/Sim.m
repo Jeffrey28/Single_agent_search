@@ -21,10 +21,8 @@ classdef Sim
             clf(f_hd);
             hold on
             
-            
             xlen = fld.fld_cor(2)-fld.fld_cor(1);
             ylen = fld.fld_cor(4)-fld.fld_cor(3);
-            
             
             [X,Y] = meshgrid((fld.fld_cor(1)+0.5):(fld.fld_cor(2)-0.5),...
                 (fld.fld_cor(3)+0.5):(fld.fld_cor(4))-0.5);
@@ -54,29 +52,59 @@ classdef Sim
             drawnow
         end
         
-        function plotTraj(this,rbt,fld)
-            % Plotting for trajectory (path planning part)
+        function plotFilter_kf(this,rbt,fld)
+            % Plotting for estimation process
+            tmp_fig_cnt = this.fig_cnt;
+            f_hd = figure (tmp_fig_cnt); % handle for plot of a single robot's target PDF
+            clf(f_hd);
+            hold on
+            
+            xlen = fld.fld_cor(2)-fld.fld_cor(1);
+            ylen = fld.fld_cor(4)-fld.fld_cor(3);
+            
+            [X,Y] = meshgrid((fld.fld_cor(1)+0.5):(fld.fld_cor(2)-0.5),...
+                (fld.fld_cor(3)+0.5):(fld.fld_cor(4))-0.5);
+            
+            % draw prob map
+            prob_map_kf = zeros(ylen,xlen);
+            for ii = 1:ylen
+                for jj = 1:xlen
+                    prob_map_kf(jj,ii) = exp(-([X(jj,ii);Y(jj,ii)]-rbt.est_pos)'/(2*rbt.P)*([X(jj,ii);Y(jj,ii)]-rbt.est_pos));
+                end
+            end
+            prob_map_kf = prob_map_kf/sum(sum(prob_map_kf));            
+            
             shading interp
-            contourf(prob_map','LineColor','none');
+            contourf(prob_map_kf,'LineColor','none');
             load('MyColorMap','mymap')
             colormap(mymap);
-            colorbar
+            colorbar        
+            drawnow
+        end
+        
+        function plotTraj(this,rbt,fld)
+            % Plotting for trajectory (path planning part)
+%             shading interp
+%             contourf(prob_map','LineColor','none');
+%             load('MyColorMap','mymap')
+%             colormap(mymap);
+%             colorbar
             
-            hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',3);
+            hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',5);
             set(hdl1,'MarkerFaceColor','r');
             set(hdl1,'MarkerEdgeColor','r');
             set(hdl1,'Color','r');
             set(hdl1,'LineStyle','-');
             set(hdl1,'Marker','o');
             
-            hdl2 = plot(fld.target.traj(1,:),fld.target.traj(2,:),'b','markers',3);
+            hdl2 = plot(fld.target.traj(1,:),fld.target.traj(2,:),'b','markers',5);
             set(hdl2,'MarkerFaceColor','b');
             set(hdl2,'MarkerEdgeColor','b');%
             set(hdl2,'Color','b');
             %     set(hdl2,'LineStyle','-');
             set(hdl2,'Marker','*');
             
-            legend('pdf','robot','target');%,'estimated target')
+%             legend('pdf','robot','target');%,'estimated target')
             
             % draw FOV
 %             a1 = rbt.traj(3,end)-rbt.theta0;  % A random direction
@@ -93,6 +121,7 @@ classdef Sim
             box on
             axis equal
             drawnow
-        end
+        end                
+        
     end
 end

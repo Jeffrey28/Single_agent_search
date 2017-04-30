@@ -10,39 +10,78 @@ clear % clear global variables
 close all
 
 simSetup;
+% [sim_len,sim,rbt,fld] = simSetup2();
 %% %%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%% 
+% optimal solution for seeding ngPlanner
+optz = [];
+optu = [];
 
-for ii = 1 %:sim_len
-    sprintf('Progress: %d',ii/sim_len)
-    %% target state update
+% save figures to video
+if save_video
+    if strcmp(plan_mode,'lin')
+        vidObj = VideoWriter(sprintf('search-using-KF-%s.avi',date));
+    elseif strcmp(plan_mode,'nl')
+        vidObj = VideoWriter(sprintf('search-using-PF-%s.avi',date));
+    end
+    vidObj.FrameRate = 2;
+    open(vidObj);
+end
+
+for ii = 1:sim_len
+    sprintf('gameSim.m, line %d, Progress: %d',MFileLineNr(),ii/sim_len)    
+    
+    %% target moves
     fld = fld.targetMove();
     
     %% target estimation
     rbt.y = rbt.sensorGen(fld);
-    display('measurement')
+    sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
     display(rbt.y)
-%     rbt = rbt.GSF(fld);
-    rbt = rbt.PF(fld);
-    display('weights')
+    
+    if strcmp(plan_mode,'lin')
+        rbt = rbt.KF(fld);
+    elseif strcmp(plan_mode,'nl')
+        %     rbt = rbt.GSF(fld);
+        rbt = rbt.PF(fld);
+    end
+    
+    sprintf('gameSim.m, line %d, weights', MFileLineNr())
     display(rbt.wt)
-    display('covariance')
+    sprintf('gameSim.m, line %d, covariance', MFileLineNr())
     display(rbt.P);
-    display('estimated position')
+    sprintf('gameSim.m, line %d, estimated position', MFileLineNr())
     display(rbt.est_pos);
+    
+    if strcmp(plan_mode,'lin')
+        sim.plotFilter_kf(rbt,fld)
+    elseif strcmp(plan_mode,'nl')
+        sim.plotFilter(rbt,fld)
+    end
+   
     
     %% robot motion planning
     %
-    [optz,optu] = rbt.ngPlanner(fld);
+    if strcmp(plan_mode,'lin')
+        [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+    elseif strcmp(plan_mode,'nl')
+%         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
+    end
+    
     rbt = rbt.updState(optu);
-    display('robot state:')
+    sprintf('gameSim.m, line %d, robot state:', MFileLineNr())
     display(rbt.state);
     %}
     
     % draw plot
-    sim.plotFilter(rbt,fld)
+    sim.plotTraj(rbt,fld)
 %     pause()
-%     sim.plotTraj(rbt,fld)
-    
+
+    % save the plot as a video
+    frame_hdl = getframe(gcf);
+    if save_video
+        writeVideo(vidObj,frame_hdl);
+    end   
     
     % terminating condition
 %     if trace(rbt.P) <= 1 && norm(fld.target.pos-rbt.est_pos) <= 2 && norm(rbt.state(1:2)-target.pos) <= 3
@@ -50,6 +89,10 @@ for ii = 1 %:sim_len
 %         break
 %     end     
    %}
+end
+
+if save_video
+    close(vidObj);
 end
 
 %% save simulation result

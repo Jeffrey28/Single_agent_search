@@ -2,8 +2,11 @@
 *.m~
 *.swp
 *.asv
+
 # texstudio files
 *.aux
 *.log
 *.synctex.gz
 *.pdf
+*.~lock.ideas.odt#
+

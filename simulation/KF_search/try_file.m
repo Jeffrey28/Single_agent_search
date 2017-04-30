@@ -1,4 +1,4 @@
-% % test the update law of KF during the debug of Planner
+%% % test the update law of KF during the debug of Planner
 % var_P1 = zeros(2,2,N+1);
 % P_pred1 = zeros(2,2,N);
 % K1 = zeros(2,2,N);
@@ -24,7 +24,7 @@
 %     plot(x,y)
 % end
 
-% visualize FOV
+%% visualize FOV
 %{
 figure
 l = a(1,:);
@@ -43,7 +43,7 @@ for xx = 0:100
 end
 %}
 
-% visualize bell-shaped function
+%% visualize bell-shaped function
 %{
 figure('Position', [500 50 800 700])
 l = linspace(-pi,pi,100);
@@ -67,7 +67,7 @@ title('Approximate Function for \gamma_k')
 box on
 %}
 
-%%% draw plot
+%% draw plot
 %
 figure('WindowStyle','normal','Position', [500 50 800 700])
 hold on

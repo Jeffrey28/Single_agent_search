@@ -170,8 +170,8 @@ where $A^i_k=\frac{\partial f}{\partial x}|_{x=\hat{x}^i_{k|k}}$ and $C^i_{k+1}=
 The $\hat{x}^t_{k|k}$ and $P_{k|k}$ represent the estimated target position and covariance matrix.
 For notational simplicity, we define $b_k=[\hat{x}^t_k,P_{k|k}]$ and let $b_{k+1}=g(b_k,u^r_k)$ represent the Kalman filter defined in \Cref{eqn:KF}.
 
-$\gamma$ is approximated by
-\begin{equation}\label{eqn:gamma}
+\textcolor{gray}{In the ACC 17 paper, the $\gamma$ is approximated by
+\begin{equation}\label{eqn:old_gamma}
 \begin{split}
 \gamma_{k}&\approx \frac{1}{1+\alpha_1\|[x_{1,k},x_{2,k}]-[z_{1,k},z_{2,k}]\|_2^2}\times\\
 &\quad\frac{1}{1+\exp{\left\lbrace-\alpha_2(\cos(\theta^r_k-\tilde{\theta}_k)-\cos(\theta_0))\right\rbrace}},
@@ -179,15 +179,38 @@ $\gamma$ is approximated by
 \end{equation}
 where $\tilde{\theta}_k=\angle([x_{1,k},x_{2,k}]-[z_{1,k},z_{2,k}])$ is the direction angle from the sensor position to target position; $\theta_0=\frac{\theta_2-\theta_1}{2}$ is half of the sensing angle; $\alpha_1$ and $\alpha_2$ are tunning parameters that controls the shape of the function. 
 \Cref{eqn:gamma} can be interpreted as follows:
-when the robot is close to the target, it is more likely that the target can be detected; besides, the closer the target direction aligns with the center direction of the sensor, the higher possibility that the target will get detected.
+when the robot is close to the target, it is more likely that the target can be detected; besides, the closer the target direction aligns with the center direction of the sensor, the higher possibility that the target will get detected.}
+
+However, it turns out that such approximation is quite inaccurate. So I turn to the model using pure geometric method and the sigmoid function, with the latter similar to Sachin's paper.
+\begin{equation}\label{eqn:gamma}
+\gamma\approx \frac{1}{\gamma_1(z,\theta)}\frac{1}{\gamma_2(z,\theta)}\frac{1}{\gamma_3(z,\theta)},
+\end{equation}
+where \begin{align*}
+\gamma_1(z,\theta)&=1+\exp^{\alpha_1(\|x-z\|^2_2-r^2)},\\
+\gamma_2(z,\theta)&=1+\exp^{\alpha_2(a^T_1x-b_1)},\\
+\gamma_3(z,\theta)&=1+\exp^{\alpha_3((a^T_2x-b_2)}.
+\end{align*}
+Here we abuse the notation of $z$. 
+In this formula, $z$ represents the $x-y$ coordinate of the sensor and $\theta$ is the direction in the global coordinate. 
+$r$ is the sensor range. $a_1,a_2,b_1,b_2$ are functions of $z$ and $\theta$. 
+To be specific, 
+\begin{equation*}
+\begin{split}
+a_1=[\sin\psi_1,-\cos\psi_1],\\
+a_2=[-\sin\psi_2,\cos\psi_2],\\
+b_1=z_1\sin\psi_1-z_2\cos\psi_1,\\
+b_2=-z_1\sin\psi_2+z_2\cos\psi_2,\\
+\psi_1=\theta-\theta_0, \psi_2=\theta+\theta_0.
+\end{split}
+\end{equation*}
 
 \subsection{Path Planning for Target Search and Tracking}
 The MPC-based path planner with planning horizon $N$ can be formulated as:
 \begin{subequations}
 	\begin{align}
 	\min_{u_{1:N}}\; & J(b_{1:N+1},u_{1:N})\\
-	\text{s.t. }\; & z_{k+1}=f(z_k,u^r_k),\\
-	& b_{k+1}=g(b_k,u^r_k),\\
+	\text{s.t. }\; & z_{k+1}=f(z_k,u^r_k),\label{subeqn:rbt_dyn}\\
+	& b_{k+1}=g(b_k,u^r_k),\label{subeqn:est_upd}\\
 	& z_{k+1}\in\mathcal{X}, \, u^r_{k+1}\in\mathcal{U},\\
 	& k=1,\dots,N,
 	\end{align}\label{eqn:MPC}
@@ -216,13 +239,138 @@ In the planning, use $\gamma$ to update the estimation. This makes sense since i
 In the MPC, I may need to include the uncertainty into the obj. It seems that the only uncertainty comes from $\gamma$ in \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 The idea is that, since $\gamma$ is dependent on the underlying distribution of $x^i_{k+1|k}$, we can either assume MAP for the target position or use integral to compute the expected update of \Cref{subeqn:upd_mean,subeqn:upd_cov}.
 
-\subsection{iterative quadratic programming formulation}
+\subsection{An approximate stochastic MPC framework for dealing with GMM components}
+\Cref{subeqn:upd_mean,subeqn:upd_cov} can be modified to accommodate GMM components as follows:
+\begin{align}
+\hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\sum\limits_j w_j\gamma_{k+1}(\hat{x}^j_{k+1|k})K^i_{k+1}(h(\hat{x}^j_{k+1|k})-h(\hat{x}^i_{k+1|k}))\label{subeqn:upd_mean_gmm}\\
+P^i_{k+1|k+1}&=P^i_{k+1|k}-\sum\limits_j w_j\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k}\label{subeqn:upd_cov_gmm},
+\end{align}
+
+\subsection{Linearizing the equality constraints}
+We consider \Cref{subeqn:upd_cov} for example. \Cref{subeqn:upd_cov_gmm} Can be modified accordingly.
+Consider the element-wise update of $P=\begin{bmatrix}
+p^{11} & p^{12}\\p^{21} & p^{22}
+\end{bmatrix}$ and define $T_{k+1}=K_{k+1}C_{k+1}$, where $T=\begin{bmatrix}
+t_{11} & t_{12}\\ t_{21} & t_{22}
+\end{bmatrix}.$
+The update rule is:
+\begin{equation}\label{eqn:elementwise-upd-P}
+\begin{split}
+p^{11}_{k+1|k+1}&=p^{11}_{k+1|k}-\gamma_{k+1}t_{11}p^{11}_{k+1|k}-\gamma_{k+1}t_{12}p^{21}_{k+1|k}\\
+p^{12}_{k+1|k+1}&=p^{12}_{k+1|k}-\gamma_{k+1}t_{11}p^{12}_{k+1|k}-\gamma_{k+1}t_{12}p^{22}_{k+1|k}\\
+p^{21}_{k+1|k+1}&=p^{21}_{k+1|k}-\gamma_{k+1}t_{21}p^{11}_{k+1|k}-\gamma_{k+1}t_{22}p^{21}_{k+1|k}\\
+p^{22}_{k+1|k+1}&=p^{22}_{k+1|k}-\gamma_{k+1}t_{21}p^{12}_{k+1|k}-\gamma_{k+1}t_{22}p^{22}_{k+1|k}
+\end{split}
+\end{equation}
+We linearize them and get the following equation:
+\begin{equation*}
+\begin{split}
+p^{11}_{k+1|k+1}&\approx \bar{p}^{11}_{k+1|k}-\bar{\gamma}_{k+1}t_{11}\bar{p}^{11}_{k+1|k}-\bar{\gamma}_{k+1}t_{12}\bar{p}^{21}_{k+1|k}\\
+&+(1-\bar{\gamma}_{k+1}t_{11})(p^{11}_{k+1|k}-\bar{p}^{11}_{k+1|k})\\
+&-\bar{\gamma}_{k+1}t_{12}(p^{21}_{k+1|k}-\bar{p}^{21}_{k+1|k})\\
+&-(t_{11}\bar{p}^{11}_{k+1|k}+t_{12}\bar{p}^{21}_{k+1|k})(\gamma_{k+1}-\bar{\gamma}_{k+1}).
+\end{split}
+\end{equation*}
+Note that $p^{11}$ and $p^{21}$ in the above equation should be replaced by corresponding entries in \Cref{eqn:elementwise-upd-P}.
+\begin{equation*}
+\gamma_{k+1}-\bar{\gamma}_{k+1}\approx \left[\frac{\partial \gamma}{\partial z},\frac{\partial \gamma}{\partial \theta}\right]\begin{bmatrix}
+z-\bar{z} \\ \theta-\bar{\theta}
+\end{bmatrix}
+\end{equation*}
+
+\subsection{partial derivative of $\gamma$}
+The partial derivative for $\gamma_1$, $\gamma_2$, and $\gamma_3$ are as follows:
+\begin{equation*}
+\begin{split}
+\begin{bmatrix}
+\frac{\partial \gamma_1}{\partial z}\\
+\frac{\partial \gamma_1}{\partial \theta}
+\end{bmatrix}&=
+\begin{bmatrix}
+-\exp^{\alpha_1(\|x-\bar{z}\|^2_2-r^2)}\alpha_1(x-\bar{z})\\
+0
+\end{bmatrix},\\
+\begin{bmatrix}
+\frac{\partial \gamma_1}{\partial z}\\
+\frac{\partial \gamma_1}{\partial \theta}
+\end{bmatrix}&=
+\begin{bmatrix}
+-\sin(\bar{\psi_1})\\
+\cos(\bar{\psi_1})\\
+x_1\cos(\bar{\psi_1})+x_2\sin(\bar{\psi_1})-\bar{z}_1\cos(\bar{\psi_1})-\bar{z}_2\sin(\bar{\psi_1})
+\end{bmatrix}\alpha_2(\gamma_2-1),\\
+\begin{bmatrix}
+\frac{\partial \gamma_1}{\partial z}\\
+\frac{\partial \gamma_1}{\partial \theta}
+\end{bmatrix}&=
+\begin{bmatrix}
+\sin(\bar{\psi_2})\\
+-\cos(\bar{\psi_2})\\
+-x_1\cos(\bar{\psi_2})-x_2\sin(\bar{\psi_2})+\bar{z}_1\cos(\bar{\psi_2})+\bar{z}_2\sin(\bar{\psi_2})
+\end{bmatrix}\alpha_3(\gamma_3-1).
+\end{split}
+\end{equation*}
+Then the derivative of $\gamma$ can be computed as:
+\begin{equation*}
+\begin{bmatrix}
+\frac{\partial \gamma}{\partial z}\\
+\frac{\partial \gamma}{\partial \theta}
+\end{bmatrix}=
+-\frac{1}{(\gamma_1\gamma_2\gamma_3)^2}\begin{bmatrix}
+\frac{\partial \gamma_1}{\partial z}\gamma_2\gamma_3+\gamma_1\frac{\partial \gamma_2}{\partial z}\gamma_3+\gamma_1\gamma_2\frac{\partial \gamma_3}{\partial z}\\
+\frac{\partial \gamma_1}{\partial \theta}\gamma_2\gamma_3+\gamma_1\frac{\partial \gamma_2}{\partial \theta}\gamma_3+\gamma_1\gamma_2\frac{\partial \gamma_3}{\partial \theta}
+\end{bmatrix}.
+\end{equation*}
+
+\section{Sequential optimization framework}
+The problem uses two-layer of optimization. In the first layer, a non-convex problem is solved and the solution is provided to the second layer, which uses a convex optimization. (NOTE: may need to compare with iterative LQR).
+\subsection{nonconvex programming}
+The purpose of this layer is to find a good reference state for cvxPlanner to linearize around. The formulation uses the one defined in \Cref{eqn:MPC}.
+
+\textbf{simplification}:
+\begin{itemize}
+	\item objective: the covariance matrix is assumed constant in planning horizon.
+	\item weights of gmm are assumed constant.
+	\item mean propagation: open-loop using the system dynamics, no measurement is used.
+	\item covariance propagation: compute the gamma assuming the mean of a gmm component as the target position to update the covariance of the corresponding gmm component. $\bar{\theta}$ takes the value of the initial guess.
+\end{itemize}
+
+\textbf{Initial solution}:
+\begin{itemize}
+	\item At the beginning of the planning, use straight line constant acceleration model to generate initial guess. Later can change to motion primitives and try multiple initial guesses (similar to what John Schulman's work does).
+	\item When cvxPlanner is used, use the solution of cvxPlanner with one-step extrapolation as the initial guess for ngPlanner in next round.
+\end{itemize}
+
+\textbf{Possible changes}: 
+\begin{itemize}
+	\item whether using initial guess to approximate A, C.
+	\item it is unclear to me whether I should us ngPlanner at all (after the first step). I may be able to use cvxPlanner only for the rest of whole search process.
+\end{itemize}
+
+\subsection{iterative convex programming formulation}
+This layer uses sequential convex programming to plan a trajectory. 
+
+\textbf{Simplification}:
+\begin{itemize}
+	\item use the convex relaxation of $0$-th order approximation of entropy in the objective function.
+	\item linearize \cref{subeqn:rbt_dyn} around reference trajectory.
+	\item linearize \cref{subeqn:est_upd} around reference trajectory.  Especially, the $K$ is assumed to use the reference value.
+	\item A,C all uses the value of reference state.
+\end{itemize}
+
+\textbf{possible changes}:
+\begin{itemize}
+	\item the sensor FOV approximation is bad. only gives value 1 in very small state range.
+\end{itemize}
+
+\subsubsection{Approximating the Objective Function}
 We can obtain the upper bound of \Cref{eqn:approx_obj} using Jensen's inequality:
 \begin{align*}
 &-\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log \sum\limits_{j=1}^L\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
 &\leq -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L\log\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
 &=\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})^T[P^j_{k|k}]^{-1}(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})
 \end{align*}
+\textcolor{red}{Note: there is a term missing here and it's not a constant! It involves $P^j_{k|k}$. I need to think if this removal makes sense or not.}
 The upper bound is tight when all GMM components become equivalent.
 
 Note that this is NOT a quadratic objective function, but it is convex! (matrix-fractional function).
@@ -241,12 +389,17 @@ P^j_{k|k} & \hat{x}^i_{k|k}-\hat{x}^j_{k|k}\\
 %The second step (C(ovariance)-step) fixes $\hat{x}^i_{k|k}$ using the result from the last iteration and solve for $P^j_{k|k}$. 
 %The objective function is quadratic in $x$.
 
+<<<<<<< HEAD
 \section{An approximate stochastic MPC framework for dealing with GMM components}
 \Cref{subeqn:upd_mean,subeqn:upd_cov} can be modified to accommodate GMM components as follows:
 \begin{align}
 \hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\sum\limits_j w_j\gamma_{k+1}(\hat{x}^j_{k+1|k})K^i_{k+1}(h(\hat{x}^j_{k+1|k})-h(\hat{x}^i_{k+1|k}))\label{subeqn:upd_mean_gmm}\\
 P^i_{k+1|k+1}&=P^i_{k+1|k}-\sum\limits_j w_j\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k}\label{subeqn:upd_cov_gmm},
 \end{align}
+=======
+
+
+>>>>>>> 3c71e2e96bb9b632c5833598364bea3c4d3bd731
 
 \section{possible extensions}
 This section compiles the possible contributions I can make in this and other following works. The previous sections are the actual implementation of what I will do in this work.

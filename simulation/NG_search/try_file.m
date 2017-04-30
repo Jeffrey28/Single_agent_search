@@ -320,3 +320,157 @@ constr = [x>=0];
 opt = sdpsettings('solver','ipopt','verbose',3,'debug',1,'showprogress',1);
 sol1 = optimize(constr,obj,opt);
 %}
+
+%% check what is going wrong in cvxPlanner
+%{
+% compute the values by using the reference values
+
+% variables used for testing
+zt = zeros(4,N+1);
+ut = zeros(2,N);
+xt = zeros(2*this.gmm_num,N+1);
+Pt = zeros(2,2,this.gmm_num,N+1);
+x_predt = zeros(2*this.gmm_num,N);
+P_predt = zeros(2,2,this.gmm_num,N);
+
+t = cell(this.gmm_num*this.gmm_num,N+1);
+
+% initial value
+zt(:,1) = this.state;
+xt(:,1) = this.est_pos(:);
+for jj = 1:this.gmm_num
+    Pt(:,:,jj,1) = this.P{jj};
+end
+
+% constraints on the go
+for ii = 1:N
+    % robot state
+    zt(:,ii+1) = zt(:,ii)+...
+        [zt(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(zt(3,ii)-zref(3,ii));
+        zt(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(zt(3,ii)-zref(3,ii));
+        ut(:,ii)]*dt;
+    
+    gamma_den = 1; %1+exp(alp*(sum((tmp_mean-z(1:2,ii+1)).^2)-this.r^2));
+    % 1+sum((tmp_mean-z(1:2,ii+1)).^2);
+    gamma_num = 1;
+    
+    % target prediction
+    for jj = 1:this.gmm_num
+        A = del_f(xt(2*jj-1:2*jj,ii));       
+        C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+        
+        % mean
+        x_predt(2*jj-1:2*jj,ii) = f(xt(2*jj-1:2*jj,ii));
+        % covariance
+        P_predt(:,:,jj,ii) = A*Pt(:,:,jj,ii)*A'+Q;
+      
+        % mean
+        xt(2*jj-1:2*jj,ii+1) = x_predt(2*jj-1:2*jj,ii);
+        % covariance
+        Pt(:,:,jj,ii+1)...
+            = P_predt(:,:,jj,ii)-gamma_num/gamma_den*Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_predt(:,:,jj,ii);       
+    end
+end
+
+% possible error is that -0 and 0. now only constrain the upper triangle
+% elements in equality constraint.
+% badly scaled problem is also a cause of problem: Pt is too small compared
+% to xt_ll-xt_jj
+
+cvx_begin sdp
+variable tt(this.gmm_num*this.gmm_num,N)
+variable PPt(3,3,this.gmm_num,this.gmm_num,N) nonnegative
+minimize sum(tt(:))
+tt(:) >= 0;
+for ii = 1:3%N
+    for jj = 1:3%this.gmm_num
+        for ll = 1:3%this.gmm_num
+%             tt(this.gmm_num*(jj-1)+ll,ii) >=...
+%                 (xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1))'/Pt(:,:,ll,ii+1)*(xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1));
+            triu(PPt(:,:,jj,ll,ii)) == ...
+            triu([Pt(:,:,ll,ii+1) (xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1))/10;
+                (xt(2*jj-1:2*jj,ii+1)-xt(2*ll-1:2*ll,ii+1))'/10 tt(this.gmm_num*(jj-1)+ll,ii)]);
+        end
+    end
+end
+cvx_end
+%}
+
+%% compare the linearization and original result of the bell-shaped sensor
+%{
+clear
+% model parameters
+alp1 = 10;
+alp2 = 10;
+alp3 = 10;
+
+theta0 = pi/3;
+r = 20;
+tar_pos = [20;20]; 
+
+% reference value for linearization
+z_ref = [10;10];
+theta_ref = pi/3;
+
+%%% resume from here 4/18/17
+% define sensor model
+% determine if the target is in sensor FOV
+inFOV = @(z,theta,tar_pos) ([sin(theta-theta0),-cos(theta-theta0)]*(tar_pos-z) <= 0) &&...
+    ([-sin(theta+theta0),cos(theta+theta0)]*(tar_pos-z) <= 0)...
+                && (norm(tar_pos-z) <= r);       
+% gamma
+gam_den1 = @(z,x0,alp) 1+exp(alp*(sum((x0-z).^2)-r^2));
+gam_den2 = @(z,x0,theta,alp) 1+exp(alp*[sin(theta-theta0),-cos(theta-theta0)]*(x0-z));
+gam_den3 = @(z,x0,theta,alp) 1+exp(alp*[-sin(theta+theta0),cos(theta+theta0)]*(x0-z));
+gam_den = @(z,theta,x0,alp1,alp2,alp3) gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3);
+% exact model
+gam = @(z,theta,x0,alp1,alp2,alp3) 1/gam_den(z,theta,x0,alp1,alp2,alp3);
+% gradient
+gam_den1_grad = @(z,x0,alp)  [(gam_den1(z,x0,alp)-1)*alp*(z-x0);0];
+gam_den2_grad = @(z,x0,theta,alp)  (gam_den2(z,x0,theta,alp)-1)*alp*[-sin(theta-theta0);cos(theta-theta0);[cos(theta-theta0),sin(theta-theta0)]*(x0-z)];
+gam_den3_grad = @(z,x0,theta,alp)  (gam_den3(z,x0,theta,alp)-1)*alp*[sin(theta+theta0);-cos(theta+theta0);[cos(theta+theta0),sin(theta+theta0)]*(z-x0)];
+gam_grad = @(z,theta,x0,alp1,alp2,alp3) -(gam_den1_grad(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
+    gam_den1(z,x0,alp1)*gam_den2_grad(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3)+...
+    gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3_grad(z,x0,theta,alp3))/...
+    (gam_den1(z,x0,alp1)*gam_den2(z,x0,theta,alp2)*gam_den3(z,x0,theta,alp3))^2;
+% linearized model
+gam_aprx = @(z,theta,x0,z_ref,theta_ref,alp1,alp2,alp3) gam(z_ref,theta_ref,x0,alp1,alp2,alp3)...
+    +gam_grad(z_ref,theta_ref,x0,alp1,alp2,alp3)'*[z-z_ref;theta-theta_ref];
+
+% test set. in the vinicity of reference value
+theta_set = linspace(theta_ref*0.7,theta_ref*1.2,30);
+z_set = [linspace(z_ref(1)*0.7,z_ref(1)*1.2,30);linspace(z_ref(2)*0.5,z_ref(2)*1.2,30)];
+
+% compare the computed gamma, gamma_aprx, inFOV
+v = zeros(length(theta_set),length(z_set)); % computed using gam
+v_aprx = zeros(length(theta_set),length(z_set)); % computed using gam_aprx
+v_fov = zeros(length(theta_set),length(z_set)); % computed using inFOV
+
+for ff = 1:length(theta_set)
+    for gg = 1:size(z_set,2)
+        v(ff,gg) = gam(z_set(:,gg),theta_set(ff),tar_pos,alp1,alp2,alp3);
+        v_aprx(ff,gg) = gam_aprx(z_set(:,gg),theta_set(ff),tar_pos,z_ref,theta_ref,alp1,alp2,alp3);
+        v_fov(ff,gg) = inFOV(z_set(:,gg),theta_set(ff),tar_pos);
+    end
+end 
+v_diff1 = v-v_aprx;
+v_diff2 = v-v_fov;
+v_diff3 = v_aprx-v_fov;
+
+figure(1)
+surf(z_set(1,:),theta_set,v)
+title('gamma')
+xlabel('z')
+ylabel('\theta')
+figure(2)
+surf(z_set(1,:),theta_set,v_aprx)
+title('approximate gamma')
+figure(3)
+surf(z_set(1,:),theta_set,v_fov)
+title('exact FOV')
+%}
+
+%% test dbstack
+a = 1;
+b = dbstack;
+
