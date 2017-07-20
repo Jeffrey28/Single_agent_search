@@ -471,6 +471,23 @@ title('exact FOV')
 %}
 
 %% test dbstack
+%{
 a = 1;
 b = dbstack;
+%}
 
+%% debug cmpObjAprx and cvx obj. they have different values
+% optcvx3 = 0;
+% tmp3 = 0;
+for ii = 1:N
+    for jj = 1:this.gmm_num
+        for ll = 1:this.gmm_num
+            optcvx3 = optcvx3+this.wt(jj)*((x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))'...
+                /P(:,:,ll,ii+1)*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2+...
+                log(det(P(:,:,ll,ii+1)))/2+log(2*pi));
+            tmp3 = tmp3-this.wt(jj)*log(mvnpdf(x(2*jj-1:2*jj,ii+1),x(2*ll-1:2*ll,ii+1),P(:,:,ll,ii+1)));
+            
+        end
+    end
+end
+optcvx3-tmp3

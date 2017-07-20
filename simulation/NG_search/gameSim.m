@@ -2,10 +2,12 @@
 % model. 
 % This code is used for ACC 17
 % Chang Liu 9/12/16
-% The code is modified for IROS 17
+% The code is modified for IROS 17 (not submitted)
 % Chang Liu Jan. 2017
+% The code continues being modified for general NGP
+% Chang Liu Apr. 2017
 
-clc 
+% clc 
 clear % clear global variables
 close all
 

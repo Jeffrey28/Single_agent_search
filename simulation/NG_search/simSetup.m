@@ -1,7 +1,6 @@
 %% Sim Setup
-% addpath('/Users/changliu/Documents/MATLAB/Ipopt-3.11.8-linux64mac64win32win64-matlabmexfiles');
-% addpath('/Users/changliu/Documents/MATLAB/studentSnopt')
 addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
+addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % soem issue occurs when vec function is called (in my code, it happens when using log_det)
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
