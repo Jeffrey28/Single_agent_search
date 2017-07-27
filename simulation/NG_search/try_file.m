@@ -476,7 +476,8 @@ a = 1;
 b = dbstack;
 %}
 
-%% debug cmpObjAprx and cvx obj. they have different values
+%% debug cmpObjAprx and cvx obj. they have different values (issue fixed)
+%{
 % optcvx3 = 0;
 % tmp3 = 0;
 for ii = 1:N
@@ -491,3 +492,11 @@ for ii = 1:N
     end
 end
 optcvx3-tmp3
+%}
+
+%% check the condition number of covariance matrix
+for s = 1:this.gmm_num
+    for q = 1:N+1
+        cond(P(:,:,s,q))
+    end
+end

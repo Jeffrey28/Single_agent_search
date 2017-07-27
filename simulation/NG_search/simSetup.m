@@ -123,6 +123,7 @@ inPara_rbt.alp3 = alp3;
 inPara_rbt.thr = thr; % the threshold to avoid very large exponential function value
 inPara_rbt.tr_inc = 5; % increment factor of trust region
 inPara_rbt.tr_dec = 1/2; % decrement factor of trust region
+inPara_rbt.mu_inc = 3;
 
 % estimation initialization
 if strcmp(plan_mode,'lin')
