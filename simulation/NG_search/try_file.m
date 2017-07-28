@@ -495,8 +495,23 @@ optcvx3-tmp3
 %}
 
 %% check the condition number of covariance matrix
+%{
 for s = 1:this.gmm_num
     for q = 1:N+1
         cond(P(:,:,s,q))
     end
+end
+%}
+
+%% check if computing the merit function is correct
+this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu)
+this.cmpObj(xref,Pref)+grad*[xref(:)-xref(:);Pref(:)-Pref(:)]+...
+    [xref(:)-xref(:);Pref(:)-Pref(:)]'*hess*[xref(:)-xref(:);Pref(:)-Pref(:)]/2+mu*(sum(abs(slk_kin(:)))+...
+    sum(abs(slk_P(:))))
+h = 0;
+for ii = 1:N
+    h = h+zref(:,ii+1)-zref(:,ii)-...
+    [zref(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(zref(3,ii)-zref(3,ii));
+        zref(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(zref(3,ii)-zref(3,ii));
+        uref(:,ii)]*dt;
 end

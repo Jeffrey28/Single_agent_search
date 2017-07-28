@@ -407,7 +407,6 @@
             Pref = init_sol.P;
             P_pred_ref = init_sol.P_pred;
             full_hessian = false; 
-
             
             %% loop 1: change alpha in \gamma modeling
             while(1)
@@ -420,10 +419,12 @@
                     tr = zeros(6,N); % bound of stepsize
                     % z
                     tr(1:2,:) = 3*ones(2,N);
-                    tr(3,:) = ones(1,N); %pi/5*ones(1,N);
-                    tr(4,:) = ones(1,N);
+                    tr(3,:) = 3*ones(1,N);%pi/5*ones(1,N);
+                    tr(4,:) = 3*ones(1,N);
                     % u
-                    tr(5:6,:) = ones(2,N);                    
+                    tr(5:6,:) = 3*ones(2,N);
+                    % x
+                    
                     
                     
                     %                 for ii = 1:N
@@ -469,8 +470,8 @@
                         delta_P = P-Pref;
                         [grad,hess] = this.numerical_grad_hess(xref,Pref,full_hessian);
                         
-                        obj = this.cmpObj(xref,Pref)+grad*[delta_x(:);delta_P(:)]+...
-                            [delta_x(:);delta_P(:)]'*hess*[delta_x(:);delta_P(:)]/2;
+                        obj = this.cmpObj(xref,Pref)+grad*[delta_x(:);delta_P(:)];%+...
+%                             [delta_x(:);delta_P(:)]'*hess*[delta_x(:);delta_P(:)]/2;
                         obj = obj + mu*(sum(abs(slk_kin(:)))+...
                             sum(abs(slk_P(:)))); % add slack varaible %sum(abs(slk_P_pred(:)))+
                         
@@ -592,6 +593,31 @@
                         display(act_cur)
                         %}
                         impv_ratio = (act_prev-act_cur)/(pred_prev-pred_cur);
+                        display('improvement')
+                        display(impv_ratio)
+                        
+                        % compare approximation with actual value
+                        t = -5:0.1:5;
+                        actval = zeros(length(t),1);
+                        apprxval = zeros(length(t),1);
+                        for pp = 1:length(t)
+                            tt = t(pp);
+                            ztmp = zref+tt;
+                            utmp = uref+tt;
+                            xtmp = xref+tt;
+                            Ptmp = Pref+tt;
+                            P_pred_tmp = P_pred_ref+tt;
+                            
+                            actval(pp) = this.cmpMerit(ztmp,utmp,zref,xtmp,Ptmp,P_pred_tmp,Kref,mu);
+                            apprxval(pp) = this.cmpObj(xtmp,Ptmp)+grad*[xtmp(:)-xref(:);Ptmp(:)-Pref(:)];%+...
+%                                 [xtmp(:)-xref(:);Ptmp(:)-Pref(:)]'*hess*[xtmp(:)-xref(:);Ptmp(:)-Pref(:)]/2;
+                            apprxval(pp) = apprxval(pp) + mu*(sum(abs(slk_kin(:)))+...
+                                sum(abs(slk_P(:))));
+                        end
+                        figure
+                        hold on
+                        plot(t,actval,'b')
+                        plot(t,apprxval,'r')
                         
                         if pred_prev-pred_cur < -1e-5
                             display('approximate merit function got worse')
@@ -1800,7 +1826,7 @@
             z = zeros(length(st),len+1);
             z(:,1) = st;
             for ii = 1:len
-                z(:,ii+1) = z(:,ii)+[z(4,ii+1)*cos(z(3,ii+1));z(4,ii+1)*sin(z(3,ii+1));u(:,1)]*dt;
+                z(:,ii+1) = z(:,ii)+[z(4,ii)*cos(z(3,ii));z(4,ii)*sin(z(3,ii));u(:,ii)]*dt;
             end
         end
         
@@ -1984,7 +2010,7 @@
             N = this.mpc_hor;
             dt = this.dt; 
             for ii = 1:N
-                h = h+z(:,ii+1) - (z(:,ii)+ [cos(z(3,ii)) 0; sin(z(3,ii)) 0;...
+                h = h+z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)) 0; z(4,ii)*sin(z(3,ii)) 0;...
                     1 0; 0 1]*u(:,ii)*dt);
             end      
             h = sum(abs(h));
