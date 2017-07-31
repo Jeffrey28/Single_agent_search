@@ -410,6 +410,7 @@
             
             cfg.del_f = del_f;
             cfg.del_h = del_h;
+            cfg.callback = @(x,info) 0; % can change to plotting function later
 %             % trust region, penalty factor
 %             tr_inc = this.tr_inc;
 %             tr_dec = this.tr_dec;
@@ -445,8 +446,8 @@
             %%% objective
             obj = @(s) this.getObj(s,snum); 
             % Q and q in quad linear obj term: x'*Q*x/2+q'*x
-            fQ = 0; 
-            q = 0;            
+            fQ = zeros(length(s)); 
+            q = zeros(1,length(s));            
             
             %%% kinematics constraints
             objKin = @(s) this.getKinConstr(s,snum); 
@@ -476,7 +477,7 @@
             % belief dynamics (note: this one could be written using
             % A_eq,b_eq, but it's error-prone and time-consuming. 
             % So I use this form.
-            constrLinEq = @(s,A) this.getLinEqConstr(s,snum,f,A);
+            constrLinEq = @(s,A) this.getLinEqConstr(s,snum,tar);
             
             %%% linear inequality constraints
             % bounds on states and input
@@ -512,8 +513,10 @@
                 %% loop 2: penalty iteration
 %                 ctol = 1e-2;
 %                 mu = 0.1;
+                num_iter = 0;
                 while(1)
-                    objNLineq = []; % nonlinear inequality constraint here
+                    num_iter = num_iter+1;
+                    objNLineq = @(s) 0; % nonlinear inequality constraint here
                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
                     % trust region for approximating gamma. Trust region is the
                     % stepsize of change, i.e. abs(z-zref)
@@ -778,7 +781,7 @@
                 
                 x = this.convState(s,snum,'x');
                 uref = this.convState(s,snum,'u');
-                z = this.convState(s,snum,'x');
+                z = this.convState(s,snum,'z');
                 
                 % here we use the difference between the actual gamma and
                 % gamma_aprx to decide the region.
@@ -797,7 +800,7 @@
                         is_in_fov(jj,ii) = tmp_rbt.inFOV(tar_pos);
                         
                         % exact gamma
-                        gamma_exact(jj,ii) = gam(z(1:2,ii+1),z(3,ii+1),...
+                        gamma_exact(jj,ii) = this.gam(z(1:2,ii+1),z(3,ii+1),...
                             tar_pos,alp1,alp2,alp3);
                         
                         % approximated inFOV
@@ -2325,8 +2328,12 @@
         end
         
         %% sensor model approximation
+        % exact value of gamma
+        function gam_exact = gam(this,z,theta,x0,alp1,alp2,alp3) 
+            gam_exact = 1/this.gam_den(z,theta,x0,alp1,alp2,alp3);
+        end
+                
         % denominator of gamma
-        %{
         function gam_d = gam_den(this,z,theta,x0,alp1,alp2,alp3)
             gam_d = this.gam_den1(z,x0,alp1)*this.gam_den2(z,x0,theta,alp2)*this.gam_den3(z,x0,theta,alp3);
         end
@@ -2356,11 +2363,6 @@
             else
                 gam_den = 1+exp(tmp);
             end
-        end
-        
-        % exact value of gamma
-        function gam_exact = gam(this,z,theta,x0,alp1,alp2,alp3) 
-            gam_exact = 1/this.gam_den(z,theta,x0,alp1,alp2,alp3);
         end
         
         % approximate gamma
@@ -2458,7 +2460,7 @@
 %                     end
 %                 end
                 
-                if cfg.f_use_numerical
+                if cfg.f_use_numerical % && ~isempty(f)
                     fval = f(x);
                     [fgrad, fhess] = this.getNumGradHess(f,x,cfg.full_hessian);
                     % diagonal adjustment
@@ -2467,20 +2469,32 @@
                         fprintf('negative hessian detected. adjusting by %.3g\n',-mineig);
                         fhess = fhess + eye(dim_x) * ( - mineig);
                     end
-                else
+                else %if ~isempty(f)
                     [fval, fgrad, fhess] = f(x);
+%                 else
+%                     fval = 0;
+%                     fgrad = 0; 
+%                     fhess = 0;
                 end
-                if cfg.g_use_numerical
+                
+                if cfg.g_use_numerical% && ~isempty(g)
                     gval = g(x);
                     gjac = this.getNumJac(g,x);
-                else
+                else %if ~isempty(g)
                     [gval, gjac] = g(x);
+%                 else
+%                     gval = 0;
+%                     gjac = 0;
                 end
-                if cfg.h_use_numerical
+                
+                if cfg.h_use_numerical% && ~isempty(h)
                     hval = h(x);
                     hjac = this.getNumJac(h,x);
-                else
+                else %if ~isempty(h)
                     [hval, hjac] = h(x);
+%                 else
+%                     hval = 0;
+%                     hjac = 0;
                 end
                 
                 merit = fval + fquadlin(x) + penalty_coeff * ( hinge(gval) + abssum(hval) );
@@ -2506,16 +2520,16 @@
                     
                     
                     cvx_begin quiet %YOUR CODE HERE
-                    variables xp(dim_x, 1);
-                    %                 minimize fquadlin(x) + fval + (x'*Q'+q+fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
-                    minimize fquadlin(xp) + fval + (fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
-                    subject to
-                    
-%                     A_ineq*xp <= b_ineq;
-%                     A_eq*xp == b_eq;
-                    hlin(x) == 0;
-                    glin(x) <= 0;
-                    norm(xp-x,2) <= trust_box_size;
+                        variables xp(dim_x, 1);
+                        %                 minimize fquadlin(x) + fval + (x'*Q'+q+fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
+                        minimize fquadlin(xp) + fval + (fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
+                        subject to
+
+                        %                     A_ineq*xp <= b_ineq;
+                        %                     A_eq*xp == b_eq;
+                        hlin(x) == 0;
+                        glin(x) <= 0;
+                        norm(xp-x,2) <= trust_box_size;
                     cvx_end
                     
                     
@@ -2651,7 +2665,7 @@
          end
         
         %% constraints
-        function val = getKinConstr(this,s)
+        function val = getKinConstr(this,s,snum)
             % kinematic constraint (nonlinear equality)
             z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
             u = this.convState(s,snum,'u'); %s(snum(2,1):snum(2,2));
@@ -2664,7 +2678,7 @@
             end
         end
         
-        function val = getBelConstr(this,s,Kref,alp1,alp2,alp3)
+        function val = getBelConstr(this,s,snum,Kref,alp1,alp2,alp3)
             % belief update constraint (nonlinear equality)
             z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
             u = this.convState(s,snum,'u'); %s(snum(2,1):snum(2,2));
@@ -2672,7 +2686,8 @@
             P = this.convState(s,snum,'P'); %s(snum(5,1):snum(5,2));
             P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));
             val = 0;
-            N = this.mpc_hor;
+            
+            N = this.mpc_hor;            
             dt = this.dt;
             gam = @this.gam; %%%%% this may be incorrect: may need to use gam_approx
             del_h = this.del_h;
@@ -2707,15 +2722,19 @@
             end
         end
         
-        function val = getLinEqConstr(this,s,snum,f)
+        function val = getLinEqConstr(this,s,snum,tar)
             % linear equality constraints
             z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
             x = this.convState(s,snum,'x'); %s(snum(3,1):snum(3,2));
             x_pred = this.convState(s,snum,'x_pred'); %s(snum(4,1):snum(4,2));
             P = this.convState(s,snum,'P'); %s(snum(5,1):snum(5,2));
-            P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));
-            del_f = this.del_f;
+            P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));            
             
+            f = tar.f;
+            del_f = tar.del_f;
+            Q = tar.Q;
+            
+            N = this.mpc_hor;
             val = [];   
             % initial condition
             % z(:,1) == this.state;
@@ -2752,6 +2771,7 @@
             z = this.convState(s,snum,'z'); %s(snum(1,1),snum(1,2));
             u = this.convState(s,snum,'u');%s(snum(2,1),snum(2,2));
             
+            N = this.mpc_hor;            
             val = [];
             % bounds on states and input
             % this.w_lb <= u(1,:) <= this.w_ub;
@@ -2830,7 +2850,7 @@
                    t = s(snum.idx(3,1):snum.idx(3,2));
                    t = reshape(t,2*this.gmm_num,N+1);
                case 'x_pred'
-                   t = s(snum.idx(4,1):snum.idx(3,2));
+                   t = s(snum.idx(4,1):snum.idx(4,2));
                    t = reshape(t,2*this.gmm_num,N);
                case 'P'
                    t = s(snum.idx(5,1):snum.idx(5,2));
