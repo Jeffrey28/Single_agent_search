@@ -67,7 +67,8 @@ for ii = 1:sim_len
     elseif strcmp(plan_mode,'nl')
 %         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
-        [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
+%         [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner_scp(fld,optz,optu);
     end
     
     rbt = rbt.updState(optu);

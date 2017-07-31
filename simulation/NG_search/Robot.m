@@ -386,8 +386,7 @@
 %             gam_aprx = @this.gam_aprx;
 %            	p_aprx = @this.p_aprx;
 %             
-
-
+            % config for optimization
             cfg = {};
             cfg.improve_ratio_threshold = .25;
             cfg.min_trust_box_size = 1e-4;
@@ -409,6 +408,8 @@
             cfg.h_use_numerical = true;
             cfg.full_hessian = false; %true;
             
+            cfg.del_f = del_f;
+            cfg.del_h = del_h;
 %             % trust region, penalty factor
 %             tr_inc = this.tr_inc;
 %             tr_dec = this.tr_dec;
@@ -426,48 +427,39 @@
             zref = init_sol.z;
             uref = init_sol.u;
             xref = init_sol.x;
+            x_pred_ref = init_sol.x_pred;
             Kref = init_sol.K;
             Pref = init_sol.P;
             P_pred_ref = init_sol.P_pred;
-            full_hessian = false; 
-            
-            % size of each decision variables
-            snum = struct();
-            snum.z = 4*(N+1);
-            snum.u = 2*N;
-            snum.x = 2*this.gmm_num*(N+1);
-            snum.xpred = 2*this.gmm_num*N;
-            snum.P = 2*2*this.gmm_num*(N+1);
-            snum.P_pred = 2*2*this.gmm_num*N;
-            % compute the section of s that corresponds to different
-            % decision variables
-            snum.idx = zeros(6,2);
-            snum.idx(1,:) = [1,snum.z];
-            snum.idx(2,:) = [snum.idx(1,2)+1,snum.idx(1,2)+snum.u];
-            snum.idx(3,:) = [snum.idx(2,2)+1,snum.idx(2,2)+snum.x];
-            snum.idx(4,:) = [snum.idx(3,2)+1,snum.idx(3,2)+snum.xpred];
-            snum.idx(5,:) = [snum.idx(4,2)+1,snum.idx(4,2)+snum.P];
-            snum.idx(6,:) = [snum.idx(5,2)+1,snum.idx(5,2)+snum.P_pred];
-            snum.total = snum.idx(6,2);
-            
-            % functions and parameters for scp
+            % construct the state
+            %%%%% note: current formulation does not take K into
+            %%%%% account. May need this later if the simulation does not
+            %%%%% work well.
             % s is the collection of all decision variables
-            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:)]
+            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:)]   
+            [s,snum] = this.setState(zref,uref,xref,x_pred_ref,Pref,P_pred_ref);
             
-            % objective
-            f = @(s) this.getObj(s,snum); 
+            cfg.snum = snum;
+            
+            %%% functions and parameters for scp                     
+            %%% objective
+            obj = @(s) this.getObj(s,snum); 
             % Q and q in quad linear obj term: x'*Q*x/2+q'*x
             fQ = 0; 
             q = 0;            
-            % kinematics constraints
+            
+            %%% kinematics constraints
             objKin = @(s) this.getKinConstr(s,snum); 
+            
+            %%% linear equality constraints
+            %{
+            A_eq = zeros(snum.total); 
             % initial condition on states
             % z(:,1) == this.state;
             % x(:,1) == this.est_pos(:);
             % for jj = 1:this.gmm_num
               %  triu(P(:,:,jj,1)) == triu(this.P{jj});
-            % end
-            A_eq = zeros(snum.total); 
+            % end            
             tmp_idx = [1:4,snum.idx(2,2)+1:snum.idx(2,2)+2*this.gmm_num,...
                 snum.idx(4,2)+1:snum.idx(4,2)+4*this.gmm_num];
             for ii = tmp_idx
@@ -480,11 +472,19 @@
             b_eq = [this.state;zeros(snum.idx(2,2)-length(this.state),1);...
                 this.est_pos(:);zeros(snum.idx(4,2)-snum.idx(2,2)-length(this.est_pos(:)),1);...
                 vec;zeros(snum.idx(6,2)-length(vec),1)];
+            %}
+            % belief dynamics (note: this one could be written using
+            % A_eq,b_eq, but it's error-prone and time-consuming. 
+            % So I use this form.
+            constrLinEq = @(s,A) this.getLinEqConstr(s,snum,f,A);
+            
+            %%% linear inequality constraints
             % bounds on states and input
             % this.w_lb <= u(1,:) <= this.w_ub;
             % this.a_lb <= u(2,:) <= this.a_ub;
             % this.v_lb <= z(4,:) <= this.v_ub;
             % [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+            %{
             mat = diag([ones(snum.idx(2,2),1);zeros(snum.idx(6,2)-snum.idx(2,2),1)]); 
             idx = 3:4:(3+4*N); % since no constraint on z(3,:), set element to be 0
             for ii = idx
@@ -496,6 +496,9 @@
             vec2 = -[repmat([fld.fld_cor(1);fld.fld_cor(3);0;this.v_lb],N+1,1);...
                 repmat([this.w_lb;this.a_lb],N,1)];
             b_ineq = [vec1;vec2];
+            %}
+            
+            constrLinIneq = @(s) this.getLinIneqConstr(s,snum,fld);
             
             penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties 
             trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.            
@@ -503,15 +506,15 @@
             abssum = @(x) sum(abs(x));
             
             %% loop 1: change alpha in \gamma modeling
-            while(1)
-                objBel = @() this.penBelConstr(); % belief update
+            while(1)                
+                objBel = @(s) this.getBelConstr(s,snum,Kref,alp1,alp2,alp3); % belief update
                 
                 %% loop 2: penalty iteration
 %                 ctol = 1e-2;
 %                 mu = 0.1;
                 while(1)
                     objNLineq = []; % nonlinear inequality constraint here
-                    objNLeq = [objKin;objBel]; % nonlinear equality constraint here
+                    objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
                     % trust region for approximating gamma. Trust region is the
                     % stepsize of change, i.e. abs(z-zref)
 %                     tr = zeros(6,N); % bound of stepsize
@@ -523,13 +526,16 @@
 %                     tr(5:6,:) = 3*ones(2,N);
                     % x
                     
-                    
                     %% loop 3: trust region SQP
 %                     thr_l = 1/4;
 %                     thr_h = 1/2; %3/4;
 %                     xtol = 0.1;
 %                     infea_flag = false; % flagging whether cvx is infeasible
-                    [s, trust_box_size, success] = this.minimize_merit_function(s, fQ, q, f, A_ineq, b_ineq, A_eq, b_eq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size);
+                    A_ineq = [];
+                    b_ineq = [];
+                    A_eq = [];
+                    b_eq = [];
+                    [s, trust_box_size, success] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size);
                     %{
                     while (1)
                         % robot state and control
@@ -751,7 +757,7 @@
                         end
                     end % loop 3 ends
                     %}
-                    if(hinge(objNLineq(x)) + abssum(objNLeq(x)) < cfg.cnt_tolerance || num_iter > cfg.max_iter)
+                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || num_iter > cfg.max_iter)
                         break;
                     end
                     trust_box_size = cfg.initial_trust_box_size;
@@ -770,11 +776,15 @@
                     break
                 end
                 
+                x = this.convState(s,snum,'x');
+                uref = this.convState(s,snum,'u');
+                z = this.convState(s,snum,'x');
+                
                 % here we use the difference between the actual gamma and
                 % gamma_aprx to decide the region.
                 is_in_fov = zeros(this.gmm_num,N);
                 gamma_exact = zeros(this.gmm_num,N);
-                gamma_aprx = zeros(this.gmm_num,N);
+%                 gamma_aprx = zeros(this.gmm_num,N);
                 tmp_rbt = this;
                 for ii = 1:N
                     for jj = 1:this.gmm_num
@@ -791,8 +801,8 @@
                             tar_pos,alp1,alp2,alp3);
                         
                         % approximated inFOV
-                        gamma_aprx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
-                            tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
+%                         gamma_aprx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
+%                             tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
                     end
                 end
                 
@@ -2412,12 +2422,16 @@
         
         %% %%%%% utilities for numerical optimization
         %% scp solver (adapted from CS 287 class)
-        function [x, trust_box_size, success] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, g, h, cfg, penalty_coeff, trust_box_size)
-            % f: nonlinear, non-quad obj, g: nonlinear inequality constr,
-            % h: nonlinear equality constr
+        function [x, trust_box_size, success] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, hinge, abssum, cfg, penalty_coeff, trust_box_size)
+            % f: nonlinear, non-quad obj, g: nonlinear inequality constr, h: nonlinear equality constr.
+            % glin: linear inequality constr, hlin: linear equality constr.
+            
             dim_x = length(x);
             success = true;
             sqp_iter = 1;
+            N = this.mpc_hor;
+%             del_f = cfg.del_f;
+%             del_h = cfg.del_h;
             
             fquadlin = @(x) q*x + .5*x'*(Q*x);
 %             hinge = @(x) sum(max(x,0));
@@ -2429,13 +2443,28 @@
                 % constraints f and g.
                 fprintf('  sqp iter: %i\n', sqp_iter);
                 
+%                 % linearize to get A, C for hlin, h
+%                 A = zeros(2,2,this.gmm_num,N);
+%                 C = zeros(2,2,this.gmm_num,N);
+%                 snum = cfg.snum;
+%                 xpred = x(snum(4,1):snum(4,2));
+%                 z = x(snum(1,1):snum(1,2));
+%                 xpred = reshape(xpred,2*this.gmm_num,N);
+%                 z = reshape(z,4,N+1);
+%                 for ii = 1:this.gmm_num
+%                     for jj = 1:N
+%                         A(:,:,ii,jj) = del_f(x); %%% this is only a placeholder. This need fruther revision when del_f is revised
+% %                         C = del_h(xpred(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+%                     end
+%                 end
+                
                 if cfg.f_use_numerical
                     fval = f(x);
-                    [fgrad, fhess] = this.numerical_grad_hess(f,x,cfg.full_hessian);
+                    [fgrad, fhess] = this.getNumGradHess(f,x,cfg.full_hessian);
                     % diagonal adjustment
                     mineig = min(eigs(fhess));
                     if mineig < 0
-                        fprintf('    negative hessian detected. adjusting by %.3g\n',-mineig);
+                        fprintf('negative hessian detected. adjusting by %.3g\n',-mineig);
                         fhess = fhess + eye(dim_x) * ( - mineig);
                     end
                 else
@@ -2443,13 +2472,13 @@
                 end
                 if cfg.g_use_numerical
                     gval = g(x);
-                    gjac = this.numerical_jac(g,x);
+                    gjac = this.getNumJac(g,x);
                 else
                     [gval, gjac] = g(x);
                 end
                 if cfg.h_use_numerical
                     hval = h(x);
-                    hjac = this.numerical_jac(h,x);
+                    hjac = this.getNumJac(h,x);
                 else
                     [hval, hjac] = h(x);
                 end
@@ -2475,13 +2504,17 @@
                     % Make sure to include the constant term f(x) in the merit function
                     % objective as the resulting cvx_optval is used further below.
                     
+                    
                     cvx_begin quiet %YOUR CODE HERE
                     variables xp(dim_x, 1);
                     %                 minimize fquadlin(x) + fval + (x'*Q'+q+fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                     minimize fquadlin(xp) + fval + (fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                     subject to
+                    
 %                     A_ineq*xp <= b_ineq;
 %                     A_eq*xp == b_eq;
+                    hlin(x) == 0;
+                    glin(x) <= 0;
                     norm(xp-x,2) <= trust_box_size;
                     cvx_end
                     
@@ -2530,12 +2563,14 @@
             end % sqp
         end
              
-        %% objective function
+        % objective function
         % this one may duplicate cmpObj. the difference is mainly on the
         % parameters
         function val = getObj(this,s,snum)
-            x = s(snum(3,1),snum(3,2));
-            P = s(snum(5,1),snum(5,2));
+            x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
+            P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
+            
+            N = this.mpc_hor;
             val = 0;
             for ii = 2:N+1
                for jj = 1:this.gmm_num
@@ -2617,14 +2652,117 @@
         
         %% constraints
         function val = getKinConstr(this,s)
-            z = s(snum(1,1),snum(1,2));
-            u = s(snum(2,1),snum(2,2));
+            % kinematic constraint (nonlinear equality)
+            z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
+            u = this.convState(s,snum,'u'); %s(snum(2,1):snum(2,2));
             val = 0;
             N = this.mpc_hor;
             dt = this.dt; 
             for ii = 1:N
                 val = val+z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)) 0; z(4,ii)*sin(z(3,ii)) 0;...
                     1 0; 0 1]*u(:,ii)*dt);
+            end
+        end
+        
+        function val = getBelConstr(this,s,Kref,alp1,alp2,alp3)
+            % belief update constraint (nonlinear equality)
+            z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
+            u = this.convState(s,snum,'u'); %s(snum(2,1):snum(2,2));
+            x = this.convState(s,snum,'x'); %s(snum(3,1):snum(3,2));
+            P = this.convState(s,snum,'P'); %s(snum(5,1):snum(5,2));
+            P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));
+            val = 0;
+            N = this.mpc_hor;
+            dt = this.dt;
+            gam = @this.gam; %%%%% this may be incorrect: may need to use gam_approx
+            del_h = this.del_h;
+%             alp1 = this.alp1;
+%             alp2 = this.alp2;
+%             alp3 = this.alp3;
+            
+            % xpred_k+1 = f(x_k)
+            %%% this part is now implemened as a linear equality constraint
+            %%% will be added later when considering a moving target
+            
+            % P_k+1|k+1=P_k+1|k-gamma*K*C*P_k+1|k
+            C = zeros(2,2,this.gmm_num,N);
+            for ii = 1:N
+                % target prediction
+                for jj = 1:this.gmm_num
+                    C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                    
+                    % covariance
+                    tmp_sum = zeros(2,2);
+                    T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C(:,:,jj,ii);
+                    
+                    for ll = 1:this.gmm_num
+                        %%% note: gamma depends on ll, C depends
+                        %%% only on jj
+                        tar_pos = x(2*ll-1:2*ll,ii+1); % use each gmm component mean as a possible target position                        
+                        tmp_sum = tmp_sum+this.wt(ll)*gam(z(1:2,ii+1),z(3,ii+1),...
+                        tar_pos,alp1,alp2,alp3)*T*P_pred(:,:,jj,ii);
+                    end
+                    val = val+sum(sum(abs(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum)));
+                end
+            end
+        end
+        
+        function val = getLinEqConstr(this,s,snum,f)
+            % linear equality constraints
+            z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
+            x = this.convState(s,snum,'x'); %s(snum(3,1):snum(3,2));
+            x_pred = this.convState(s,snum,'x_pred'); %s(snum(4,1):snum(4,2));
+            P = this.convState(s,snum,'P'); %s(snum(5,1):snum(5,2));
+            P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));
+            del_f = this.del_f;
+            
+            val = [];   
+            % initial condition
+            % z(:,1) == this.state;
+            % x(:,1) == this.est_pos(:);
+            % for jj = 1:this.gmm_num
+              %  triu(P(:,:,jj,1)) == triu(this.P{jj});
+            % end
+            val = [val;z(:,1)-this.state];
+            val = [val;x(:,1)-this.est_pos(:)];
+            for jj = 1:this.gmm_num
+               tmp = triu(P(:,:,jj,1))-triu(this.P{jj});
+               val = [val;tmp(:)];
+            end
+            
+            A = zeros(2,2,this.gmm_num,N);
+            for ii = 1:N
+                for jj = 1:this.gmm_num                    
+                    % forward prediction
+                    % x_k+1|k = f(x_k)
+                    val = [val;x_pred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
+                    % P_k+1|k=A*P_k*A+Q
+                    A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
+                    tmp = triu(P_pred(:,:,jj,ii))-triu(A(:,:,jj,ii)*P(:,:,jj,ii)*A(:,:,jj,ii)'+Q);%+triu(slk_P_pred(:,:,jj,ii));
+                    val = [val;tmp(:)];
+                    % update
+                    % x_k+1|k+1 = x_k+1|k
+                    val = [val;x(2*jj-1:2*jj,ii+1)-x_pred(2*jj-1:2*jj,ii)];
+                end
+            end
+        end
+        
+        function val = getLinIneqConstr(this,s,snum,fld)
+            % linear inequality constraints
+            z = this.convState(s,snum,'z'); %s(snum(1,1),snum(1,2));
+            u = this.convState(s,snum,'u');%s(snum(2,1),snum(2,2));
+            
+            val = [];
+            % bounds on states and input
+            % this.w_lb <= u(1,:) <= this.w_ub;
+            % this.a_lb <= u(2,:) <= this.a_ub;
+            % this.v_lb <= z(4,:) <= this.v_ub;
+            % [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+            val = [val;(u(1,:)-this.w_ub)';(u(2,:)-this.a_ub)';(z(4,:)-this.v_ub)';...
+                (this.w_lb-u(1,:))';(this.a_lb-u(2,:))';(this.v_lb-z(4,:))'];
+            for ii = 1:N
+                val = [val;z(1:2,ii+1)-[fld.fld_cor(2);fld.fld_cor(4)];...
+                    [fld.fld_cor(1);fld.fld_cor(3)]-z(1:2,ii+1)];
             end
         end
         
@@ -2677,8 +2815,113 @@
             end
         end
         
+        %% conversion between the collection of states and seperate states
+        function t = convState(this,s,snum,schar)
+           % convert the state collection s into a corresponding state variable
+           N = this.mpc_hor;
+           switch schar
+               case 'z'
+                   t = s(snum.idx(1,1):snum.idx(1,2));
+                   t = reshape(t,4,N+1);                   
+               case 'u'
+                   t = s(snum.idx(2,1):snum.idx(2,2));
+                   t = reshape(t,2,N);
+               case 'x'
+                   t = s(snum.idx(3,1):snum.idx(3,2));
+                   t = reshape(t,2*this.gmm_num,N+1);
+               case 'x_pred'
+                   t = s(snum.idx(4,1):snum.idx(3,2));
+                   t = reshape(t,2*this.gmm_num,N);
+               case 'P'
+                   t = s(snum.idx(5,1):snum.idx(5,2));
+                   t = reshape(t,2,2,this.gmm_num,N+1);
+               case 'P_pred'
+                   t = s(snum.idx(6,1):snum.idx(6,2));
+                   t = reshape(t,2,2,this.gmm_num,N);
+           end
+        end
+        
+        function [s,snum] = setState(this,z,u,x,xpred,P,P_pred)
+            % s is the collection of all decision variables
+            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:)]               
+            s = [z(:);u(:);x(:);xpred(:);P(:);P_pred(:)];
+            
+            % size of each decision variables
+            snum = struct();
+            snum.z = length(z(:)); %4*(N+1);
+            snum.u = length(u(:)); %2*N;
+            snum.x = length(x(:)); %2*this.gmm_num*(N+1);
+            snum.xpred = length(xpred(:)); %2*this.gmm_num*N;
+            snum.P = length(P(:)); %2*2*this.gmm_num*(N+1);
+            snum.P_pred = length(P_pred(:)); %2*2*this.gmm_num*N;
+            
+            % compute the section of s that corresponds to different
+            % decision variables
+            snum.idx = zeros(6,2);
+            snum.idx(1,:) = [1,snum.z];
+            snum.idx(2,:) = [snum.idx(1,2)+1,snum.idx(1,2)+snum.u];
+            snum.idx(3,:) = [snum.idx(2,2)+1,snum.idx(2,2)+snum.x];
+            snum.idx(4,:) = [snum.idx(3,2)+1,snum.idx(3,2)+snum.xpred];
+            snum.idx(5,:) = [snum.idx(4,2)+1,snum.idx(4,2)+snum.P];
+            snum.idx(6,:) = [snum.idx(5,2)+1,snum.idx(5,2)+snum.P_pred];
+            snum.total = snum.idx(6,2);
+        end
         %% numerical gradient, Jacobian, and hessian
-        % gradient, hessian
+        function [grad,hess] = getNumGradHess(this,f,s,full_hessian)
+            % modified from Pieter Abbeel's CS287
+%             z = [x(:);P(:)];
+%             f = @this.cmpObj;
+            y = f(s);
+            assert(length(y)==1);
+            
+            grad = zeros(1,length(s));
+            hess = zeros(length(s));
+            
+            eps = 1e-5;
+            sp = s;
+            
+            if nargout > 1
+                if ~full_hessian
+                    for i=1:length(s)
+                        sp(i) = s(i) + eps/2;
+                        yhi = f(sp);
+                        sp(i) = s(i) - eps/2;
+                        ylo = f(sp);
+                        sp(i) = s(i);
+                        hess(i,i) = (yhi + ylo - 2*y)/(eps.^2 / 4);
+                        grad(i) = (yhi - ylo) / eps;
+                    end
+                else
+                    grad = this.numerical_jac(f,s);
+                    hess = this.numerical_jac(@(z) this.numerical_jac(f,z), s);
+                    hess = (hess + hess')/2;
+                end
+                mineigv = min(eig(hess));
+                hess = hess+(mineigv+0.1)*eye(length(s));
+            end
+        end
+        
+        % jacobian
+        function grad = getNumJac(this,f,s)
+            % modified from Pieter Abbeel's CS287            
+            y = f(s);
+            
+            grad = zeros(length(y), length(s));
+            
+            eps = 1e-5;
+            sp = s;
+            
+            for i=1:length(s)
+                sp(i) = s(i) + eps/2;
+                yhi = f(sp);
+                sp(i) = s(i) - eps/2;
+                ylo = f(sp);
+                sp(i) = s(i);
+                grad(:,i) = (yhi - ylo) / eps;
+            end            
+        end
+        
+        % gradient, hessian        
         function [grad,hess] = numerical_grad_hess(this,x,P,full_hessian)
             % modified from Pieter Abbeel's CS287
             z = [x(:);P(:)];
