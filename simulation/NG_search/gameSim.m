@@ -37,8 +37,8 @@ for ii = 1:sim_len
     
     %% target estimation
     rbt.y = rbt.sensorGen(fld);
-    sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
-    display(rbt.y)
+%     sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
+%     display(rbt.y)
     
     if strcmp(plan_mode,'lin')
         rbt = rbt.KF(fld);
@@ -47,12 +47,12 @@ for ii = 1:sim_len
         rbt = rbt.PF(fld);
     end
     
-    sprintf('gameSim.m, line %d, weights', MFileLineNr())
-    display(rbt.wt)
-    sprintf('gameSim.m, line %d, covariance', MFileLineNr())
-    display(rbt.P);
-    sprintf('gameSim.m, line %d, estimated position', MFileLineNr())
-    display(rbt.est_pos);
+%     sprintf('gameSim.m, line %d, weights', MFileLineNr())
+%     display(rbt.wt)
+%     sprintf('gameSim.m, line %d, covariance', MFileLineNr())
+%     display(rbt.P);
+%     sprintf('gameSim.m, line %d, estimated position', MFileLineNr())
+%     display(rbt.est_pos);
     
     if strcmp(plan_mode,'lin')
         sim.plotFilter_kf(rbt,fld)
@@ -63,12 +63,13 @@ for ii = 1:sim_len
     %% robot motion planning
     %
     if strcmp(plan_mode,'lin')
-        [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+%         [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
     elseif strcmp(plan_mode,'nl')
 %         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
-        [optz,optu] = rbt.cvxPlanner_scp(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
     end
     
     rbt = rbt.updState(optu);

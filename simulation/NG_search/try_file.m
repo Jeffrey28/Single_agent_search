@@ -504,6 +504,7 @@ end
 %}
 
 %% check if computing the merit function is correct
+%{
 this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu)
 this.cmpObj(xref,Pref)+grad*[xref(:)-xref(:);Pref(:)-Pref(:)]+...
     [xref(:)-xref(:);Pref(:)-Pref(:)]'*hess*[xref(:)-xref(:);Pref(:)-Pref(:)]/2+mu*(sum(abs(slk_kin(:)))+...
@@ -514,4 +515,25 @@ for ii = 1:N
     [zref(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(zref(3,ii)-zref(3,ii));
         zref(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(zref(3,ii)-zref(3,ii));
         uref(:,ii)]*dt;
+end
+%}
+
+%% check x and xp
+h_orig = h(x);
+h_new = h(xp);
+p_orig = this.convState(x,snum,'P');
+p_new = this.convState(xp,snum,'P');
+ppred_orig = this.convState(x,snum,'P_pred');
+ppred_new = this.convState(xp,snum,'P_pred');
+z_orig = this.convState(x,snum,'z');
+z_new = this.convState(xp,snum,'z');
+x_orig = this.convState(x,snum,'x');
+x_new = this.convState(xp,snum,'x');
+for iii = 1:N+1
+    tar_pos = x_orig(:,iii);
+    gam_orig = this.gam(z_orig(1:2,iii),z_orig(3,iii),...
+        tar_pos,this.alp1,this.alp2,this.alp3)
+    tar_pos = x_new(:,iii);
+    gam_new = this.gam(z_new(1:2,iii),z_new(3,iii),...
+        tar_pos,this.alp1,this.alp2,this.alp3)
 end

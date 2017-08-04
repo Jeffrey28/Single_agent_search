@@ -6,7 +6,7 @@ set(0,'DefaultFigureWindowStyle','docked');% docked
 
 sim_len = 50;
 dt = 0.5;
-plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
+plan_mode = 'lin'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
@@ -57,6 +57,8 @@ inPara_rbt.v_ub = 3;
 % robot kinematics
 inPara_rbt.g = @(z,u) z+u*dt;
 inPara_rbt.del_g = @(z,u) z+u*dt;
+% target defintion
+inPara_rbt.target = target;
 
 % sensor
 %%% needs further revision
@@ -83,16 +85,16 @@ elseif strcmp(sensor_type,'br')
     % inPara_rbt.R_brg = 0.5;
 elseif strcmp(sensor_type,'lin')
     % lienar sensor model for KF use
-    inPara_rbt.h = @(x,z) x-z; %%%%% change this in the future to be linear, not quadratic
+    inPara_rbt.h = @(x,z) x-z;
     inPara_rbt.del_h = @(x,z) [1 0; 0 1]; % z is the robot state.
     inPara_rbt.R = 5*eye(2);    
 end
 
 % define gamma model
 % model parameters
-alp1 = 10;
-alp2 = 10;
-alp3 = 10;
+alp1 = 1;
+alp2 = 1;
+alp3 = 1;
 thr = 30;
 
 % the gamma model used in ACC 17
@@ -130,6 +132,8 @@ if strcmp(plan_mode,'lin')
     % KF
     inPara_rbt.est_pos = target.pos+ [5;-5];
     inPara_rbt.P = [100 0; 0 100];
+    inPara_rbt.max_gmm_num = 1;
+    inPara_rbt.particles = [];
 elseif strcmp(plan_mode,'nl')    
     % xKF
     % inPara_rbt.est_pos = bsxfun(@plus,target.pos,[5,-10,10;-0.5,10,-5]);%[30;25];
@@ -147,10 +151,42 @@ elseif strcmp(plan_mode,'nl')
 end
 
 % planning
-inPara_rbt.mpc_hor = 10;%3;
+inPara_rbt.mpc_hor = 3;%3;
 inPara_rbt.dt = dt;
 
 % simulation parameters
 inPara_rbt.max_step = sim_len;
+
+% configuration of optimization
+cfg = {};
+cfg.improve_ratio_threshold = .25;
+cfg.min_trust_box_size = 1e-2;%1e-4; % tol for sqp iteration
+cfg.min_approx_improve = 1e-3;%1e-4; % tol for sqp iteration
+
+cfg.max_iter = 8;
+
+cfg.trust_shrink_ratio = .1; %this.tr_dec;
+cfg.trust_expand_ratio = 1.5; %this.tr_inc;
+cfg.cnt_tolerance = 1e-4; % tol for penalty iteration
+cfg.gamma_tol = 0.05; % tolerance for gamma iteration
+cfg.max_merit_coeff_increases = 5;
+cfg.merit_coeff_increase_ratio = 10; %this.mu_inc
+cfg.initial_trust_box_size = 1;
+cfg.initial_penalty_coeff = 10;
+cfg.max_penalty_iter = 8; % max iter for penalty loop
+cfg.max_sqp_iter = 3000; % max iter for sqp loop
+
+
+cfg.f_use_numerical = true;
+cfg.g_use_numerical = true;
+cfg.h_use_numerical = true;
+cfg.full_hessian = false; %true;
+
+cfg.del_f = target.del_f;
+cfg.del_h = inPara_rbt.del_h;
+cfg.callback = @(x,info) 0; % can change to plotting function later
+inPara_rbt.cfg = cfg;
+
 % inPara_rbt.gam = 1;
 rbt = Robot(inPara_rbt);
+
