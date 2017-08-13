@@ -537,3 +537,9 @@ for iii = 1:N+1
     gam_new = this.gam(z_new(1:2,iii),z_new(3,iii),...
         tar_pos,this.alp1,this.alp2,this.alp3)
 end
+
+%% check constraints
+hlabel = labelResult(h(xp),'h',N);
+hlinlabel = labelResult(hlin(xp),'hlin',N);
+hjaclabel = labelResult(hjac,'hjac',N);
+glinlabel = labelResult(glin(xp),'glin',N);

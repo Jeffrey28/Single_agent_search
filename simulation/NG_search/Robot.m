@@ -515,8 +515,12 @@
             hinge = @(x) sum(max(x,0));
             abssum = @(x) sum(abs(x));
             
+            gam_iter = 1;
             %% loop 1: change alpha in \gamma modeling
-            while(1)                
+            while(1)        
+                fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
+                fprintf('  gamma loop #%d\n',gam_iter)
+                
                 switch plan_mode
                     case 'lin'
                         objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
@@ -527,11 +531,15 @@
                 %% loop 2: penalty iteration
 %                 ctol = 1e-2;
 %                 mu = 0.1;
-                num_iter = 0;
+                pen_iter = 0;
                 while(1)
-                    num_iter = num_iter+1;
+                    pen_iter = pen_iter+1;
+                    fprintf('    [Penalty loop] Robot.m, line %d\n', MFileLineNr())                                        
+                    fprintf('    pentaly loop #%d\n',pen_iter);                    
+                    
                     objNLineq = @(s) 0; % nonlinear inequality constraint here
                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
+%                     objNLeq = @(s) 0;
                     % trust region for approximating gamma. Trust region is the
                     % stepsize of change, i.e. abs(z-zref)
 %                     tr = zeros(6,N); % bound of stepsize
@@ -552,7 +560,15 @@
                     b_ineq = [];
                     A_eq = [];
                     b_eq = [];
+                    
+                    % make initial solution feasible
+                    [s,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
+                    if (~success)
+                        return;
+                    end
+                    
                     [s, trust_box_size, success] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                    % loop 3 ends
                     %{
                     while (1)
                         % robot state and control
@@ -774,7 +790,8 @@
                         end
                     end % loop 3 ends
                     %}
-                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || num_iter > cfg.max_penalty_iter ) %cfg.max_iter
+                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter > cfg.max_penalty_iter ) %cfg.max_iter
+                        
                         break;
                     end
                     trust_box_size = cfg.initial_trust_box_size;
@@ -794,7 +811,7 @@
                 end
                 
                 x = this.convState(s,snum,'x');
-                uref = this.convState(s,snum,'u');
+%                 uref = this.convState(s,snum,'u');
                 z = this.convState(s,snum,'z');
                 
                 % here we use the difference between the actual gamma and
@@ -803,6 +820,7 @@
                 gamma_exact = zeros(this.gmm_num,N);
 %                 gamma_aprx = zeros(this.gmm_num,N);
                 tmp_rbt = this;
+                
                 for ii = 1:N
                     for jj = 1:this.gmm_num
                         %%% this part can be revised when using probability
@@ -836,26 +854,37 @@
 %                 tmp_z_dif = zeros(3,N+1);
 %                 inc_flag = false(3,1); % if true, increase the trust region
                 
+                % update initial solution for next iteration
+                s = this.updOptVar(s,snum,alp1,alp2,alp3);
                 % terminating condition: the actual in/out FOV is
                 % consistent with that of planning
-                if max(tmp_dif) <= cfg.gamma_tol  %0.05
+                if max(tmp_dif) <= cfg.gamma_tol %0.05
+                    fprintf('  [gamma loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
+                    fprintf('  Gamma error is within tolerance, break out of gamma loop')
+                    break
+                elseif gam_iter > cfg.max_gam_iter 
+                    fprintf('  [gamma loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
+                    fprintf('  max gamma iteration reached. break out of gamma loop')
                     break
                 else
-                    cprintf('Magenta',sprintf('Robot.m, line %d.  gamma_exact is not close',MFileLineNr()))
-                    display(is_in_fov)
-                    display(gamma_exact)
+                    cprintf('Magenta',sprintf('  [gamma loop] Robot.m, line %d.  gamma_exact is not close, go to another iteration.\n',MFileLineNr()))
+%                     display(is_in_fov)
+%                     display(gamma_exact)
                     alp1 = alp1*alp_inc;
                     alp2 = alp2*alp_inc;
-                    alp3 = alp3*alp_inc;
-                end                
+                    alp3 = alp3*alp_inc;                    
+                end            
+                gam_iter = gam_iter+1;
             end % loop 1 ends
+            
+            uref = this.convState(s,snum,'u');
             
             if ~success %infea_flag
                 uref = [uref(:,2:end),uref(:,end)];
             end
 
             % use actual dynamics to simulate
-            zref = this.simState(uref);
+            zref = this.simState(uref,zref(:,1));
             optz = zref;
             optu = uref;
 %             optz = zref;
@@ -2361,7 +2390,7 @@
             
 %             fquadlin = @(x) q*x + .5*x'*(Q*x);
             %%%%% remember to uncomment the following line when doing NGP
-            fquadlin = @(x) this.getQuadObj(x,snum);
+            fquadlin = @(x) this.getQuadObj(x,snum); 
 %             hinge = @(x) sum(max(x,0));
 %             abssum = @(x) sum(abs(x));
             
@@ -2369,7 +2398,8 @@
                 % In this loop, we repeatedly construct a quadratic approximation
                 % to the nonlinear part of the objective f and a linear approximation to the nonlinear
                 % constraints f and g.
-                fprintf('  sqp iter: %i\n', sqp_iter);
+                fprintf('      [sqp loop] Robot.m, line %d\n', MFileLineNr())
+                fprintf('      sqp iter: %i\n', sqp_iter);
                 
 %                 % linearize to get A, C for hlin, h
 %                 A = zeros(2,2,this.gmm_num,N);
@@ -2391,10 +2421,11 @@
                     [fgrad, fhess] = this.getNumGradHess(f,x,cfg.full_hessian);
                     % diagonal adjustment
                     mineig = min(eigs(fhess));
-                    if mineig < 0
-                        fprintf('negative hessian detected. adjusting by %.3g\n',-mineig);
-                        fhess = fhess + eye(dim_x) * ( - mineig);
-                    end
+%                     if mineig < 0
+%                         fprintf('[sqp loop] Robot.m, line %d', MFileLineNr())
+%                         fprintf('negative hessian detected. adjusting by %.3g\n',-mineig);
+%                         fhess = fhess + eye(dim_x) * ( - mineig);
+%                     end
                 else %if ~isempty(f)
                     [fval, fgrad, fhess] = f(x);
 %                 else
@@ -2425,6 +2456,8 @@
                 
                 merit = fval + fquadlin(x) + penalty_coeff * ( hinge(gval) + abssum(hval) );
                 
+                tmp_cnt = 1; % a temp counter for debugging use only
+                
                 while true
                     % This is the trust region loop
                     % Using the approximations computed above, this loop shrinks
@@ -2432,7 +2465,9 @@
                     % function is a sufficiently large fraction of the progress on
                     % the exact merit function.
                     
-                    fprintf('    trust region size: %.3g\n', trust_box_size);
+                    fprintf('      [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                    fprintf('      trust region size: %.3g\n', trust_box_size);
+                    fprintf('      iteration %d with current sqp loop\n', tmp_cnt);
                     
                     % YOUR CODE INSIDE CVX_BEGIN and CVX_END BELOW
                     % Write CVX code to minimize the convex approximation to
@@ -2458,11 +2493,17 @@
                         norm(xp-x,2) <= trust_box_size;
                     cvx_end
                     
+                    tmp_cnt = tmp_cnt+1;
+                    
                     if strcmp(cvx_status,'Failed')
-                        sprintf('Robot.m, line %d', MFileLineNr())
-                        fprintf('Failed to solve QP subproblem.\n');
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        Failed to solve QP subproblem.\n');
                         success = false;
                         return;
+                    elseif contains(cvx_status,'Infeasible')
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        Infeasible QP subproblem occurred.\n');
+                        
                     end
                     
                     model_merit = cvx_optval;
@@ -2471,48 +2512,55 @@
                     exact_merit_improve = merit - new_merit;
                     merit_improve_ratio = exact_merit_improve / approx_merit_improve;
                     
-                    sprintf('Robot.m, line %d', MFileLineNr())
-                    info = struct('trust_box_size',trust_box_size);
+%                     sprintf('[inner sqp loop] Robot.m, line %d', MFileLineNr())
+%                     info = struct('trust_box_size',trust_box_size);
                     
-%                     sprintf('Robot.m, line %d', MFileLineNr())
-                    fprintf('      approx improve: %.3g. exact improve: %.3g. ratio: %.3g\n', approx_merit_improve, exact_merit_improve, merit_improve_ratio);
+                    fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                    fprintf('        approx improve: %.3g. exact improve: %.3g. ratio: %.3g\n', approx_merit_improve, exact_merit_improve, merit_improve_ratio);
                     if approx_merit_improve < -1e-5
-                        sprintf('Robot.m, line %d', MFileLineNr())
-                        fprintf('Approximate merit function got worse (%.3e).\n',approx_merit_improve);
-                        fprintf('Either convexification is wrong to zeroth order, or you''re in numerical trouble\n');
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        Approximate merit function got worse (%.3e).\n',approx_merit_improve);
+                        fprintf('        Either convexification is wrong to zeroth order, or you''re in numerical trouble\n');
+                        fprintf('        Return to penalty loop\n');
                         success = false;
                         return;
                     elseif approx_merit_improve < cfg.min_approx_improve
-                        sprintf('Robot.m, line %d', MFileLineNr())
-                        fprintf('Converged: y tolerance\n');
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        Converged: y tolerance\n');
+                        fprintf('        Return to penalty loop\n');
+                          
                         x = xp;
-                        if ~isempty(cfg.callback), cfg.callback(x,info); end
+%                         if ~isempty(cfg.callback), cfg.callback(x,info); end
                         return;
                     elseif (exact_merit_improve < 0) || (merit_improve_ratio < cfg.improve_ratio_threshold)
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        shrink trust region. stay in current sqp iteration\n');
                         trust_box_size = trust_box_size * cfg.trust_shrink_ratio;
                     else
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        expand trust region. go to next sqp iteration\n');
                         if abs(norm(x-xp,2) - trust_box_size) < 1e-3
                             trust_box_size = trust_box_size * cfg.trust_expand_ratio;
                         end
                         x = xp;
-                        if ~isempty(cfg.callback), cfg.callback(x,info); end
+%                         if ~isempty(cfg.callback), cfg.callback(x,info); end
                         break; % from trust region loop
                     end
                     
                     if trust_box_size < cfg.min_trust_box_size
-                        sprintf('Robot.m, line %d', MFileLineNr())
-                        fprintf('Converged: x tolerance\n');
+                        fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                        fprintf('        Converged: x tolerance\n');
+                        fprintf('        Return to penalty loop\n');
                         return;
                     end
-                    
                     
                     % visualize solution
                     
 %                     this.plotPlannedTraj(this.convState(x,snum,'z'),[],fld)
                     
                 end % tr
+                
                 sqp_iter = sqp_iter + 1;
-               
                 
                 % update state by using computed u
 %                 x2 = this.updOptVar(x,snum);
@@ -2525,21 +2573,50 @@
             end % sqp
         end
            
-        % update optimization variables for another loop
-        function snew = updOptVar(this,s,snum)  
+        function [x,success] = find_closest_feasible_point(this, x0, glin, hlin)
+            % Find a point that satisfies linear constraints, if x0 doesn't
+            % satisfy them
+            
+            success = true;
+            if any(glin(x0) > 0) || any(hlin(x0) ~= 0)
+                fprintf('Robot.m, line %d\n', MFileLineNr())
+                fprintf('initialization doesn''t satisfy linear constraints. finding the closest feasible point\n');
+                
+                cvx_begin quiet
+                variables('x(length(x0))')
+                minimize('sum((x-x0).^2)')
+                subject to
+                    hlin(x) == 0;
+                    glin(x) <= 0;
+                cvx_end
+                
+                if strcmp(cvx_status,'Failed') || strcmp(cvx_status,'Infeasible')
+                    success = false;
+                    fprintf('Robot.m, line %d\n', MFileLineNr())
+                    fprintf('Couldn''t find a point satisfying linear constraints\n')
+                    return;
+                end
+            else
+                x = x0;
+            end
+        end
+        
+        % update optimization variables for another loop using open-loop
+        % updating
+        function snew = updOptVar(this,s,snum,alp1,alp2,alp3)  
             
             z_orig = this.convState(s,snum,'z');
             u_orig = this.convState(s,snum,'u');
             x_orig = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
 %             xpred = this.convState(s,snum,'x_pred'); %s(snum(5,1),snum(5,2));
-%             P = this.convState(s,snum,'P'); %s(snum(3,1),snum(3,2));
+            P_orig = this.convState(s,snum,'P'); %s(snum(3,1),snum(3,2));
 %             P_pred = this.convState(s,snum,'P_pred'); %s(snum(5,1),snum(5,2));
             
             N = this.mpc_hor;
             
-            alp1 = this.alp1;
-            alp2 = this.alp2;
-            alp3 = this.alp3;
+%             alp1 = this.alp1;
+%             alp2 = this.alp2;
+%             alp3 = this.alp3;
             del_h = this.del_h;
             R = this.R;
             f = this.target.f;
@@ -2557,7 +2634,7 @@
             
             % initialization
             x(:,1) = x_orig(:,1);
-            P(:,:,1) = this.P;
+            P(:,:,1) = P_orig(:,:,1);
             
             for ii = 1:N
                 x(:,ii+1) = f(x(:,ii));
@@ -2573,7 +2650,7 @@
                 K(:,2*ii-1:2*ii)= P_pred(:,:,ii)*C'/T;
 %                 gam = this.inFOV(x_olp(:,ii));
                 gam = this.gam(z(1:2,ii+1),z(3,ii+1),x(:,ii+1),alp1,alp2,alp3);
-                P(:,:,ii+1) = P_pred(:,:,ii)-gam*K(:,2*ii-1:2*ii)*P_pred(:,:,ii)*C;
+                P(:,:,ii+1) = P_pred(:,:,ii)-gam*K(:,2*ii-1:2*ii)*C*P_pred(:,:,ii);
             end
             snew = setState(this,z,u_orig,x,xpred,P,P_pred,K);
         end
@@ -2593,8 +2670,8 @@
                    tmp = 0;
                    for ll = 1:this.gmm_num                       
                        P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/2; % numerical issues happen that makes P non symmetric
-                       sprintf('Robot.m, line %d', MFileLineNr())
-                       display(P(:,:,ll,ii))
+%                        sprintf('Robot.m, line %d', MFileLineNr())
+%                        display(P(:,:,ll,ii))
                        mineigv = min(eig(P(:,:,ll,ii)));
                        P(:,:,ll,ii) = P(:,:,ll,ii)+(mineigv+0.1)*eye(size(P(:,:,ll,ii),1));
                        tmp = tmp+mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
@@ -2605,9 +2682,11 @@
                end
             end
             val = -0.1*val;
+%             val = 0;
         end    
         
         % for KF
+        % not in use for KF case now
         function val = getObj_kf(this,s,snum)
             x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
             P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
@@ -2706,8 +2785,8 @@
             for ii = 1:N
 %                 val = val+z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)) 0; z(4,ii)*sin(z(3,ii)) 0;...
 %                     1 0; 0 1]*u(:,ii)*dt);
-                h = [h;z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)) 0; z(4,ii)*sin(z(3,ii)) 0;...
-                    1 0; 0 1]*u(:,ii)*dt)];
+                h = [h;z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)); z(4,ii)*sin(z(3,ii));...
+                    u(:,ii)]*dt)];
             end
         end
         
@@ -2805,14 +2884,14 @@
             u = this.convState(s,snum,'u');%s(snum(2,1),snum(2,2));
             
             N = this.mpc_hor;            
-            glin = [];
+%             glin = [];
             % bounds on states and input
             % this.w_lb <= u(1,:) <= this.w_ub;
             % this.a_lb <= u(2,:) <= this.a_ub;
-            % this.v_lb <= z(4,:) <= this.v_ub;
-            % [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
-            glin = [glin;(u(1,:)-this.w_ub)';(u(2,:)-this.a_ub)';(z(4,:)-this.v_ub)';...
+            % this.v_lb <= z(4,:) <= this.v_ub;            
+            glin = [(u(1,:)-this.w_ub)';(u(2,:)-this.a_ub)';(z(4,:)-this.v_ub)';...
                 (this.w_lb-u(1,:))';(this.a_lb-u(2,:))';(this.v_lb-z(4,:))'];
+            % [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
             for ii = 1:N
                 glin = [glin;z(1:2,ii+1)-[fld.fld_cor(2);fld.fld_cor(4)];...
                     [fld.fld_cor(1);fld.fld_cor(3)]-z(1:2,ii+1)];
@@ -2833,7 +2912,10 @@
             Q = tar.Q;
             
             N = this.mpc_hor;
-            val = [];   
+            val = [];
+            val1 = [];
+            val2 = [];
+            val3 = [];
             % initial condition
             % z(:,1) == this.state;
             % x(:,1) == this.est_pos(:);
@@ -2843,7 +2925,7 @@
             val = [val;z(:,1)-this.state];
             val = [val;x(:,1)-this.est_pos(:)];
             for jj = 1:this.gmm_num
-               tmp = triu(P(:,:,jj,1))-triu(this.P);
+               tmp = triu(P(:,:,jj,1))-triu(this.P); %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
                val = [val;tmp(:)];
             end
             
@@ -2852,17 +2934,18 @@
                 for jj = 1:this.gmm_num                    
                     % forward prediction
                     % x_k+1|k = f(x_k)
-                    val = [val;x_pred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
+                    val1 = [val1;x_pred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
                     % P_k+1|k=A*P_k*A+Q
                     A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
                     tmp = triu(P_pred(:,:,jj,ii))-triu(A(:,:,jj,ii)*P(:,:,jj,ii)*A(:,:,jj,ii)'+Q);%+triu(slk_P_pred(:,:,jj,ii));
-                    val = [val;tmp(:)];
+                    val2 = [val2;tmp(:)];
                     % update
                     % mean
                     % x_k+1|k+1 = x_k+1|k
-                    val = [val;x(2*jj-1:2*jj,ii+1)-x_pred(2*jj-1:2*jj,ii)];                   
+                    val3 = [val3;x(2*jj-1:2*jj,ii+1)-x_pred(2*jj-1:2*jj,ii)];                   
                 end
             end
+            val = [val;val1;val2;val3];
         end
 
         function h = getBelConstr_kf(this,s,snum,alp1,alp2,alp3)
@@ -2888,7 +2971,6 @@
             %%% will be added later when considering a moving target
             
             
-            % P_k+1|k+1=P_k+1|k-gamma*K*C*P_k+1|k
             C = zeros(2,2,this.gmm_num,N);
             for ii = 1:N
                 % target prediction
@@ -2897,11 +2979,12 @@
                     
                     % update K
                     % K = P_k+1|k*C_k+1'(C_k+1*P_k+1|k*C_k+1'+R)^-1
-                    tmp = K(2*jj-1:2*jj,2*ii-1:2*ii)*(C(:,:,jj,ii)*P_pred(:,:,jj,ii)*C(:,:,jj,ii)'+R)-...
-                        P_pred(:,:,jj,ii)*C(:,:,jj,ii)';
+                    tmp = (K(2*jj-1:2*jj,2*ii-1:2*ii)*(C(:,:,jj,ii)*P_pred(:,:,jj,ii)*C(:,:,jj,ii)'+R)-...
+                        P_pred(:,:,jj,ii)*C(:,:,jj,ii)'); % used a scaling factor 
                     val1 = [val1;tmp(:)];
                                         
                     % covariance
+                    % P_k+1|k+1=P_k+1|k-gamma*K*C*P_k+1|k
                     tmp_sum = zeros(2,2);
                     T = K(2*jj-1:2*jj,2*ii-1:2*ii)*C(:,:,jj,ii);
                     for ll = 1:this.gmm_num
@@ -2912,7 +2995,7 @@
                         tar_pos,alp1,alp2,alp3)*T*P_pred(:,:,jj,ii);
                     end
 %                     val2 = val2+sum(sum(abs(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum)));
-                    tmp2 = P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum;
+                    tmp2 = triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum);
                     val2 = [val2;tmp2(:)];
                 end
             end
@@ -2999,7 +3082,7 @@
         
         function [s,snum] = setState(this,z,u,x,xpred,P,P_pred,K)
             % s is the collection of all decision variables
-            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:)]               
+            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:),K(:)]               
             s = [z(:);u(:);x(:);xpred(:);P(:);P_pred(:);K(:)];
             
             % size of each decision variables

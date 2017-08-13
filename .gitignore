@@ -6,4 +6,5 @@
 *.log
 *.synctex.gz
 *.pdf
-*.~lock.ideas.odt#
+*.~lock.ideas.odt
+*.avi

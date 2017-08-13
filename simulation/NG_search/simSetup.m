@@ -17,11 +17,11 @@ end
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = false;
+save_video = true;
 
 %% Set field %%%
 % target info
-target.pos = [20.5;30.5];
+target.pos = [25.5;25.5];%[20.5;30.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.3;-0.3];
@@ -151,31 +151,35 @@ elseif strcmp(plan_mode,'nl')
 end
 
 % planning
-inPara_rbt.mpc_hor = 3;%3;
+inPara_rbt.mpc_hor = 5;%3;
 inPara_rbt.dt = dt;
 
 % simulation parameters
 inPara_rbt.max_step = sim_len;
 
-% configuration of optimization
+%%% configuration of optimization
 cfg = {};
+
+% sqp loop
+cfg.initial_trust_box_size = 1;
 cfg.improve_ratio_threshold = .25;
 cfg.min_trust_box_size = 1e-2;%1e-4; % tol for sqp iteration
-cfg.min_approx_improve = 1e-3;%1e-4; % tol for sqp iteration
-
-cfg.max_iter = 8;
-
+cfg.min_approx_improve = 1e-2;%1e-4; % tol for sqp iteration
 cfg.trust_shrink_ratio = .1; %this.tr_dec;
 cfg.trust_expand_ratio = 1.5; %this.tr_inc;
-cfg.cnt_tolerance = 1e-4; % tol for penalty iteration
-cfg.gamma_tol = 0.05; % tolerance for gamma iteration
-cfg.max_merit_coeff_increases = 5;
-cfg.merit_coeff_increase_ratio = 10; %this.mu_inc
-cfg.initial_trust_box_size = 1;
-cfg.initial_penalty_coeff = 10;
-cfg.max_penalty_iter = 8; % max iter for penalty loop
-cfg.max_sqp_iter = 3000; % max iter for sqp loop
+cfg.max_sqp_iter = 1000; % max iter for sqp loop
 
+% penalty loop
+cfg.initial_penalty_coeff = 10;
+cfg.cnt_tolerance = 1e-4; % tol for penalty iteration
+cfg.max_penalty_iter = 5; %8; % max iter for penalty loop
+% cfg.max_iter = 5;
+
+% gamma loop
+cfg.gamma_tol = 0.05; % tolerance for gamma iteration
+cfg.max_gam_iter = 3; 
+% cfg.max_merit_coeff_increases = 5;
+cfg.merit_coeff_increase_ratio = 10; %this.mu_inc
 
 cfg.f_use_numerical = true;
 cfg.g_use_numerical = true;

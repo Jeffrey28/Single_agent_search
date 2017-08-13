@@ -30,7 +30,7 @@ if save_video
 end
 
 for ii = 1:sim_len
-    sprintf('gameSim.m, line %d, Progress: %d',MFileLineNr(),ii/sim_len)    
+    fprintf('[main loop] gameSim.m, line %d, Progress: %d\n',MFileLineNr(),ii/sim_len)    
     
     %% target moves
     fld = fld.targetMove();
@@ -73,7 +73,7 @@ for ii = 1:sim_len
     end
     
     rbt = rbt.updState(optu);
-    sprintf('gameSim.m, line %d, robot state:', MFileLineNr())
+    fprintf('[main loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
     display(rbt.state);
     %}
     
