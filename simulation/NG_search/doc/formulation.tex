@@ -368,12 +368,11 @@ We can obtain the upper bound of \Cref{eqn:approx_obj} using Jensen's inequality
 \begin{align*}
 &-\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log \sum\limits_{j=1}^L\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
 &\leq -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L\log\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
-&=\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})^T[P^j_{k|k}]^{-1}(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})
+&=\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i \sum\limits_{j=1}^L\frac{(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})^T[P^j_{k|k}]^{-1}(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})}{2}+\log(2\pi)+\frac{\log(|P^j_{k|k}|)}{2}
 \end{align*}
-\textcolor{red}{Note: there is a term missing here and it's not a constant! It involves $P^j_{k|k}$. I need to think if this removal makes sense or not.}
 The upper bound is tight when all GMM components become equivalent.
 
-Note that this is NOT a quadratic objective function, but it is convex! (matrix-fractional function).
+Note that the first term is NOT a quadratic objective function, but it is convex! (matrix-fractional function).
 This can be transformed into LMI as this:
 \begin{align*}
 (\hat{x}^i_{k|k}-\hat{x}^j_{k|k})^T[P^j_{k|k}]^{-1}(\hat{x}^i_{k|k}-\hat{x}^j_{k|k})&\leq t \iff\\
@@ -382,24 +381,19 @@ P^j_{k|k} & \hat{x}^i_{k|k}-\hat{x}^j_{k|k}\\
 (\hat{x}^i_{k|k}-\hat{x}^j_{k|k})^T & t
 \end{bmatrix}&\geq 0,\qquad t\geq 0
 \end{align*}
+\textcolor{red}{However, the third term (negative log determinant) is a concave function.}
 %So we can use a two-step procedure, making the objective function of "nice" form.
 %This is motivated by the two-step procedure in the E-M algorithm.
 %The first step (M(ean)-step) fixes $P^j_{k|k}$ using the result from the last iteration and solve for $\hat{x}^i_{k|k}$, $\hat{x}^j_{k|k}$. 
 %The objective function is quadratic in $x$.
 %The second step (C(ovariance)-step) fixes $\hat{x}^i_{k|k}$ using the result from the last iteration and solve for $P^j_{k|k}$. 
 %The objective function is quadratic in $x$.
+This means, I may have to turn to quadratic approximation...
 
-<<<<<<< HEAD
-\section{An approximate stochastic MPC framework for dealing with GMM components}
-\Cref{subeqn:upd_mean,subeqn:upd_cov} can be modified to accommodate GMM components as follows:
-\begin{align}
-\hat{x}^i_{k+1|k+1}&=\hat{x}^i_{k+1|k}+\sum\limits_j w_j\gamma_{k+1}(\hat{x}^j_{k+1|k})K^i_{k+1}(h(\hat{x}^j_{k+1|k})-h(\hat{x}^i_{k+1|k}))\label{subeqn:upd_mean_gmm}\\
-P^i_{k+1|k+1}&=P^i_{k+1|k}-\sum\limits_j w_j\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k}\label{subeqn:upd_cov_gmm},
-\end{align}
-=======
+\subsection{SCP}
+merit function: the original formulation with nonlinear constraints imposed as penalty terms in objective function.
+iterative linearization: use 1st order approximation for nonlinear objective function and nonlinear constraint terms in obj.
 
-
->>>>>>> 3c71e2e96bb9b632c5833598364bea3c4d3bd731
 
 \section{possible extensions}
 This section compiles the possible contributions I can make in this and other following works. The previous sections are the actual implementation of what I will do in this work.

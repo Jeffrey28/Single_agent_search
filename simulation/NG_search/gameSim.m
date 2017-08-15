@@ -2,10 +2,12 @@
 % model. 
 % This code is used for ACC 17
 % Chang Liu 9/12/16
-% The code is modified for IROS 17
+% The code is modified for IROS 17 (not submitted)
 % Chang Liu Jan. 2017
+% The code continues being modified for general NGP
+% Chang Liu Apr. 2017
 
-clc 
+% clc 
 clear % clear global variables
 close all
 
@@ -17,9 +19,11 @@ optz = [];
 optu = [];
 
 % save figures to video
+%%% in the future, write a function that can detect duplicate file name and
+%%% automatically assign a new name
 if save_video
     if strcmp(plan_mode,'lin')
-        vidObj = VideoWriter(sprintf('search-using-KF-%s.avi',date));
+        vidObj = VideoWriter(sprintf('search-using-KF-static-%s(3).avi',date));
     elseif strcmp(plan_mode,'nl')
         vidObj = VideoWriter(sprintf('search-using-PF-%s.avi',date));
     end
@@ -28,15 +32,15 @@ if save_video
 end
 
 for ii = 1:sim_len
-    sprintf('gameSim.m, line %d, Progress: %d',MFileLineNr(),ii/sim_len)    
+    fprintf('[main loop] gameSim.m, line %d, Progress: %d\n',MFileLineNr(),ii/sim_len)    
     
     %% target moves
     fld = fld.targetMove();
     
     %% target estimation
     rbt.y = rbt.sensorGen(fld);
-    sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
-    display(rbt.y)
+%     sprintf('gameSim.m, line %d, measurement:',MFileLineNr())
+%     display(rbt.y)
     
     if strcmp(plan_mode,'lin')
         rbt = rbt.KF(fld);
@@ -45,12 +49,12 @@ for ii = 1:sim_len
         rbt = rbt.PF(fld);
     end
     
-    sprintf('gameSim.m, line %d, weights', MFileLineNr())
-    display(rbt.wt)
-    sprintf('gameSim.m, line %d, covariance', MFileLineNr())
-    display(rbt.P);
-    sprintf('gameSim.m, line %d, estimated position', MFileLineNr())
-    display(rbt.est_pos);
+%     sprintf('gameSim.m, line %d, weights', MFileLineNr())
+%     display(rbt.wt)
+%     sprintf('gameSim.m, line %d, covariance', MFileLineNr())
+%     display(rbt.P);
+%     sprintf('gameSim.m, line %d, estimated position', MFileLineNr())
+%     display(rbt.est_pos);
     
     if strcmp(plan_mode,'lin')
         sim.plotFilter_kf(rbt,fld)
@@ -58,24 +62,26 @@ for ii = 1:sim_len
         sim.plotFilter(rbt,fld)
     end
    
-    
     %% robot motion planning
     %
     if strcmp(plan_mode,'lin')
-        [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+%         [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
     elseif strcmp(plan_mode,'nl')
 %         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
-        [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
+%         [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
+%         [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
+        [optz,optu] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
     end
     
     rbt = rbt.updState(optu);
-    sprintf('gameSim.m, line %d, robot state:', MFileLineNr())
-    display(rbt.state);
+%     fprintf('[main loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
+%     display(rbt.state);
     %}
     
     % draw plot
     sim.plotTraj(rbt,fld)
-%     pause()
+%     pause(0.5)
 
     % save the plot as a video
     frame_hdl = getframe(gcf);

@@ -67,9 +67,18 @@ classdef Sim
             
             % draw prob map
             prob_map_kf = zeros(ylen,xlen);
+            compcdf = @(x) mvncdf(x,rbt.est_pos,rbt.P);
             for ii = 1:ylen
-                for jj = 1:xlen
-                    prob_map_kf(jj,ii) = exp(-([X(jj,ii);Y(jj,ii)]-rbt.est_pos)'/(2*rbt.P)*([X(jj,ii);Y(jj,ii)]-rbt.est_pos));
+                for jj = 1:xlen                    
+                    % use probability map to draw the plot
+                    % (ii,jj) represents the probability mass of the
+                    % rectangle (X(jj,ii)+0.5;Y(jj,ii)+0.5)->[X(jj,ii)-0.5;Y(jj,ii)+0.5]->
+                    % [X(jj,ii)-0.5;Y(jj,ii)-0.5]->[X(jj,ii)+0.5;Y(jj,ii)-0.5]
+                    prob_map_kf(jj,ii) = compcdf([X(jj,ii)+0.5;Y(jj,ii)+0.5])-...
+                        compcdf([X(jj,ii)-0.5;Y(jj,ii)+0.5])-...
+                        compcdf([X(jj,ii)+0.5;Y(jj,ii)-0.5])+...
+                        compcdf([X(jj,ii)-0.5;Y(jj,ii)-0.5]);
+%                     prob_map_kf(jj,ii) = exp(-([X(jj,ii);Y(jj,ii)]-rbt.est_pos)'/(2*rbt.P)*([X(jj,ii);Y(jj,ii)]-rbt.est_pos));
                 end
             end
             prob_map_kf = prob_map_kf/sum(sum(prob_map_kf));            
@@ -90,6 +99,7 @@ classdef Sim
 %             colormap(mymap);
 %             colorbar
             
+            % robot traj
             hdl1 = plot(rbt.traj(1,:),rbt.traj(2,:),'r','markers',5);
             set(hdl1,'MarkerFaceColor','r');
             set(hdl1,'MarkerEdgeColor','r');
@@ -97,12 +107,24 @@ classdef Sim
             set(hdl1,'LineStyle','-');
             set(hdl1,'Marker','o');
             
+            % target actual traj
             hdl2 = plot(fld.target.traj(1,:),fld.target.traj(2,:),'b','markers',5);
             set(hdl2,'MarkerFaceColor','b');
             set(hdl2,'MarkerEdgeColor','b');%
             set(hdl2,'Color','b');
             %     set(hdl2,'LineStyle','-');
             set(hdl2,'Marker','*');
+            
+            
+            % target estimated traj
+            % for debug use
+%             hdl2 = plot(rbt.est_pos_hist(1,:),rbt.est_pos_hist(2,:),'k','markers',5);
+%             set(hdl2,'MarkerFaceColor','k');
+%             set(hdl2,'MarkerEdgeColor','k');%
+%             set(hdl2,'Color','k');
+%             %     set(hdl2,'LineStyle','-');
+%             set(hdl2,'Marker','*');
+            
             
 %             legend('pdf','robot','target');%,'estimated target')
             

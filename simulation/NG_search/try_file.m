@@ -1,4 +1,4 @@
-% % test the update law of KF during the debug of Planner
+%% test the update law of KF during the debug of Planner
 % var_P1 = zeros(2,2,N+1);
 % P_pred1 = zeros(2,2,N);
 % K1 = zeros(2,2,N);
@@ -471,6 +471,75 @@ title('exact FOV')
 %}
 
 %% test dbstack
+%{
 a = 1;
 b = dbstack;
+%}
 
+%% debug cmpObjAprx and cvx obj. they have different values (issue fixed)
+%{
+% optcvx3 = 0;
+% tmp3 = 0;
+for ii = 1:N
+    for jj = 1:this.gmm_num
+        for ll = 1:this.gmm_num
+            optcvx3 = optcvx3+this.wt(jj)*((x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))'...
+                /P(:,:,ll,ii+1)*(x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/2+...
+                log(det(P(:,:,ll,ii+1)))/2+log(2*pi));
+            tmp3 = tmp3-this.wt(jj)*log(mvnpdf(x(2*jj-1:2*jj,ii+1),x(2*ll-1:2*ll,ii+1),P(:,:,ll,ii+1)));
+            
+        end
+    end
+end
+optcvx3-tmp3
+%}
+
+%% check the condition number of covariance matrix
+%{
+for s = 1:this.gmm_num
+    for q = 1:N+1
+        cond(P(:,:,s,q))
+    end
+end
+%}
+
+%% check if computing the merit function is correct
+%{
+this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu)
+this.cmpObj(xref,Pref)+grad*[xref(:)-xref(:);Pref(:)-Pref(:)]+...
+    [xref(:)-xref(:);Pref(:)-Pref(:)]'*hess*[xref(:)-xref(:);Pref(:)-Pref(:)]/2+mu*(sum(abs(slk_kin(:)))+...
+    sum(abs(slk_P(:))))
+h = 0;
+for ii = 1:N
+    h = h+zref(:,ii+1)-zref(:,ii)-...
+    [zref(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(zref(3,ii)-zref(3,ii));
+        zref(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(zref(3,ii)-zref(3,ii));
+        uref(:,ii)]*dt;
+end
+%}
+
+%% check x and xp
+h_orig = h(x);
+h_new = h(xp);
+p_orig = this.convState(x,snum,'P');
+p_new = this.convState(xp,snum,'P');
+ppred_orig = this.convState(x,snum,'P_pred');
+ppred_new = this.convState(xp,snum,'P_pred');
+z_orig = this.convState(x,snum,'z');
+z_new = this.convState(xp,snum,'z');
+x_orig = this.convState(x,snum,'x');
+x_new = this.convState(xp,snum,'x');
+for iii = 1:N+1
+    tar_pos = x_orig(:,iii);
+    gam_orig = this.gam(z_orig(1:2,iii),z_orig(3,iii),...
+        tar_pos,this.alp1,this.alp2,this.alp3)
+    tar_pos = x_new(:,iii);
+    gam_new = this.gam(z_new(1:2,iii),z_new(3,iii),...
+        tar_pos,this.alp1,this.alp2,this.alp3)
+end
+
+%% check constraints
+hlabel = labelResult(h(xp),'h',N);
+hlinlabel = labelResult(hlin(xp),'hlin',N);
+hjaclabel = labelResult(hjac,'hjac',N);
+glinlabel = labelResult(glin(xp),'glin',N);
