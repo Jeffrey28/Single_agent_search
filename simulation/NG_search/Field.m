@@ -16,10 +16,15 @@ classdef Field
         
         function this = targetMove(this)
             tar = this.target;
-            A = tar.A; % A matrix
-            B = tar.B;
+            f = tar.f;
             Q = tar.Q; % covariance matrix of process noise
-            tar.pos = A*tar.pos+B+mvnrnd([0,0],Q)';
+            tar.pos = f(tar.pos)+mvnrnd([0,0],Q)';
+            
+            % obsolete
+%             A = tar.A; % A matrix
+%             B = tar.B;            
+%             tar.pos = A*tar.pos+B+mvnrnd([0,0],Q)';
+
             tar.traj = [tar.traj,tar.pos];
             this.target = tar;
         end

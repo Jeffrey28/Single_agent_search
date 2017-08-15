@@ -191,8 +191,13 @@
             tar = fld.target;
             A = tar.A;
             B = tar.B;
-            Q = tar.Q;
             
+%             f = tar.f;
+%             del_f = tar.del_f;
+%             A = del_f;
+            
+            Q = tar.Q;
+
             % current estimation
             x = this.est_pos;
             P = this.P;
@@ -203,7 +208,7 @@
             R = this.R;
             
             % prediction
-            x_pred = A*x+B;
+            x_pred = A*x+B;            
             P_pred = A*P*A'+Q;
             
             % update
@@ -396,17 +401,9 @@
             alp2 = this.alp2;
             alp3 = this.alp3;
             alp_inc = 5; % increament paramter for alphatr_inc
-%             gam = @this.gam;
-%             gam_aprx = @this.gam_aprx;
-%            	p_aprx = @this.p_aprx;
 %             
             % config for optimization
             cfg = this.cfg;
-            
-%             % trust region, penalty factor
-%             tr_inc = this.tr_inc;
-%             tr_dec = this.tr_dec;
-%             mu_inc = this.mu_inc;
             
             % set up simulation            
             if isempty(optz)
@@ -430,23 +427,14 @@
             Pref = init_sol.P;
             P_pred_ref = init_sol.P_pred;
             % construct the state
-            %%%%% note: current formulation does not take K into
-            %%%%% account. May need this later if the simulation does not
-            %%%%% work well.
             % s is the collection of all decision variables
-            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:)]   
+            % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:),K(:)]   
             [s,snum] = this.setState(zref,uref,xref,x_pred_ref,Pref,P_pred_ref,Kref);
             
             cfg.snum = snum;
             
             %%% functions and parameters for scp                     
             %%% objective
-%             switch plan_mode
-%                 case 'lin'
-%                     obj = @(s) this.getObj_kf(s,snum);
-%                 case 'nl'
-%                     obj = @(s) this.getObj(s,snum);
-%             end            
             obj = @(s) this.getObj(s,snum);
             
             % Q and q in quad linear obj term: x'*Q*x/2+q'*x
@@ -790,7 +778,7 @@
                         end
                     end % loop 3 ends
                     %}
-                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter > cfg.max_penalty_iter ) %cfg.max_iter
+                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
                         
                         break;
                     end
@@ -862,7 +850,7 @@
                     fprintf('  [gamma loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
                     fprintf('  Gamma error is within tolerance, break out of gamma loop')
                     break
-                elseif gam_iter > cfg.max_gam_iter 
+                elseif gam_iter >= cfg.max_gam_iter 
                     fprintf('  [gamma loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
                     fprintf('  max gamma iteration reached. break out of gamma loop')
                     break
@@ -2400,22 +2388,7 @@
                 % constraints f and g.
                 fprintf('      [sqp loop] Robot.m, line %d\n', MFileLineNr())
                 fprintf('      sqp iter: %i\n', sqp_iter);
-                
-%                 % linearize to get A, C for hlin, h
-%                 A = zeros(2,2,this.gmm_num,N);
-%                 C = zeros(2,2,this.gmm_num,N);
-%                 snum = cfg.snum;
-%                 xpred = x(snum(4,1):snum(4,2));
-%                 z = x(snum(1,1):snum(1,2));
-%                 xpred = reshape(xpred,2*this.gmm_num,N);
-%                 z = reshape(z,4,N+1);
-%                 for ii = 1:this.gmm_num
-%                     for jj = 1:N
-%                         A(:,:,ii,jj) = del_f(x); %%% this is only a placeholder. This need fruther revision when del_f is revised
-% %                         C = del_h(xpred(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
-%                     end
-%                 end
-                
+
                 if cfg.f_use_numerical % && ~isempty(f)
                     fval = f(x);
                     [fgrad, fhess] = this.getNumGradHess(f,x,cfg.full_hessian);
@@ -2465,9 +2438,9 @@
                     % function is a sufficiently large fraction of the progress on
                     % the exact merit function.
                     
-                    fprintf('      [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
-                    fprintf('      trust region size: %.3g\n', trust_box_size);
-                    fprintf('      iteration %d with current sqp loop\n', tmp_cnt);
+                    fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                    fprintf('        trust region size: %.3g\n', trust_box_size);
+                    fprintf('        iteration %d with current sqp loop\n', tmp_cnt);
                     
                     % YOUR CODE INSIDE CVX_BEGIN and CVX_END BELOW
                     % Write CVX code to minimize the convex approximation to
@@ -2505,6 +2478,9 @@
                         fprintf('        Infeasible QP subproblem occurred.\n');
                         
                     end
+                    
+                    fprintf('        [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+                    fprintf('        cvx status: %s\n',cvx_status)
                     
                     model_merit = cvx_optval;
                     new_merit = f(xp) + fquadlin(xp) + penalty_coeff * ( hinge(g(xp)) + abssum(h(xp)) ) ;
@@ -2660,6 +2636,7 @@
         % mainly on the parameters.
         function val = getObj(this,s,snum)
             x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
+            u = this.convState(s,snum,'u'); %s(snum(3,1),snum(3,2));
             P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
             z = this.convState(s,snum,'z');
             
@@ -2672,22 +2649,25 @@
                        P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/2; % numerical issues happen that makes P non symmetric
 %                        sprintf('Robot.m, line %d', MFileLineNr())
 %                        display(P(:,:,ll,ii))
-                       mineigv = min(eig(P(:,:,ll,ii)));
-                       P(:,:,ll,ii) = P(:,:,ll,ii)+(mineigv+0.1)*eye(size(P(:,:,ll,ii),1));
+                       mineigv = min(eig(P(:,:,ll,ii)));                       
+                       if mineigv <= 0
+                           P(:,:,ll,ii) = P(:,:,ll,ii)+(-mineigv+0.01)*eye(size(P(:,:,ll,ii),1));
+                       end                       
                        tmp = tmp+mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
                    end
-                   tmp_dis = -sum((x(:,ii)-z(1:2,ii)).^2); % negative distance between sensor and MLE target position
+                   tmp_dis = abs(sum((x(:,ii)-z(1:2,ii)).^2)-1); % distance between sensor and MLE target position
                    
-                   val = val+this.wt(jj)*log(tmp)+tmp_dis;
-               end
+                   val = val-this.wt(jj)*log(tmp)+tmp_dis;
+               end               
+               val = val+sum(u(:,ii-1).^2); % penalize on control input
             end
-            val = -0.1*val;
+            val = 0.1*val;
 %             val = 0;
         end    
         
         % for KF
         % not in use for KF case now
-        function val = getObj_kf(this,s,snum)
+        function val = getObj_kf(this,s,snum) % not in use
             x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
             P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
             
@@ -3335,22 +3315,6 @@
             
             % draw FOV
             this.drawFOV(z,fld,'plan')
-%             for ii = 1:N+1
-%                 a1 = z(3,ii)-this.theta0;  % A random direction
-%                 a2 = z(3,ii)+this.theta0;
-%                 t = linspace(a1,a2,50);
-%                 x0 = z(1,ii);
-%                 y0 = z(2,ii);
-%                 x1 = z(1,ii) + this.r*cos(t);
-%                 y1 = z(2,ii) + this.r*sin(t);
-%                 plot([x0,x1,x0],[y0,y1,y0],'k--','LineWidth',0.5)
-%             end            
-%             
-%             xlim([fld.fld_cor(1),fld.fld_cor(2)]);
-%             ylim([fld.fld_cor(3),fld.fld_cor(4)]);
-%             box on
-%             axis equal
-%             drawnow
         end
         
         function plotPlannedTraj(this,z,x,fld)

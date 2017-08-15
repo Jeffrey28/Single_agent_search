@@ -21,14 +21,28 @@ save_video = true;
 
 %% Set field %%%
 % target info
-target.pos = [25.5;25.5];%[20.5;30.5];
+target.pos = [25.5;35.5]; %[25.5;30.5]; %[25.5;25.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
-target.B = [0;0]; %[0.3;-0.3];
+target.B = [0;0]; %[0.5;-0.5]; 
 % nonlinear model, used for EKF
+% setup for static target, KF
 target.f = @(x) x;
 target.del_f = @(x) eye(2);
+target.A = eye(2);%[0.99 0;0 0.98];
+target.B = [0;0]; %[0.3;-0.3];[0;0];
 target.Q = 0.01*eye(2); % Covariance of process noise model for the target
+
+% setup for moving target, KF
+% target.f = @(x) x+[-0.5;0.5];
+% target.del_f = @(x) eye(2);
+% % this A, B is temporily defined to make this part compatible with KF in
+% % Robot.m. Later clean this part to unify the representation of KF and PF.
+% % Make sure A corresponds to del_f and B is the affine term of f.
+% target.A = eye(2);%[0.99 0;0 0.98];
+% target.B = [-0.5;0.5]; %[0.3;-0.3];[0;0];
+% target.Q = 0.04*eye(2); % Covariance of process noise model for the target
+
 target.model_idx = 1;
 target.traj = target.pos;
 
@@ -46,7 +60,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [25;15;pi/2;0];%[40;40;pi/2;0];%;
+inPara_rbt.state = [15;5;pi/2;0];%[15;10;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;

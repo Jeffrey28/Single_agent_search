@@ -1,4 +1,4 @@
-% % test the update law of KF during the debug of Planner
+%% test the update law of KF during the debug of Planner
 % var_P1 = zeros(2,2,N+1);
 % P_pred1 = zeros(2,2,N);
 % K1 = zeros(2,2,N);

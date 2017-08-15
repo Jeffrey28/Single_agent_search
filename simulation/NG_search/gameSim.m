@@ -19,9 +19,11 @@ optz = [];
 optu = [];
 
 % save figures to video
+%%% in the future, write a function that can detect duplicate file name and
+%%% automatically assign a new name
 if save_video
     if strcmp(plan_mode,'lin')
-        vidObj = VideoWriter(sprintf('search-using-KF-%s.avi',date));
+        vidObj = VideoWriter(sprintf('search-using-KF-static-%s(3).avi',date));
     elseif strcmp(plan_mode,'nl')
         vidObj = VideoWriter(sprintf('search-using-PF-%s.avi',date));
     end
@@ -73,13 +75,13 @@ for ii = 1:sim_len
     end
     
     rbt = rbt.updState(optu);
-    fprintf('[main loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
-    display(rbt.state);
+%     fprintf('[main loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
+%     display(rbt.state);
     %}
     
     % draw plot
     sim.plotTraj(rbt,fld)
-%     pause()
+%     pause(0.5)
 
     % save the plot as a video
     frame_hdl = getframe(gcf);
