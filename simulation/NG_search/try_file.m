@@ -519,6 +519,7 @@ end
 %}
 
 %% check x and xp
+%{
 h_orig = h(x);
 h_new = h(xp);
 p_orig = this.convState(x,snum,'P');
@@ -537,9 +538,37 @@ for iii = 1:N+1
     gam_new = this.gam(z_new(1:2,iii),z_new(3,iii),...
         tar_pos,this.alp1,this.alp2,this.alp3)
 end
-
+%}
 %% check constraints
+%{
 hlabel = labelResult(h(xp),'h',N);
 hlinlabel = labelResult(hlin(xp),'hlin',N);
 hjaclabel = labelResult(hjac,'hjac',N);
 glinlabel = labelResult(glin(xp),'glin',N);
+%}
+%% draw FOV using gamma
+% first run simSetup.m (no need to run gameSim.m since simSetup.m is a standalone file)
+alp1 = 10;
+alp2 = 10;
+alp3 = 10;
+z = [5;5];
+theta = pi/4;
+xset = 0:0.1:20;
+yset = 0:0.1:20;
+
+[X,Y] = meshgrid(xset,yset);
+val = zeros(size(X));
+for ii = 1:length(X)
+    for jj = 1:length(Y)
+        x0 = [X(ii,jj);Y(ii,jj)];
+        val(ii,jj) = rbt.gam(z,theta,x0,alp1,alp2,alp3);
+    end
+end
+h = surf(X,Y,val)
+set(h,'EdgeColor','interp')
+colormap jet % remeber to use the UI to fine tune the plot
+xlabel('X coordiante','FontSize',33)
+ylabel('Y coordiante','FontSize',33)
+zlabel('Z coordiante','FontSize',33)
+title('Approximate Function for \gamma','FontSize',38)
+legend('\gamma=10')
