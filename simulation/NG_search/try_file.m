@@ -546,8 +546,9 @@ hlinlabel = labelResult(hlin(xp),'hlin',N);
 hjaclabel = labelResult(hjac,'hjac',N);
 glinlabel = labelResult(glin(xp),'glin',N);
 %}
-%% draw FOV using gamma
+%% draw FOV using approx gamma in 3D (used for illustrating what approx gamma looks like)
 % first run simSetup.m (no need to run gameSim.m since simSetup.m is a standalone file)
+%{
 alp1 = 10;
 alp2 = 10;
 alp3 = 10;
@@ -572,3 +573,4 @@ ylabel('Y coordiante','FontSize',33)
 zlabel('Z coordiante','FontSize',33)
 title('Approximate Function for \gamma','FontSize',38)
 legend('\gamma=10')
+%}

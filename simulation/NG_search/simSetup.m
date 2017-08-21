@@ -17,7 +17,7 @@ end
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = true;
+save_video = false;
 
 %% Set field %%%
 % target info
@@ -31,7 +31,7 @@ target.f = @(x) x;
 target.del_f = @(x) eye(2);
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.3;-0.3];[0;0];
-target.Q = 0.01*eye(2); % Covariance of process noise model for the target
+target.Q = 0*eye(2); % Covariance of process noise model for the target
 
 % setup for moving target, KF
 % target.f = @(x) x+[-0.5;0.5];
@@ -60,7 +60,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [15;5;pi/2;0];%[15;10;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [22;33;pi/2;0];%[15;5;pi/2;0];%[15;10;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -110,28 +110,6 @@ alp1 = 1;
 alp2 = 1;
 alp3 = 1;
 thr = 30;
-
-% the gamma model used in ACC 17
-    %{
-    gam_den1 = @(z,x0,alp1) (1+alp1*norm(x0-z)^2); %%% this part does not involve range information. revise!
-    gam_den2 = @(theta,theta_bar,alp2) (1+exp(alp2*(-cos(theta-theta_bar)+cos(inPara_rbt.theta0))));
-    gam_den = @(z,theta,x0,theta_bar,alp1,alp2) (gam_den1(z,x0,alp1)*gam_den2(theta,theta_bar,alp2));
-    % exact model
-    gam = @(z,theta,x0,theta_bar,alp1,alp2) 1/gam_den(z,theta,x0,theta_bar,alp1,alp2);
-    % gradient
-    gam_grad = @(z,theta,x0,theta_bar,alp1,alp2) [2*alp1*(x0-z)/(gam_den1(z,x0,alp1)^2*gam_den2(theta,theta_bar,alp2));...
-        -alp2*sin(theta-theta_bar)*(gam_den2(theta,theta_bar,alp2)-1)/...
-        (gam_den2(theta,theta_bar,alp2)^2*gam_den1(z,x0,alp1))];
-    % linearized model
-    gam_aprx = @(z,theta,x0,theta_bar,z_ref,theta_ref,alp1,alp2) gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)...
-        +gam_grad(z_ref,theta_ref,x0,theta_bar,alp1,alp2)'*[z-z_ref;theta-theta_ref];
-    % linearized update rule for covariance
-    p_aprx = @(z,theta,p1,p2,x0,theta_bar,t1,t2,z_ref,theta_ref,p1_ref,p2_ref,alp1,alp2) p1-...
-        gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)*(t1*p1_ref+t2*p2_ref)+...
-        (1-gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)*t1)*(p1-p1_ref)-...
-        gam(z_ref,theta_ref,x0,theta_bar,alp1,alp2)*(p2-p2_ref)-(t1*p1_ref+t2*p2_ref)*...
-        gam_grad(z_ref,theta_ref,x0,theta_bar,alp1,alp2)'*([z-z_ref;theta-theta_ref]);
-    %}
 
 inPara_rbt.alp1 = alp1; % parameters in gam
 inPara_rbt.alp2 = alp2;
