@@ -447,7 +447,28 @@
             %%% kinematics constraints
             objKin = @(s) this.getKinConstr(s,snum); 
             
-            %%% linear equality constraints          
+            %%% linear equality constraints
+            %{
+            A_eq = zeros(snum.total); 
+            % initial condition on states
+            % z(:,1) == this.state;
+            % x(:,1) == this.est_pos(:);
+            % for jj = 1:this.gmm_num
+              %  triu(P(:,:,jj,1)) == triu(this.P{jj});
+            % end            
+            tmp_idx = [1:4,snum.idx(2,2)+1:snum.idx(2,2)+2*this.gmm_num,...
+                snum.idx(4,2)+1:snum.idx(4,2)+4*this.gmm_num];
+            for ii = tmp_idx
+                A_eq(ii,ii) = 1;
+            end
+            vec = [];
+            for jj = 1:this.gmm_num
+                vec = [vec;this.P{jj}(:)];
+            end
+            b_eq = [this.state;zeros(snum.idx(2,2)-length(this.state),1);...
+                this.est_pos(:);zeros(snum.idx(4,2)-snum.idx(2,2)-length(this.est_pos(:)),1);...
+                vec;zeros(snum.idx(6,2)-length(vec),1)];
+            %}
             % belief dynamics (note: this one could be written using
             % A_eq,b_eq, but it's error-prone and time-consuming. 
             % So I use this form.
@@ -463,7 +484,21 @@
             % this.w_lb <= u(1,:) <= this.w_ub;
             % this.a_lb <= u(2,:) <= this.a_ub;
             % this.v_lb <= z(4,:) <= this.v_ub;
-            % [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];                        
+            % [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+            %{
+            mat = diag([ones(snum.idx(2,2),1);zeros(snum.idx(6,2)-snum.idx(2,2),1)]); 
+            idx = 3:4:(3+4*N); % since no constraint on z(3,:), set element to be 0
+            for ii = idx
+                mat(ii,ii) = 0;
+            end
+            A_ineq = [mat;-mat];
+            vec1 = [repmat([fld.fld_cor(2);fld.fld_cor(4);0;this.v_ub],N+1,1);...
+                repmat([this.w_ub;this.a_ub],N,1)];
+            vec2 = -[repmat([fld.fld_cor(1);fld.fld_cor(3);0;this.v_lb],N+1,1);...
+                repmat([this.w_lb;this.a_lb],N,1)];
+            b_ineq = [vec1;vec2];
+            %}
+            
             constrLinIneq = @(s) this.getLinIneqConstr(s,snum,fld);
             
             penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties 
@@ -498,9 +533,23 @@
                     
                     objNLineq = @(s) 0; % nonlinear inequality constraint here
                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
-%                     objNLeq = @(s) 0;                   
+%                     objNLeq = @(s) 0;
+                    % trust region for approximating gamma. Trust region is the
+                    % stepsize of change, i.e. abs(z-zref)
+%                     tr = zeros(6,N); % bound of stepsize
+%                     % z
+%                     tr(1:2,:) = 3*ones(2,N);
+%                     tr(3,:) = 3*ones(1,N);%pi/5*ones(1,N);
+%                     tr(4,:) = 3*ones(1,N);
+%                     % u
+%                     tr(5:6,:) = 3*ones(2,N);
+                    % x
                     
                     %% loop 3: trust region SQP
+%                     thr_l = 1/4;
+%                     thr_h = 1/2; %3/4;
+%                     xtol = 0.1;
+%                     infea_flag = false; % flagging whether cvx is infeasible
                     A_ineq = [];
                     b_ineq = [];
                     A_eq = [];
@@ -513,12 +562,240 @@
                     end
                     
                     [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
-                    % loop 3 ends                   
-                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter                        
+                    % loop 3 ends
+                    %{
+                    while (1)
+                        % robot state and control
+                        cvx_begin sdp
+                        variables z(4,N+1) u(2,N) x(2*this.gmm_num,N+1)
+                        variable P(2,2,this.gmm_num,N+1) semidefinite % symmetric
+                        % debug purpose
+                        variable x_pred(2*this.gmm_num,N)
+                        variable P_pred(2,2,this.gmm_num,N) semidefinite% symmetric
+                        
+                        % auxiliary variable
+                        variable t(this.gmm_num*this.gmm_num,N+1)
+                        variables slk_kin(4,N) slk_P(2,2,this.gmm_num,N) %slk_P_pred(2,2,this.gmm_num,N) 
+                        expression t_unscaled(this.gmm_num*this.gmm_num,N+1)
+                        expression obj
+                        expression delta_x(2*this.gmm_num,N)
+                        expression delta_P(2,2,this.gmm_num,N+1)
+                        
+                        % obj
+                        delta_x = x-xref;
+                        delta_P = P-Pref;
+                        [grad,hess] = this.numerical_grad_hess(xref,Pref,full_hessian);
+                        
+                        obj = this.cmpObj(xref,Pref)+grad*[delta_x(:);delta_P(:)];%+...
+%                             [delta_x(:);delta_P(:)]'*hess*[delta_x(:);delta_P(:)]/2;
+                        obj = obj + mu*(sum(abs(slk_kin(:)))+...
+                            sum(abs(slk_P(:)))); % add slack varaible %sum(abs(slk_P_pred(:)))+
+                        
+                        minimize(obj)
+                        
+                        % constraints
+                        % initial value
+                        z(:,1) == this.state;
+                        x(:,1) == this.est_pos(:);
+                        for jj = 1:this.gmm_num
+                            triu(P(:,:,jj,1)) == triu(this.P{jj});
+                        end
+                        
+                        % constraints on the go
+                        for ii = 1:N
+                            % linearize using previous result
+                            % robot state
+                            z(:,ii+1) == z(:,ii)+...
+                                [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                                z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                                u(:,ii)]*dt+slk_kin(:,ii);
+                            [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];                           
+                            
+                            % target prediction
+                            for jj = 1:this.gmm_num
+                                %%%%% note: this part may need change later. In
+                                %%%%% fact, linearziation should be wrt
+                                %%%%% reference values.
+                                A = del_f(x(2*jj-1:2*jj,ii));
+                                if isempty (zref)
+                                    C = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                                else
+                                    C = del_h(xref(2*jj-1:2*jj,ii+1),zref(1:2,ii+1));
+                                end
+                                
+                                % forward prediction
+                                % mean
+                                x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii));
+                                % covariance
+                                triu(P_pred(:,:,jj,ii)) == triu(A*P(:,:,jj,ii)*A'+Q);%+triu(slk_P_pred(:,:,jj,ii));
+                                
+                                % mean
+                                %%%%% note: for now, I assume the mean is not
+                                %%%%% affected by measurement in planning
+                                x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii);
+                                
+                                % covariance
+                                theta_bar = zeros(this.gmm_num,N+1);
+                                for ll = 1:this.gmm_num
+                                    tmp_vec = xref(2*ll-1:2*ll,:)-zref(1:2,:);
+                                    theta_bar(ll,:) = atan2(tmp_vec(1,:),tmp_vec(2,:));
+                                end
+                                T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C;
+                                expression tmp(this.gmm_num,2,2)
+                                for ll = 1:this.gmm_num
+                                    %%% note: gamma depends on ll, C depends
+                                    %%% only on jj
+                                    tmp(ll,1,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                        P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                        T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
+                                    tmp(ll,1,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                        P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                        T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii),alp1,alp2,alp3);
+                                    %                             tmp(ll,2,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                    %                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                    %                                 T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
+                                    tmp(ll,2,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                        P_pred(2,2,jj,ii),P_pred(1,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                        T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
+                                end
+                                
+                                triu(P(:,:,jj,ii+1)) == triu(squeeze(sum(tmp,1)))+triu(slk_P(2,2,jj,ii));
+                            end
+                        end
+                        
+                        this.w_lb <= u(1,:) <= this.w_ub;
+                        this.a_lb <= u(2,:) <= this.a_ub;
+                        this.v_lb <= z(4,:) <= this.v_ub;
+                        
+                         % trust region constraints
+                         [-tr(1:4,ii) <= z(:,ii+1)-zref(:,ii+1) <= tr(1:4,ii)];
+                         [-tr(5:6,ii) <= u(:,ii)-uref(:,ii) <= tr(5:6,ii)];
+                        cvx_end
+                        
+                        % if infeasbile, use solution from last iteration                        
+                        if strcmp(cvx_status,'Infeasible')
+                            cprintf('Red',sprintf('Robot.m, line %d. Infeasibility issue\n',MFileLineNr()))
+%                             error('inf')
+                            infea_flag = true;
+                            break
+                        end
+                        
+                        %% determine whether to change the trust region
+                        %
+                        % compare the change in the objective function.
+                        % true objective values
+                        
+                        % if P is nearly singluar, make it psd
+                        for ii = 2:N+1
+                            tmp = 0;
+                            for ll = 1:this.gmm_num
+                                P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/ 2;
+                                mineigv = min(eig(P(:,:,ll,ii)));
+                                if mineigv <= 0
+                                    P(:,:,ll,ii) = P(:,:,ll,ii) + (abs(mineigv)+0.1)*eye(2);
+                                end
+                            end
+                        end
+                                                
+                        act_prev = this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu);%this.cmpObj(xref,Pref); %this.cmpObj(xref,Pref);
+                        act_cur = this.cmpMerit(z,u,zref,x,P,P_pred,Kref,mu);%this.cmpObj(x,P)
+                        pred_prev = this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu); %this.cmpObj(xref,Pref)
+                        pred_cur = cvx_optval;
+                        
+                        sprintf('Robot.m, line %d',MFileLineNr())
+                        display('sqp objective value:')
+                        display(cvx_optval)
+                        display('actual objective value:')
+                        display(act_cur)
+                        % }
+                        impv_ratio = (act_prev-act_cur)/(pred_prev-pred_cur);
+                        display('improvement')
+                        display(impv_ratio)
+                        
+                        % compare approximation with actual value
+                        t = -5:0.1:5;
+                        actval = zeros(length(t),1);
+                        apprxval = zeros(length(t),1);
+                        for pp = 1:length(t)
+                            tt = t(pp);
+                            ztmp = zref+tt;
+                            utmp = uref+tt;
+                            xtmp = xref+tt;
+                            Ptmp = Pref+tt;
+                            P_pred_tmp = P_pred_ref+tt;
+                            
+                            actval(pp) = this.cmpMerit(ztmp,utmp,zref,xtmp,Ptmp,P_pred_tmp,Kref,mu);
+                            apprxval(pp) = this.cmpObj(xtmp,Ptmp)+grad*[xtmp(:)-xref(:);Ptmp(:)-Pref(:)];%+...
+%                                 [xtmp(:)-xref(:);Ptmp(:)-Pref(:)]'*hess*[xtmp(:)-xref(:);Ptmp(:)-Pref(:)]/2;
+                            apprxval(pp) = apprxval(pp) + mu*(sum(abs(slk_kin(:)))+...
+                                sum(abs(slk_P(:))));
+                        end
+                        figure
+                        hold on
+                        plot(t,actval,'b')
+                        plot(t,apprxval,'r')
+                        
+                        if pred_prev-pred_cur < -1e-5
+                            display('approximate merit function got worse')
+                            return
+                        elseif impv_ratio < thr_h
+                            % in this case, <Num Opt> book discusses two different
+                            % cases, in one case, the new value is used. In
+                            % another case, the variable values use the last
+                            % iteration's. Here I just treat the varaible
+                            % values unchanged
+                            tr = tr*tr_dec;
+                            cprintf('Green',sprintf('Robot.m, line %d. trust region shrinked\n',MFileLineNr()))
+                            display(tr)
+                            if all(abs(tr)<xtol)
+                                break
+                            end
+                        elseif impv_ratio > thr_h
+                            % determine if the optimal solution reaches the
+                            % trust region boundary
+                            tmp_z_dif = z(:,2:end)-zref(:,2:end);
+                            tmp_u_dif = u-uref;
+                            if max(abs([tmp_z_dif(:);tmp_u_dif(:)]-tr(:))) < 1e-4
+                                % boundary reached
+                                tr = tr*tr_inc;
+                                cprintf('Blue',sprintf('Robot.m, line %d. trust region enlarged\n',MFileLineNr()))
+                            else
+                                cprintf('Cyan',sprintf('Robot.m, line %d. trust region unchanged\n',MFileLineNr()))
+                            end
+                            % variable values use the newly computed ones
+                            zref = z;
+                            uref = u;
+                            xref = x;
+                            Pref = P;
+                            P_pred_ref = P_pred;
+                            
+                            %%% note sure if this is necessary, but I encounter cases
+                            %%% where P_pred contains singular or non-psd terms. Can
+                            %%% add the min eigvalue to make all terms psd. Haven't written code yet
+                            
+                            % compute Kref using Ricatti equation
+                            for ii = 1:N
+                                for jj = 1:this.gmm_num
+                                    C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+                                    Kref(2*jj-1:2*jj,2*ii-1:2*ii) = P_pred(:,:,jj,ii)*C'/(C*P_pred(:,:,jj,ii)*C'+R);
+                                end
+                            end
+                            break % break only when trust region is expanded
+                        end
+                    end % loop 3 ends
+                    %}
+                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
+                        
                         break;
                     end
                     trust_box_size = cfg.initial_trust_box_size;
                     penalty_coeff = cfg.merit_coeff_increase_ratio*penalty_coeff;
+%                     if (any(abs(slk_kin(:))>ctol)... %||any(abs(slk_P_pred(:))>ctol)
+%                             ||any(abs(slk_P(:))>ctol)) && ~infea_flag
+%                         mu = mu*mu_inc;
+%                     else
+%                         break
+%                     end
                 end % loop 2 ends
                 
                 if ~success %infea_flag
@@ -568,6 +845,8 @@
                     end
                 end
                 
+%                 tmp_z_dif = zeros(3,N+1);
+%                 inc_flag = false(3,1); % if true, increase the trust region
                 
                 % update initial solution for next iteration
                 s = this.updOptVar(s,snum,alp1,alp2,alp3);
@@ -583,6 +862,8 @@
                     break
                 else
                     cprintf('Magenta',sprintf('  [gamma loop] Robot.m, line %d.  gamma_exact is not close, go to another iteration.\n',MFileLineNr()))
+%                     display(is_in_fov)
+%                     display(gamma_exact)
                     alp1 = alp1*alp_inc;
                     alp2 = alp2*alp_inc;
                     alp3 = alp3*alp_inc;                    
@@ -600,6 +881,404 @@
             zref = this.simState(uref,zref(:,1));
             optz = zref;
             optu = uref;
+%             optz = zref;
+%             optu = uref;
+            
+            % visualize the planned path
+            %%% xref in this part needs change when infeasibility happens
+            this.plotPlannedTraj(optz,xref,fld)
+%             }
+         end
+        
+        
+        function [optz,optu] = cvxPlanner_sqp(this,fld,optz,optu) % cvxPlanner(this,fld,init_sol)
+            % use the multi-layer approach similar to Sachin's work. Fix
+            % the parameter for the sensor, solve path planning. Then
+            % refine the parameter until close to reality. In each
+            % iteration, a QP program is solved. The initial solution
+            % comes from ngPlanner
+            
+            % planing in non-Gaussian (GMM) belief space
+            N = this.mpc_hor;
+            dt = this.dt;
+            
+            % target
+            tar = fld.target;
+            f = tar.f;
+            del_f = tar.del_f;
+            Q = tar.Q;
+            
+            % sensor
+            h = this.h;
+            del_h = this.del_h;
+            R = this.R;
+            alp1 = this.alp1;
+            alp2 = this.alp2;
+            alp3 = this.alp3;
+            alp_inc = 2; % increament paramter for alphatr_inc
+            gam = @this.gam;
+            gam_aprx = @this.gam_aprx;
+           	p_aprx = @this.p_aprx;
+            
+            % trust region, penalty factor
+            tr_inc = this.tr_inc;
+            tr_dec = this.tr_dec;
+            mu_inc = this.mu_inc;
+            
+            % set up simulation            
+            if isempty(optz)
+                prev_state = [];
+            else
+                prev_state = struct('optz',optz,'optu',optu);
+            end
+            
+            init_sol = genInitState(this,fld,prev_state);
+            
+            zref = init_sol.z;
+            uref = init_sol.u;
+            xref = init_sol.x;
+            Kref = init_sol.K;
+            Pref = init_sol.P;
+            P_pred_ref = init_sol.P_pred;
+            full_hessian = false; 
+            
+            %% loop 1: change alpha in \gamma modeling
+            while(1)
+                %% loop 2: penalty iteration
+                ctol = 1e-2;
+                mu = 0.1;
+                while(1)
+                    % trust region for approximating gamma. Trust region is the
+                    % stepsize of change, i.e. abs(z-zref)
+                    tr = zeros(6,N); % bound of stepsize
+                    % z
+                    tr(1:2,:) = 3*ones(2,N);
+                    tr(3,:) = 3*ones(1,N);%pi/5*ones(1,N);
+                    tr(4,:) = 3*ones(1,N);
+                    % u
+                    tr(5:6,:) = 3*ones(2,N);
+                    % x
+                    
+                    
+                    
+                    %                 for ii = 1:N
+                    %                     for jj = 1:3
+                    %                         tmp = 0.1*zref(jj,ii+1);
+                    %                         if tmp == 0
+                    %                             % the trust region of heading change is smaller than
+                    %                             % the trust region for position
+                    %                             if jj == 3
+                    %                                 tmp = 0.1;
+                    %                             else
+                    %                                 tmp = 1;
+                    %                             end
+                    %                         end
+                    %                         tr(jj,ii) = abs(tmp);
+                    %                     end
+                    %                 end
+                    
+                    %% loop 3: trust region SQP
+                    thr_l = 1/4;
+                    thr_h = 1/2; %3/4;
+                    xtol = 0.1;
+                    infea_flag = false; % flagging whether cvx is infeasible
+                    while (1)
+                        % robot state and control
+                        cvx_begin sdp
+                        variables z(4,N+1) u(2,N) x(2*this.gmm_num,N+1)
+                        variable P(2,2,this.gmm_num,N+1) semidefinite % symmetric
+                        % debug purpose
+                        variable x_pred(2*this.gmm_num,N)
+                        variable P_pred(2,2,this.gmm_num,N) semidefinite% symmetric
+                        
+                        % auxiliary variable
+                        variable t(this.gmm_num*this.gmm_num,N+1)
+                        variables slk_kin(4,N) slk_P(2,2,this.gmm_num,N) %slk_P_pred(2,2,this.gmm_num,N) 
+                        expression t_unscaled(this.gmm_num*this.gmm_num,N+1)
+                        expression obj
+                        expression delta_x(2*this.gmm_num,N)
+                        expression delta_P(2,2,this.gmm_num,N+1)
+                        
+                        % obj
+                        delta_x = x-xref;
+                        delta_P = P-Pref;
+                        [grad,hess] = this.numerical_grad_hess(xref,Pref,full_hessian);
+                        
+                        obj = this.cmpObj(xref,Pref)+grad*[delta_x(:);delta_P(:)];%+...
+%                             [delta_x(:);delta_P(:)]'*hess*[delta_x(:);delta_P(:)]/2;
+                        obj = obj + mu*(sum(abs(slk_kin(:)))+...
+                            sum(abs(slk_P(:)))); % add slack varaible %sum(abs(slk_P_pred(:)))+
+                        
+                        minimize(obj)
+                        
+                        % constraints
+                        % initial value
+                        z(:,1) == this.state;
+                        x(:,1) == this.est_pos(:);
+                        for jj = 1:this.gmm_num
+                            triu(P(:,:,jj,1)) == triu(this.P{jj});
+                        end
+                        
+                        % constraints on the go
+                        for ii = 1:N
+                            % linearize using previous result
+                            % robot state
+                            z(:,ii+1) == z(:,ii)+...
+                                [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                                z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                                u(:,ii)]*dt+slk_kin(:,ii);
+                            [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];                           
+                            
+                            % target prediction
+                            for jj = 1:this.gmm_num
+                                %%%%% note: this part may need change later. In
+                                %%%%% fact, linearziation should be wrt
+                                %%%%% reference values.
+                                A = del_f(x(2*jj-1:2*jj,ii));
+                                if isempty (zref)
+                                    C = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                                else
+                                    C = del_h(xref(2*jj-1:2*jj,ii+1),zref(1:2,ii+1));
+                                end
+                                
+                                % forward prediction
+                                % mean
+                                x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii));
+                                % covariance
+                                triu(P_pred(:,:,jj,ii)) == triu(A*P(:,:,jj,ii)*A'+Q);%+triu(slk_P_pred(:,:,jj,ii));
+                                
+                                % mean
+                                %%%%% note: for now, I assume the mean is not
+                                %%%%% affected by measurement in planning
+                                x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii);
+                                
+                                % covariance
+                                theta_bar = zeros(this.gmm_num,N+1);
+                                for ll = 1:this.gmm_num
+                                    tmp_vec = xref(2*ll-1:2*ll,:)-zref(1:2,:);
+                                    theta_bar(ll,:) = atan2(tmp_vec(1,:),tmp_vec(2,:));
+                                end
+                                T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C;
+                                expression tmp(this.gmm_num,2,2)
+                                for ll = 1:this.gmm_num
+                                    %%% note: gamma depends on ll, C depends
+                                    %%% only on jj
+                                    tmp(ll,1,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                        P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                        T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
+                                    tmp(ll,1,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                        P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                        T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii),alp1,alp2,alp3);
+                                    %                             tmp(ll,2,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                    %                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                    %                                 T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
+                                    tmp(ll,2,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                        P_pred(2,2,jj,ii),P_pred(1,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                        T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
+                                end
+                                
+                                triu(P(:,:,jj,ii+1)) == triu(squeeze(sum(tmp,1)))+triu(slk_P(2,2,jj,ii));
+                            end
+                        end
+                        
+                        this.w_lb <= u(1,:) <= this.w_ub;
+                        this.a_lb <= u(2,:) <= this.a_ub;
+                        this.v_lb <= z(4,:) <= this.v_ub;
+                        
+                         % trust region constraints
+                         [-tr(1:4,ii) <= z(:,ii+1)-zref(:,ii+1) <= tr(1:4,ii)];
+                         [-tr(5:6,ii) <= u(:,ii)-uref(:,ii) <= tr(5:6,ii)];
+                        cvx_end
+                        
+                        % if infeasbile, use solution from last iteration                        
+                        if strcmp(cvx_status,'Infeasible')
+                            cprintf('Red',sprintf('Robot.m, line %d. Infeasibility issue\n',MFileLineNr()))
+%                             error('inf')
+                            infea_flag = true;
+                            break
+                        end
+                        
+                        %% determine whether to change the trust region
+                        %
+                        % compare the change in the objective function.
+                        % true objective values
+                        
+                        % if P is nearly singluar, make it psd
+                        for ii = 2:N+1
+                            tmp = 0;
+                            for ll = 1:this.gmm_num
+                                P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/ 2;
+                                mineigv = min(eig(P(:,:,ll,ii)));
+                                if mineigv <= 0
+                                    P(:,:,ll,ii) = P(:,:,ll,ii) + (abs(mineigv)+0.1)*eye(2);
+                                end
+                            end
+                        end
+                                                
+                        act_prev = this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu);%this.cmpObj(xref,Pref); %this.cmpObj(xref,Pref);
+                        act_cur = this.cmpMerit(z,u,zref,x,P,P_pred,Kref,mu);%this.cmpObj(x,P)
+                        pred_prev = this.cmpMerit(zref,uref,zref,xref,Pref,P_pred_ref,Kref,mu); %this.cmpObj(xref,Pref)
+                        pred_cur = cvx_optval;
+                        
+                        sprintf('Robot.m, line %d',MFileLineNr())
+                        display('sqp objective value:')
+                        display(cvx_optval)
+                        display('actual objective value:')
+                        display(act_cur)
+                        %}
+                        impv_ratio = (act_prev-act_cur)/(pred_prev-pred_cur);
+                        display('improvement')
+                        display(impv_ratio)
+                        
+                        % compare approximation with actual value
+                        t = -5:0.1:5;
+                        actval = zeros(length(t),1);
+                        apprxval = zeros(length(t),1);
+                        for pp = 1:length(t)
+                            tt = t(pp);
+                            ztmp = zref+tt;
+                            utmp = uref+tt;
+                            xtmp = xref+tt;
+                            Ptmp = Pref+tt;
+                            P_pred_tmp = P_pred_ref+tt;
+                            
+                            actval(pp) = this.cmpMerit(ztmp,utmp,zref,xtmp,Ptmp,P_pred_tmp,Kref,mu);
+                            apprxval(pp) = this.cmpObj(xtmp,Ptmp)+grad*[xtmp(:)-xref(:);Ptmp(:)-Pref(:)];%+...
+%                                 [xtmp(:)-xref(:);Ptmp(:)-Pref(:)]'*hess*[xtmp(:)-xref(:);Ptmp(:)-Pref(:)]/2;
+                            apprxval(pp) = apprxval(pp) + mu*(sum(abs(slk_kin(:)))+...
+                                sum(abs(slk_P(:))));
+                        end
+                        figure
+                        hold on
+                        plot(t,actval,'b')
+                        plot(t,apprxval,'r')
+                        
+                        if pred_prev-pred_cur < -1e-5
+                            display('approximate merit function got worse')
+                            return
+                        elseif impv_ratio < thr_h
+                            % in this case, <Num Opt> book discusses two different
+                            % cases, in one case, the new value is used. In
+                            % another case, the variable values use the last
+                            % iteration's. Here I just treat the varaible
+                            % values unchanged
+                            tr = tr*tr_dec;
+                            cprintf('Green',sprintf('Robot.m, line %d. trust region shrinked\n',MFileLineNr()))
+                            display(tr)
+                            if all(abs(tr)<xtol)
+                                break
+                            end
+                        elseif impv_ratio > thr_h
+                            % determine if the optimal solution reaches the
+                            % trust region boundary
+                            tmp_z_dif = z(:,2:end)-zref(:,2:end);
+                            tmp_u_dif = u-uref;
+                            if max(abs([tmp_z_dif(:);tmp_u_dif(:)]-tr(:))) < 1e-4
+                                % boundary reached
+                                tr = tr*tr_inc;
+                                cprintf('Blue',sprintf('Robot.m, line %d. trust region enlarged\n',MFileLineNr()))
+                            else
+                                cprintf('Cyan',sprintf('Robot.m, line %d. trust region unchanged\n',MFileLineNr()))
+                            end
+                            % variable values use the newly computed ones
+                            zref = z;
+                            uref = u;
+                            xref = x;
+                            Pref = P;
+                            P_pred_ref = P_pred;
+                            
+                            %%% note sure if this is necessary, but I encounter cases
+                            %%% where P_pred contains singular or non-psd terms. Can
+                            %%% add the min eigvalue to make all terms psd. Haven't written code yet
+                            
+                            % compute Kref using Ricatti equation
+                            for ii = 1:N
+                                for jj = 1:this.gmm_num
+                                    C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+                                    Kref(2*jj-1:2*jj,2*ii-1:2*ii) = P_pred(:,:,jj,ii)*C'/(C*P_pred(:,:,jj,ii)*C'+R);
+                                end
+                            end
+                            break % break only when trust region is expanded
+                        end
+                    end % loop 3 ends
+                    
+                    if (any(abs(slk_kin(:))>ctol)... %||any(abs(slk_P_pred(:))>ctol)
+                            ||any(abs(slk_P(:))>ctol)) && ~infea_flag
+                        mu = mu*mu_inc;
+                    else
+                        break
+                    end
+                end % loop 2 ends
+                
+                if infea_flag
+                    % if CVS infeasible, directly reuse solution from
+                    % previous step
+                    break
+                end
+                
+                % here we use the difference between the actual gamma and
+                % gamma_aprx to decide the region.
+                is_in_fov = zeros(this.gmm_num,N);
+                gamma_exact = zeros(this.gmm_num,N);
+                gamma_aprx = zeros(this.gmm_num,N);
+                tmp_rbt = this;
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+                        %%% this part can be revised when using probability
+                        %%% of inFOV later
+                        
+                        tar_pos = x(2*jj-1:2*jj,ii+1); % use each gmm component mean as a possible target position
+                        % actual inFOV
+                        tmp_rbt.state = z(:,ii+1);
+                        is_in_fov(jj,ii) = tmp_rbt.inFOV(tar_pos);
+                        
+                        % exact gamma
+                        gamma_exact(jj,ii) = gam(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,alp1,alp2,alp3);
+                        
+                        % approximated inFOV
+                        gamma_aprx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
+                    end
+                end
+                
+                %                     tmp_ratio = zeros(this.gmm_num,N);
+                tmp_dif = zeros(this.gmm_num,N);
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+%                         tmp_dif(jj,ii) = abs(gamma_aprx(jj,ii)-gamma_exact(jj,ii));
+                        tmp_dif(jj,ii) = abs(is_in_fov(jj,ii)-gamma_exact(jj,ii));
+                        %                             tmp_ratio(jj,ii) = abs((gamma_aprx(jj,ii)-gamma_exact(jj,ii))/max(gamma_exact(jj,ii),0.001));
+                    end
+                end
+                
+%                 tmp_z_dif = zeros(3,N+1);
+%                 inc_flag = false(3,1); % if true, increase the trust region
+                
+                % terminating condition: the actual in/out FOV is
+                % consistent with that of planning
+                if max(tmp_dif) <= 0.05
+                    break
+                else
+                    cprintf('Magenta',sprintf('Robot.m, line %d.  gamma_exact is not close',MFileLineNr()))
+                    display(is_in_fov)
+                    display(gamma_exact)
+                    alp1 = alp1*alp_inc;
+                    alp2 = alp2*alp_inc;
+                    alp3 = alp3*alp_inc;
+                end                
+            end % loop 1 ends
+            
+            if infea_flag
+                uref = [uref(:,2:end),uref(:,end)];
+            end
+
+            % use actual dynamics to simulate
+            zref = this.simState(uref);
+            optz = zref;
+            optu = uref;
+%             optz = zref;
+%             optu = uref;
             
             % visualize the planned path
             %%% xref in this part needs change when infeasibility happens
@@ -607,6 +1286,646 @@
 %             }
         end
         
+        function [optz,optu] = cvxPlanner(this,fld,optz,optu) % cvxPlanner(this,fld,init_sol)
+            % use the multi-layer approach similar to Sachin's work. Fix
+            % the parameter for the sensor, solve path planning. Then
+            % refine the parameter until close to reality. In each
+            % iteration, a convex program is solved. The initial solution
+            % comes from ngPlanner
+            % note this formulation is problematic since the
+            % log-determinant term in obj makes the obj non-cvx. Convexity
+            % holds iff we treat covariance as a constant, using P_ref.
+            
+            % planing in non-Gaussian (GMM) belief space
+            N = this.mpc_hor;
+            dt = this.dt;
+            
+            % target
+            tar = fld.target;
+            f = tar.f;
+            del_f = tar.del_f;
+            Q = tar.Q;
+            
+            % sensor
+            h = this.h;
+            del_h = this.del_h;
+            R = this.R;
+            alp1 = this.alp1;
+            alp2 = this.alp2;
+            alp3 = this.alp3;
+            alp_inc = 2; % increament paramter for alphatr_inc
+            gam = @this.gam;
+            gam_aprx = @this.gam_aprx;
+           	p_aprx = @this.p_aprx;
+            
+            % trust region
+            tr_inc = this.tr_inc;
+            tr_dec = this.tr_dec;
+            
+            % set up simulation            
+            if isempty(optz)
+                prev_state = [];
+            else
+                prev_state = struct('optz',optz,'optu',optu);
+            end
+            
+            init_sol = genInitState(this,fld,prev_state);
+            
+            zref = init_sol.z;
+            uref = init_sol.u;
+            xref = init_sol.x;
+            Kref = init_sol.K;
+            Pref = init_sol.P;
+            P_pred_ref = init_sol.P_pred;
+
+            % outer loop: change alpha in \gamma modeling
+            while(1)
+                % inner loop: change the trust region
+                
+                % trust region for approximating gamma. Trust region is the
+                % stepsize of change, i.e. abs(z-zref)
+                tr = zeros(3,N); % bound of stepsize
+                tr(1:2,:) = 3*ones(2,N);
+                tr(3,:) = pi/5*ones(1,N);
+%                 for ii = 1:N
+%                     for jj = 1:3
+%                         tmp = 0.1*zref(jj,ii+1);
+%                         if tmp == 0
+%                             % the trust region of heading change is smaller than
+%                             % the trust region for position
+%                             if jj == 3
+%                                 tmp = 0.1;
+%                             else
+%                                 tmp = 1;
+%                             end
+%                         end
+%                         tr(jj,ii) = abs(tmp);
+%                     end
+%                 end
+                
+                while (1)
+                    % robot state and control
+                    cvx_begin sdp
+                    variables z(4,N+1) u(2,N) x(2*this.gmm_num,N+1)
+                    variable P(2,2,this.gmm_num,N+1) symmetric
+                    % debug purpose
+                    variable x_pred(2*this.gmm_num,N)
+                    variable P_pred(2,2,this.gmm_num,N) symmetric
+                    
+                    % auxiliary variable
+                    variable t(this.gmm_num*this.gmm_num,N+1)
+                    expression t_unscaled(this.gmm_num*this.gmm_num,N+1)
+                    expression obj
+                                       
+                    % epigraph for t
+                    t(:) >= 0;
+                    % LMI
+                    for ii = 1:N
+                        for jj = 1:this.gmm_num
+                            for ll = 1:this.gmm_num
+                                scale_factor = norm(xref(2*jj-1:2*jj,ii+1)-xref(2*ll-1:2*ll,ii+1));
+                                if scale_factor == 0
+                                    scale_factor = 1;
+                                end
+                                [P(:,:,ll,ii+1) (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))/scale_factor;
+                                    (x(2*jj-1:2*jj,ii+1)-x(2*ll-1:2*ll,ii+1))'/scale_factor t(this.gmm_num*(jj-1)+ll,ii+1)]>=0;
+                                % because of the scale_factor, t should be
+                                % scaled back to compute the obj. 
+                                t_unscaled(this.gmm_num*(jj-1)+ll,ii+1) = t(this.gmm_num*(jj-1)+ll,ii+1)*(scale_factor)^2;
+                            end
+                        end
+                    end
+                    
+                    % obj 
+                    obj = 0;
+                    for ii = 1:N
+                        for jj = 1:this.gmm_num
+                            % compute the -log(2pi*|P|)
+                            tmp = 0;
+%                             for ll = 1:this.gmm_num
+%                                 tmp = tmp-log_det(P(:,:,ll,ii+1))-log(2*pi);
+%                             end
+                            % compute the whole objective
+%                             obj = obj+this.wt(jj)*(sum(t_unscaled(this.gmm_num*(jj-1)+1:this.gmm_num*jj,ii+1))/2+tmp);                            
+%                             obj = obj+this.wt(jj)*sum(t(this.gmm_num*(jj-1)+1:this.gmm_num*jj,ii+1));          
+                            obj = obj+this.wt(jj)*sum(t_unscaled(this.gmm_num*(jj-1)+1:this.gmm_num*jj,ii+1))/2;     
+                        end
+                    end                    
+                    
+                    % obj
+                    minimize(obj) %sum(t(:))
+                    
+                    % constraints
+                    % initial value
+                    z(:,1) == this.state;
+                    x(:,1) == this.est_pos(:);
+                    for jj = 1:this.gmm_num
+                        triu(P(:,:,jj,1)) == triu(this.P{jj});
+                    end
+                    
+                    % constraints on the go
+                    for ii = 1:N
+                        % linearize using previous result
+                        % robot state
+                        z(:,ii+1) == z(:,ii)+...
+                            [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            u(:,ii)]*dt;
+                        [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+                        
+                        % trust region constraints
+                        [-tr(:,ii) <= z(1:3,ii+1)-zref(1:3,ii+1) <= tr(:,ii)];
+                        
+                        % target prediction
+                        for jj = 1:this.gmm_num
+                            A = del_f(x(2*jj-1:2*jj,ii));
+                            if isempty (zref)
+                                C = del_h(x(2*jj-1:2*jj,ii),z(1:2,ii));
+                            else
+                                C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+                            end
+                            
+                            % forward prediction
+                            % mean
+                            x_pred(2*jj-1:2*jj,ii) == f(x(2*jj-1:2*jj,ii));
+                            % covariance
+                            triu(P_pred(:,:,jj,ii)) == triu(A*P(:,:,jj,ii)*A'+Q);
+                            
+                            % mean
+                            %%%%% note: for now, I assume the mean is not
+                            %%%%% affected by measurement in planning
+                            x(2*jj-1:2*jj,ii+1) == x_pred(2*jj-1:2*jj,ii);
+                            
+                            % covariance
+                            theta_bar = zeros(this.gmm_num,N+1);
+                            for ll = 1:this.gmm_num
+                                tmp_vec = xref(2*ll-1:2*ll,:)-zref(1:2,:);
+                                theta_bar(ll,:) = atan2(tmp_vec(1,:),tmp_vec(2,:));
+                            end
+                            T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C;
+                            expression tmp(this.gmm_num,2,2)
+                            for ll = 1:this.gmm_num
+                                %%% note: gamma depends on ll, C depends
+                                %%% only on jj
+                                tmp(ll,1,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                    P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                    T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
+                                tmp(ll,1,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                    P_pred(1,2,jj,ii),P_pred(2,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                    T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,jj,ii),P_pred_ref(2,2,jj,ii),alp1,alp2,alp3);
+                                %                             tmp(ll,2,1) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                %                                 P_pred(1,1,jj,ii),P_pred(2,1,jj,ii),xref(2*ll-1:2*ll,ii+1),theta_bar(ll,ii+1),...
+                                %                                 T(2,1),T(2,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,jj,ii),P_pred_ref(2,1,jj,ii));
+                                tmp(ll,2,2) = this.wt(ll)*p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                    P_pred(2,2,jj,ii),P_pred(1,2,jj,ii),xref(2*ll-1:2*ll,ii+1),...
+                                    T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,jj,ii),P_pred_ref(2,1,jj,ii),alp1,alp2,alp3);
+                            end
+                            
+                            triu(P(:,:,jj,ii+1)) == triu(squeeze(sum(tmp,1)));                            
+                        end
+                    end
+                    this.w_lb <= u(1,:) <= this.w_ub;
+                    this.a_lb <= u(2,:) <= this.a_ub;
+                    this.v_lb <= z(4,:) <= this.v_ub;
+                    
+                    cvx_end
+                    
+                    % if infeasbile
+                    if strcmp(cvx_status,'Infeasible')
+                        sprintf('Robot.m, line %d',MFileLineNr())
+                        error('inf')
+                    end
+                    
+                    %% determine whether to change the trust region
+                    %
+                    
+                    % compare the change in the objective function.
+                    % true objective values
+                    obj_prev = this.cmpObj(xref,Pref);
+                    obj_cur = this.cmpObj(x,P);
+                    % approximate objective values
+                    obj_aprx_prev = this.cmpObjAprx(xref,Pref);
+                    obj_aprx_cur = cvx_optval;
+                    
+                    % this snippet is used to test whether cvx obj is
+                    % correctly formulated. cmpObjAprx gives the correct
+                    % result. erros in cvx obj has been fixed by using
+                    % cmpObjAprx. leave this code for record.
+                    %{
+                    optcvx = cvx_optval;
+                    for ii = 1:N
+                        for jj = 1:this.gmm_num
+                            for ll = 1:this.gmm_num
+                                optcvx = optcvx+this.wt(jj)*(log(det(P(:,:,ll,ii+1)))/2+log(2*pi));
+                            end
+                        end
+                    end
+                    %}
+                    
+                    sprintf('Robot.m, line %d',MFileLineNr())
+%                     display(optcvx)
+                    display('approximate objective value:/n')
+                    display(this.cmpObjAprx(x,P))                                       
+                    
+                    % here we use the difference between the actual gamma and
+                    % gamma_aprx to decide the region.
+                    is_in_fov = zeros(this.gmm_num,N);
+                    gamma_exact = zeros(this.gmm_num,N);
+                    gamma_aprx = zeros(this.gmm_num,N);
+                    tmp_rbt = this;
+                    for ii = 1:N
+                        for jj = 1:this.gmm_num
+                            tar_pos = x(2*jj-1:2*jj,ii+1); % use each gmm component mean as a possible target position
+                            % actual inFOV
+                            tmp_rbt.state = z(:,ii+1);
+                            is_in_fov(jj,ii) = tmp_rbt.inFOV(tar_pos);
+                            
+                            % exact gamma
+                            gamma_exact(jj,ii) = gam(z(1:2,ii+1),z(3,ii+1),...
+                                tar_pos,alp1,alp2,alp3);
+                            
+                            % approximated inFOV
+                            gamma_aprx(jj,ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
+                                tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
+                        end
+                    end
+                    
+%                     tmp_ratio = zeros(this.gmm_num,N);
+                    tmp_dif = zeros(this.gmm_num,N);
+                    for ii = 1:N
+                        for jj = 1:this.gmm_num
+                            tmp_dif(jj,ii) = abs(gamma_aprx(jj,ii)-gamma_exact(jj,ii));
+%                             tmp_ratio(jj,ii) = abs((gamma_aprx(jj,ii)-gamma_exact(jj,ii))/max(gamma_exact(jj,ii),0.001));
+                        end
+                    end
+                    
+                    tmp_z_dif = zeros(3,N+1);
+                    inc_flag = false(3,1); % if true, increase the trust region
+                    
+                    % if the difference between exact and estimated gamma
+                    % is small, either increase the trust region or jump
+                    % out the inner while loop
+                    % if max(tmp_ratio) <= 0.1
+                    if max(tmp_dif) <= 0.2
+                        % determine if the optimal solution reaches the
+                        % trust region boundary
+                        for ii = 1:N+1
+                            tmp_z_dif(:,ii) = z(1:3,ii)-zref(1:3,ii);
+                        end
+                        
+                        for jj = 1:3
+                            if max(abs(abs(tmp_z_dif(jj,:))-tr(jj))) <= 0.001
+                                inc_flag(jj) = true;
+                                break
+                            end
+                        end
+                        
+                        %                         for jj = 1:3
+                        %                             if inc_flag(jj)
+                        %                                 tr(jj,:) = tr(jj,:)*tr_inc;
+                        %                             end
+                        %                         end
+                        
+                        if sum(inc_flag) > 0
+                            tr = tr*tr_inc;
+                            cprintf('Red',sprintf('Robot.m, line %d. trust region enlarged\n',MFileLineNr()))
+                        else
+                            % if no increment is needed, break from the
+                            % inner loop
+                            cprintf('Cyan',sprintf('Robot.m, line %d. trust region unchanged\n',MFileLineNr()))
+                            break
+                        end
+                        display(tr)
+                        
+                        % shrink trust region
+                    else
+                        tr = tr*tr_dec;
+                        cprintf('Green',sprintf('Robot.m, line %d. trust region shrinked\n',MFileLineNr()))
+                        display(tr)
+                    end
+                    
+                end
+                
+                % assign value for next iteration
+                zref = z;
+                uref = u;
+                xref = x;
+                P_pred_ref = P_pred;
+                
+                %%% note sure if this is necessary, but I encounter cases
+                %%% where P_pred contains singular or non-psd terms. Can
+                %%% add the min eigvalue to make all terms psd. Haven't written code yet                
+                
+                
+                % coompute Kref using Ricatti equation
+                for ii = 1:N
+                    for jj = 1:this.gmm_num
+                        C = del_h(xref(2*jj-1:2*jj,ii),zref(1:2,ii));
+                        Kref(2*jj-1:2*jj,2*ii-1:2*ii) = P_pred(:,:,jj,ii)*C'/(C*P_pred(:,:,jj,ii)*C'+R);
+                    end
+                end
+                
+                % terminating condition: the actual in/out FOV is
+                % consistent with that of planning
+                dif = max(abs(is_in_fov-gamma_exact));
+                if dif < 0.2
+                    %                     display ('Robot.m line 829')
+                    %                     display(P)
+                    break
+                else
+                    cprintf('Blue',sprintf('Robot.m, line %d.  gamma_exact is not close',MFileLineNr()))
+                    display(is_in_fov)
+                    display(gamma_exact)
+                end
+                
+                alp1 = alp1*alp_inc;
+                alp2 = alp2*alp_inc;
+                alp3 = alp3*alp_inc;
+                
+%                 display ('Robot.m line 522')
+%                 display (alp1)
+%                 display (alp2)
+%                 display (alp3)
+            end
+            
+            optz = zref;
+            optu = uref;
+            
+            % visualize the planned path
+            this.plotPlannedTraj(optz,xref,fld)
+%             }
+        end
+        
+        function [optz,optu] = cvxPlanner_kf(this,fld,optz,optu) % cvxPlanner(this,fld,init_sol)
+            % this function is used with KF. The purpose is to test the
+            % planning algorithm when using KF (a simpler case than gmm).
+            
+            % planing in non-Gaussian (GMM) belief space
+            N = this.mpc_hor;
+            dt = this.dt;
+            
+            % target
+            tar = fld.target;
+            f = tar.f;
+            del_f = tar.del_f;
+            Q = tar.Q;
+            
+            % sensor
+            h = this.h;
+            del_h = this.del_h;
+            R = this.R;
+            alp1 = this.alp1;
+            alp2 = this.alp2;
+            alp3 = this.alp3;
+            alp_inc = 2; % increament paramter for alpha
+            gam = @this.gam;
+            gam_aprx = @this.gam_aprx;
+           	p_aprx = @this.p_aprx;
+            
+            % trust region
+            tr_inc = this.tr_inc;
+            tr_dec = this.tr_dec;
+            
+            % set up simulation             
+            if isempty(optz)
+                prev_state = [];
+            else
+                prev_state = struct('optz',optz,'optu',optu);
+            end
+            
+            init_sol = genInitState_kf(this,fld,prev_state);
+            
+            zref = init_sol.z;
+            uref = init_sol.u;
+            xref = init_sol.x;
+            Kref = init_sol.K;
+            P_pred_ref = init_sol.P_pred;
+            
+            % outer loop: change alpha in \gamma modeling
+            while (1)
+                % inner loop: change the trust region
+                
+                % trust region for approximating gamma. Trust region is the
+                % stepsize of change, i.e. abs(z-zref)
+                tr = zeros(3,N); % bound of stepsize
+                for ii = 1:N
+                    for jj = 1:3
+                        tmp = 0.1*zref(jj,ii+1);
+                        if tmp == 0
+                            % the trust region of heading change is smaller than
+                            % the trust region for position
+                            if jj == 3                                
+                                tmp = 0.1;
+                            else
+                                tmp = 1;
+                            end
+                        end
+                        tr(jj,ii) = abs(tmp);                      
+                    end
+                end
+                
+                while(1)
+                    %% solving sequential cvx
+                    % robot state and control
+                    cvx_begin sdp
+                    variables z(4,N+1) u(2,N) x(2,N+1)
+                    variable P(2,2,N+1) semidefinite
+                    % debug purpose
+                    variable x_pred(2,N)
+                    variable P_pred(2,2,N) semidefinite
+                    
+                    % auxiliary variable
+                    expression t(N+1,1)
+                    % obj
+                    for ii = 1:N+1
+                        t(ii) = trace(P(:,:,ii));
+                    end
+                    
+                    minimize sum(t)
+                    
+                    % initial value
+                    z(:,1) == this.state;
+                    x(:,1) == this.est_pos(:);
+                    triu(P(:,:,1)) == triu(this.P);
+                    
+                    % constraints on the go
+                    for ii = 1:N
+                        % linearize using previous result
+                        % robot state
+                        z(:,ii+1) == z(:,ii)+...
+                            [z(4,ii)*cos(zref(3,ii))-zref(4,ii)*sin(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            z(4,ii)*sin(zref(3,ii))+zref(4,ii)*cos(zref(3,ii))*(z(3,ii)-zref(3,ii));
+                            u(:,ii)]*dt;
+                        [fld.fld_cor(1);fld.fld_cor(3)]<=z(1:2,ii+1)<=[fld.fld_cor(2);fld.fld_cor(4)];
+                        
+                        % trust region constraints
+                        [-tr(:,ii) <= z(1:3,ii+1)-zref(1:3,ii+1) <= tr(:,ii)];
+                        
+                        % target prediction
+                        %                     for jj = 1:this.gmm_num
+                        A = del_f(x(:,ii));
+                        if isempty (zref)
+                            C = del_h(x(:,ii),z(1:2,ii));
+                        else
+                            C = del_h(xref(:,ii),zref(1:2,ii));
+                        end
+                        
+                        % forward prediction
+                        % mean
+                        x_pred(:,ii) == f(x(:,ii));
+                        % covariance
+                        triu(P_pred(:,:,ii)) == triu(A*P(:,:,ii)*A'+Q);
+                        
+                        % mean
+                        %%%%% note: for now, I assume the mean is not
+                        %%%%% affected by measurement in planning
+                        x(:,ii+1) == x_pred(:,ii);
+                        
+                        % covariance
+                        T = Kref(:,2*ii-1:2*ii)*C;
+                        expression tmp(2,2)
+                        tmp(1,1) = p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                            P_pred(1,1,ii),P_pred(2,1,ii),xref(:,ii+1),...
+                            T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,1,ii),P_pred_ref(2,1,ii),alp1,alp2,alp3);
+                        tmp(1,2) = p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                            P_pred(1,2,ii),P_pred(2,2,ii),xref(:,ii+1),...
+                            T(1,1),T(1,2),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(1,2,ii),P_pred_ref(2,2,ii),alp1,alp2,alp3);
+                        tmp(2,2) = p_aprx(z(1:2,ii+1),z(3,ii+1),...
+                            P_pred(2,2,ii),P_pred(1,2,ii),xref(:,ii+1),...
+                            T(2,2),T(2,1),zref(1:2,ii+1),zref(3,ii+1),P_pred_ref(2,2,ii),P_pred_ref(2,1,ii),alp1,alp2,alp3);
+                        
+                        triu(P(:,:,ii+1)) == triu(tmp);
+                    end
+                    this.w_lb <= u(1,:) <= this.w_ub;
+                    this.a_lb <= u(2,:) <= this.a_ub;
+                    this.v_lb <= z(4,:) <= this.v_ub;
+                    
+                    cvx_end
+                   
+                    % if infeasbile
+                    if strcmp(cvx_status,'Infeasible')
+                        sptrinf('Robot.m, line %d',MFileLineNr())
+                        error('inf')
+                    end
+                    
+                    %% determine whether to change the trust region 
+                    % here we use the difference between the actual gamma and
+                    % gamma_aprx to decide the region.
+                    is_in_fov = zeros(N,1);
+                    gamma_exact = zeros(N,1);
+                    gamma_aprx = zeros(N,1);
+                    tmp_rbt = this;
+                    for ii = 1:N
+                        tar_pos = x(:,ii+1); % use each gmm component mean as a possible target position
+                        % actual inFOV
+                        tmp_rbt.state = z(:,ii+1);
+                        is_in_fov(ii) = tmp_rbt.inFOV(tar_pos);
+                        
+                        % exact gamma
+                        gamma_exact(ii) = gam(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,alp1,alp2,alp3);
+                        
+                        % approximated inFOV
+                        gamma_aprx(ii) = gam_aprx(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,zref(1:2,ii+1),zref(3,ii+1),alp1,alp2,alp3);
+                        
+                    end
+                    
+                    % ratio = (gamma_aprx-gamma_exact)/gamma_exact
+                    tmp_ratio = zeros(N,1);
+                    for ii = 1:N
+                        tmp_ratio(ii) = abs((gamma_aprx(ii)-gamma_exact(ii))/max(gamma_exact(ii),0.001));
+                    end
+                    
+                    tmp_z_dif = zeros(3,N+1);
+                    inc_flag = false(3,1); % if true, increase the trust region                   
+                    
+                    % if the difference between exact and estimated gamma
+                    % is small, either increase the trust region or jump
+                    % out the inner while loop
+                    if max(tmp_ratio) <= 0.1                        
+                        % determine if the optimal solution reaches the 
+                        % trust region boundary
+                        for ii = 1:N+1
+                            tmp_z_dif(:,ii) = z(1:3,ii)-zref(1:3,ii);                            
+                        end
+                        
+                        for jj = 1:3
+                           if max(abs(abs(tmp_z_dif(jj,:))-tr(jj))) <= 0.001
+                                inc_flag(jj) = true;
+                                break
+                           end                                                       
+                        end
+                        
+%                         for jj = 1:3
+%                             if inc_flag(jj)
+%                                 tr(jj,:) = tr(jj,:)*tr_inc;
+%                             end
+%                         end
+                        if sum(inc_flag) > 0
+                            tr = tr*tr_inc;
+                            cprintf('Red',sprintf('Robot.m, line %d. trust region enlarged\n',MFileLineNr()))
+                        else
+                            % if no increment is needed, break from the
+                            % inner loop
+                            cprintf('Cyan',sprintf('Robot.m, line %d. trust region unchanged\n',MFileLineNr()))
+                            break
+                        end                        
+                        display(tr)
+                        
+                    % shrink trust region
+                    else
+                        tr = tr*tr_dec;
+                        cprintf('Green',sprintf('Robot.m, line %d. trust region shrinked\n',MFileLineNr()))
+                        display(tr)
+                    end
+                    
+                end
+                
+                % assign value for next iteration
+                zref = z;
+                uref = u;
+                xref = x;                
+                P_pred_ref = P_pred;
+                Pref = P;
+                
+                % compute Kref using Ricatti equation 
+                for ii = 1:N
+                    C = del_h(xref(:,ii),zref(1:2,ii));
+                    Kref(:,2*ii-1:2*ii) = P_pred(:,:,ii)*C'/(C*P_pred(:,:,ii)*C'+R);
+                end
+                
+                % terminating condition: the actual in/out FOV is
+                % consistent with that of planning
+                dif = max(abs(is_in_fov-gamma_exact));
+                if dif < 0.2
+%                     display ('Robot.m line 829')
+%                     display(P)
+                    break
+                else
+                    cprintf('Blue',sprintf('Robot.m, line %d.  gamma_exact is not close',MFileLineNr()))
+                    display(is_in_fov)
+                    display(gamma_exact)
+                end                               
+                
+                alp1 = alp1*alp_inc;
+                alp2 = alp2*alp_inc;
+                alp3 = alp3*alp_inc;
+                
+%                 display ('Robot.m line 838')
+%                 display (alp1)
+%                 display (alp2)
+%                 display (alp3)
+            end
+            
+            optz = zref;
+            optu = uref;
+            
+            % visualize the planned path
+            this.plotPlannedTraj(optz,xref,fld)
+%             }
+        end
+     
         function [optz,optu] = ngPlanner(this,fld,optz,optu)
             % use the multi-layer approach similar to Sachin's work. Fix
             % the parameter for the sensor, solve path planning. Then
@@ -1358,14 +2677,95 @@
             val = 0.1*val;
 %             val = 0;
         end    
-
+        
+        % for KF
+        % not in use for KF case now
+        function val = getObj_kf(this,s,snum) % not in use
+            x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
+            P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
+            
+            N = this.mpc_hor;
+            val = 0;
+            for ii = 1:N+1
+               for jj = 1:this.gmm_num
+                   val = val+trace(P(:,:,jj,ii));
+               end
+            end
+            val = -val;
+        end    
+        
         function val = getQuadObj(this,x,snum)
             % linear quadratic term in the objective function
             val = 0;
 %             u = this.convState(x,snum,'u');
 %             val = sum(sum(u.^2));
         end
-    
+        
+        % compute the exact value (using 0-th approx) of objective function
+        function val = cmpObj(this,z,P)
+            N = this.mpc_hor;
+            
+            if (nargin < 3)
+                % this case means x is an augmented parameter containing x and P              
+                x = reshape(z(1:2*this.gmm_num*(N+1)),2*this.gmm_num,N+1);
+                P = reshape(z(2*this.gmm_num*(N+1)+1:end),2,2,this.gmm_num,N+1);                
+            else 
+                x = z;
+            end
+            
+            val = 0;
+            for ii = 2:N+1
+               for jj = 1:this.gmm_num
+                   tmp = 0;
+                   for ll = 1:this.gmm_num
+                       P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/2; % numerical issues happen that makes P non symmetric
+                       tmp = tmp+mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
+                   end                   
+                   val = val+this.wt(jj)*log(tmp);
+               end
+            end
+            val = -val;
+        end
+        
+        % compute the approximate value of objective function using the
+        % same formula as the cvx obj, which is the upper found of cmpObj
+        function val = cmpObjAprx(this,x,P)
+            N = this.mpc_hor;
+            val = 0;
+            for ii = 2:N+1
+               for jj = 1:this.gmm_num    
+                   tmp = 0;
+                   for ll = 1:this.gmm_num
+%                        tmp = tmp+log(mvnpdf(x(2*ll-1:2*ll,ii),x(2*jj-1:2*jj,ii),P(:,:,jj,ii)));
+                       tmp = tmp+log(mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii)));
+                       display(P(:,:,ll,ii))
+                   end
+                   val = val+this.wt(jj)*tmp;
+               end
+            end        
+            val = -val;
+        end
+        
+        % compute the approximate merit function which put nonlinear
+        % equality and inequalities into the objective function (but not
+        % linearizing them)
+         function val = cmpMerit(this,z,u,zref,x,P,P_pred,Kref,mu)
+            N = this.mpc_hor;
+            val = 0;
+            for ii = 2:N+1
+               for jj = 1:this.gmm_num    
+                   tmp = 0;
+                   for ll = 1:this.gmm_num
+                       P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/ 2; % numerical issues happen that makes P non symmetric
+                       tmp = tmp+mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
+                   end
+                   val = val+this.wt(jj)*log(tmp);
+               end
+            end        
+            val = -val;
+            val = val + mu*(this.penKinConstr(z,u,zref)+this.penBelConstr(z,x,P,P_pred,Kref));
+         end
+        
         %% constraints
         % for general NGP
         function h = getKinConstr(this,s,snum)
@@ -1594,7 +2994,56 @@
             end
             h = [val1;val2];
         end
-    
+
+        % compute the value of nonlinear contraints in sqp obj
+        function h = penKinConstr(this,z,u,zref)
+            % compute the l1 penalty of contraint
+            h = 0;
+            N = this.mpc_hor;
+            dt = this.dt; 
+            for ii = 1:N
+                h = h+z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)) 0; z(4,ii)*sin(z(3,ii)) 0;...
+                    1 0; 0 1]*u(:,ii)*dt);
+            end      
+            h = sum(abs(h));
+        end
+        
+        function h = penBelConstr(this,z,x,P,P_pred,Kref)
+            % compute the l1 penalty of contraint
+            h = 0;
+            N = this.mpc_hor;
+            dt = this.dt;
+            gam = @this.gam;
+            del_h = this.del_h;
+            alp1 = this.alp1;
+            alp2 = this.alp2;
+            alp3 = this.alp3;
+            
+            for ii = 1:N
+                % target prediction
+                for jj = 1:this.gmm_num
+                    %%%%% note: this part may need change later. In
+                    %%%%% fact, linearziation should be wrt
+                    %%%%% reference values
+                    C = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                    
+                    % covariance
+                    tmp_sum = zeros(2,2);
+                    T = Kref(2*jj-1:2*jj,2*ii-1:2*ii)*C;
+                    
+                    for ll = 1:this.gmm_num
+                        %%% note: gamma depends on ll, C depends
+                        %%% only on jj
+                        tar_pos = x(2*ll-1:2*ll,ii+1); % use each gmm component mean as a possible target position                        
+                        tmp_sum = tmp_sum+this.wt(ll)*gam(z(1:2,ii+1),z(3,ii+1),...
+                        tar_pos,alp1,alp2,alp3)*T*P_pred(:,:,jj,ii);
+                    end
+                    
+                    h = h+sum(sum(abs(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum)));
+                end
+            end
+        end
+        
         %% conversion between the collection of states and seperate states
         function t = convState(this,s,snum,schar)
            % convert the state collection s into a corresponding state variable
