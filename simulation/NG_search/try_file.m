@@ -548,9 +548,9 @@ glinlabel = labelResult(glin(xp),'glin',N);
 %}
 %% draw FOV using gamma
 % first run simSetup.m (no need to run gameSim.m since simSetup.m is a standalone file)
-alp1 = 10;
-alp2 = 10;
-alp3 = 10;
+alp1 = 1;
+alp2 = 1;
+alp3 = 1;
 z = [5;5];
 theta = pi/4;
 xset = 0:0.1:20;
@@ -571,4 +571,3 @@ xlabel('X coordiante','FontSize',33)
 ylabel('Y coordiante','FontSize',33)
 zlabel('Z coordiante','FontSize',33)
 title('Approximate Function for \gamma','FontSize',38)
-legend('\gamma=10')
