@@ -4,14 +4,14 @@ addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % soem issue occurs when v
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 50;
+sim_len = 30;
 dt = 0.5;
-plan_mode = 'lin'; % choose the mode of simulation: linear: use KF. nl: use gmm
+plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'rb'; % rb, ran, br, lin
+    sensor_type = 'lin'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
@@ -60,7 +60,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [22;33;pi/2;0];%[15;5;pi/2;0];%[15;10;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [15;10;pi/2;0]; %[22;33;pi/2;0];%[15;5;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -86,7 +86,7 @@ if strcmp(sensor_type,'rb')
 %     inPara_rbt.R = 5*eye(2);
     inPara_rbt.h = @(x,z) x.^2-z.^2; %%%%% change this in the future. Note, R should be scaled accordingly, o.w. all particles may have very small/large weights
     inPara_rbt.del_h = @(x,z) [2*x(1) 0; 0 2*x(2)]; % z is the robot state.
-    inPara_rbt.R = 25*eye(2);
+    inPara_rbt.R = 400*eye(2);
     % inPara_rbt.dist_rb = 20;
 elseif strcmp(sensor_type,'ran')
     % % range-only sensor
@@ -101,7 +101,7 @@ elseif strcmp(sensor_type,'lin')
     % lienar sensor model for KF use
     inPara_rbt.h = @(x,z) x-z;
     inPara_rbt.del_h = @(x,z) [1 0; 0 1]; % z is the robot state.
-    inPara_rbt.R = 5*eye(2);    
+    inPara_rbt.R = 5*eye(2); %0.01
 end
 
 % define gamma model
@@ -169,7 +169,7 @@ cfg.max_penalty_iter = 5; %8; % max iter for penalty loop
 
 % gamma loop
 cfg.gamma_tol = 0.05; % tolerance for gamma iteration
-cfg.max_gam_iter = 3; 
+cfg.max_gam_iter = 4; 
 % cfg.max_merit_coeff_increases = 5;
 cfg.merit_coeff_increase_ratio = 10; %this.mu_inc
 
