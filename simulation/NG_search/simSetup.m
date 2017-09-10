@@ -4,24 +4,24 @@ addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % soem issue occurs when v
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 30;
+sim_len = 15;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'lin'; %rb % rb, ran, br, lin
+    sensor_type = 'rb'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = false;
+save_video = true;
 
 %% Set field %%%
 % target info
-target.pos = [25.5;35.5]; %[25.5;30.5]; %[25.5;25.5];
+target.pos = [15;15]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
@@ -33,7 +33,7 @@ target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.3;-0.3];[0;0];
 target.Q = 0*eye(2); % Covariance of process noise model for the target
 
-% setup for moving target, KF
+% % setup for moving target, KF
 % target.f = @(x) x+[-0.5;0.5];
 % target.del_f = @(x) eye(2);
 % % this A, B is temporily defined to make this part compatible with KF in
@@ -41,7 +41,7 @@ target.Q = 0*eye(2); % Covariance of process noise model for the target
 % % Make sure A corresponds to del_f and B is the affine term of f.
 % target.A = eye(2);%[0.99 0;0 0.98];
 % target.B = [-0.5;0.5]; %[0.3;-0.3];[0;0];
-% target.Q = 0.04*eye(2); % Covariance of process noise model for the target
+% target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
 
 target.model_idx = 1;
 target.traj = target.pos;
@@ -60,7 +60,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [15;10;pi/2;0]; %[22;33;pi/2;0];%[15;5;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [10;10;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[15;5;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -135,7 +135,7 @@ elseif strcmp(plan_mode,'nl')
 %     inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 %     inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
     % PF
-    inPara_rbt.max_gmm_num = 3;
+    inPara_rbt.max_gmm_num = 6;
     [X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
     inPara_rbt.particles = [X(:),Y(:)]';
     inPara_rbt.est_pos = target.pos+ [5;-5];

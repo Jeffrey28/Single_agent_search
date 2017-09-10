@@ -334,12 +334,31 @@
             w = w/sum(w);
             
             % resampling
+            % opt 1: plain random resampling
+            %{
             idx = randsample(1:np, np, true, w);
-            new_particles = particles(:,idx);
+            new_particles = pred_par(:,idx);
             this.particles = new_particles;
+            %}
             
-            %%%%% may need to deal with practical issues in PF, to be
-            %%%%% filled later
+            % opt 2: low variance sampling
+            %
+            M = 1/np;
+            U = rand(1)*M;
+            new_particles = zeros(size(pred_par));
+            tmp_w = w(1);
+            ii = 1;
+            jj = 1;
+            while (jj <= np)
+                while (tmp_w < U+(jj-1)*M)
+                    ii = ii+1;
+                    tmp_w = tmp_w+w(ii);                    
+                end
+                new_particles(:,jj) = pred_par(:,ii);
+                jj = jj + 1;
+            end
+            this.particles = new_particles;
+            %}
             
             %% gmm fitting
             max_gmm_num = this.max_gmm_num; % maximum gmm component number
@@ -368,7 +387,7 @@
             this.est_pos = this.gmm_mu(:);
             for ii = 1:numComponents
                 this.P{ii} = this.gmm_sigma(:,:,ii);
-            end
+            end 
         end
         
         %% planning
@@ -862,7 +881,9 @@
             x_olp = zeros(2*this.gmm_num,N+1);
             x_olp(:,1) = this.est_pos(:);
             for ii = 1:N
-                x_olp(:,ii+1) = f(x_olp(:,ii));
+                for jj = 1:this.gmm_num
+                    x_olp(2*jj-1:2*jj,ii+1) = f(x_olp(2*jj-1:2*jj,ii));
+                end
             end            
             init_state.x_olp = x_olp;
             init_state.x = x_olp;
@@ -1393,7 +1414,9 @@
             
             N = this.mpc_hor;
             val = 0;
+            [~,max_idx] = max(this.wt);
             for ii = 2:N+1
+               %
                for jj = 1:this.gmm_num
                    tmp = 0;
                    for ll = 1:this.gmm_num                       
@@ -1406,19 +1429,21 @@
                        end                       
                        tmp = tmp+this.wt(ll)*mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
                    end
-                   tmp_dis = sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2);
+%                    tmp_dis = sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2);
 %                    tmp_dis = abs(sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2)-1); % distance between sensor and MLE target position
                    
                    % added on 8/20
                    % temporarily add the diff between gamma and 1 as
                    % penalty
-                   tar_pos = x(2*jj-1:2*jj,ii);                  
+%                    tar_pos = x(2*jj-1:2*jj,ii);                  
 
-                   val = val-this.wt(jj)*log(tmp)+this.wt(jj)*tmp_dis+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
-               end               
-               val = val+sum(u(:,ii-1).^2); % penalize on control input
+                   val = val-this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
+               end         
+               %}
+%                val = val+sum(u(:,ii-1).^2); % penalize on control input
+               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
             end
-            val = 0.1*val;
+%             val = 0.1*val;
 %             val = 0;
         end    
 
