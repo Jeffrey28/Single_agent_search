@@ -539,14 +539,23 @@ for iii = 1:N+1
         tar_pos,this.alp1,this.alp2,this.alp3)
 end
 %}
-%% check constraints
+%% check obj grad and constraints
 %{
 hlabel = labelResult(h(xp),'h',N);
 hlinlabel = labelResult(hlin(xp),'hlin',N);
 hjaclabel = labelResult(hjac,'hjac',N);
 glinlabel = labelResult(glin(xp),'glin',N);
+fgradlabel = labelResult(fgrad,'fgrad',N)';
+
+% check xp-x
+xdiff = xp-x;
+xdifflabel = labelResult(xdiff,'s',N);
+xlabel = labelResult(x,'s',N);
+xplabel = labelResult(xp,'s',N);
+
 %}
 %% draw FOV using gamma
+%{
 % first run simSetup.m (no need to run gameSim.m since simSetup.m is a standalone file)
 alp1 = 1;
 alp2 = 1;
@@ -571,3 +580,44 @@ xlabel('X coordiante','FontSize',33)
 ylabel('Y coordiante','FontSize',33)
 zlabel('Z coordiante','FontSize',33)
 title('Approximate Function for \gamma','FontSize',38)
+%}
+
+%% check obj and gamma
+%{
+[~,max_idx] = max(this.wt);
+cfg = this.cfg;
+snum = cfg.snum;
+xx = this.convState(x,snum,'x');
+z = this.convState(x,snum,'z');
+PP = this.convState(x,snum,'P');
+val1 = 0;
+val2 = 0;
+for iii = 2:N+1
+    %
+    for jjj = 1:this.gmm_num
+        tmp = 0;
+        for lll = 1:this.gmm_num
+            PP(:,:,lll,iii) = (PP(:,:,lll,iii)+PP(:,:,lll,iii)')/2; % numerical issues happen that makes P non symmetric
+            %                        sprintf('Robot.m, line %d', MFileLineNr())
+            %                        display(P(:,:,ll,ii))
+            mineigv = min(eig(PP(:,:,lll,iii)));
+            if mineigv <= 0
+                PP(:,:,lll,iii) = PP(:,:,lll,iii)+(-mineigv+0.01)*eye(size(PP(:,:,lll,iii),1));
+            end
+            tmp = tmp+this.wt(lll)*mvnpdf(xx(2*jjj-1:2*jjj,iii),xx(2*lll-1:2*lll,iii),PP(:,:,lll,iii));
+        end
+        %                    tmp_dis = sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2);
+        %                    tmp_dis = abs(sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2)-1); % distance between sensor and MLE target position
+        
+        % added on 8/20
+        % temporarily add the diff between gamma and 1 as
+        % penalty
+        %                    tar_pos = x(2*jj-1:2*jj,ii);
+        
+        val1 = val1-this.wt(jjj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
+    end
+    %
+    %                val = val+sum(u(:,ii-1).^2); % penalize on control input
+    val2 = val2+sum((xx(2*max_idx-1:2*max_idx,iii)-z(1:2,iii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+end
+%}

@@ -381,6 +381,15 @@
             this.gmm_num = numComponents;
             this.gmm_mu = best_model.mu';
             this.gmm_sigma = best_model.Sigma;
+            % optimization will generate bad behavior if sigma is too
+            % small. so constrain the min sig
+            for ii = 1:this.gmm_num
+                mineigv = min(eig(this.gmm_sigma(:,:,ii)));
+                if mineigv < 1
+                    this.gmm_sigma(:,:,ii) = 1*eye(2);
+                end
+            end
+            
             this.wt = best_model.PComponents';
             
             % convert the data form to be compatible with the main code
@@ -454,6 +463,7 @@
             [s,snum] = this.setState(zref,uref,xref,x_pred_ref,Pref,P_pred_ref,Kref);
             
             cfg.snum = snum;
+            this.cfg = cfg;
             
             %%% functions and parameters for scp                     
             %%% objective
@@ -598,12 +608,11 @@
                 % terminating condition: the actual in/out FOV is
                 % consistent with that of planning
                 if max(tmp_dif) <= cfg.gamma_tol %0.05
-                    fprintf('  [gamma loop] Robot.m, line %d, robot state:\n', MFileLineNr())
+                    fprintf('  [gamma loop] Robot.m, line %d\n', MFileLineNr())
                     fprintf('  Gamma error is within tolerance, break out of gamma loop\n')
                     break
                 elseif gam_iter >= cfg.max_gam_iter 
-                    fprintf('  [gamma loop] Robot.m, line %d, robot state:\n', MFileLineNr())
-                    fprintf('  max gamma iteration reached. break out of gamma loop\n')
+                    cprintf('Red',sprintf('  [gamma loop] Robot.m, line %d.  max gamma iteration reached. break out of gamma loop\n',MFileLineNr()))
                     break
                 else
                     cprintf('Magenta',sprintf('  [gamma loop] Robot.m, line %d.  gamma_exact is not close, go to another iteration.\n',MFileLineNr()))
@@ -1171,17 +1180,15 @@
                     % objective as the resulting cvx_optval is used further below.
                     
                     
-                    cvx_begin quiet %YOUR CODE HERE
+                    cvx_begin quiet
                         variables xp(dim_x, 1);
                         %                 minimize fquadlin(x) + fval + (x'*Q'+q+fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                         minimize fquadlin(xp) + fval + (fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                         subject to
-
-                        %                     A_ineq*xp <= b_ineq;
-                        %                     A_eq*xp == b_eq;
-                        hlin(xp) == 0;
-                        glin(xp) <= 0;
-                        norm(xp-x,2) <= trust_box_size;
+                            hlin(xp) == 0;
+                            glin(xp) <= 0;
+                            
+                            norm(xp-x,2) <= trust_box_size;
                     cvx_end
                     
                     tmp_cnt = tmp_cnt+1;
@@ -1440,8 +1447,8 @@
                    val = val-this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
                end         
                %}
-%                val = val+sum(u(:,ii-1).^2); % penalize on control input
-               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+               val = val+sum(u(:,ii-1).^2); % penalize on control input
+               val = val+abs(sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2)-2); % penalize the distance between sensor and MLE target postion with maximal weight
             end
 %             val = 0.1*val;
 %             val = 0;
@@ -1478,7 +1485,7 @@
             x = this.convState(s,snum,'x'); 
             xpred = this.convState(s,snum,'x_pred'); 
             P = this.convState(s,snum,'P'); 
-            P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));
+            P_pred = this.convState(s,snum,'P_pred');
             K = this.convState(s,snum,'K');
 %             h = 0;
             
@@ -1596,9 +1603,9 @@
         
         function glin = getLinIneqConstr(this,s,snum,fld)
             % linear inequality constraints
-            z = this.convState(s,snum,'z'); %s(snum(1,1),snum(1,2));
-            u = this.convState(s,snum,'u');%s(snum(2,1),snum(2,2));
-            
+            z = this.convState(s,snum,'z');
+            u = this.convState(s,snum,'u');
+                        
             N = this.mpc_hor;            
 %             glin = [];
             % bounds on states and input
@@ -1611,7 +1618,29 @@
             for ii = 1:N
                 glin = [glin;z(1:2,ii+1)-[fld.fld_cor(2);fld.fld_cor(4)];...
                     [fld.fld_cor(1);fld.fld_cor(3)]-z(1:2,ii+1)];
+            end            
+        end
+        
+        % other convex constraints that are not linear equ/inequ
+        % constraints.
+        % not finished, not working, and thus not in use.
+        % the sdp constraint is kinda hard to formualte in this function to
+        % make it usable for the cvx syntax
+        function cvxcstr = getCvxConstr(this,s,snum)           
+            % psd constraints of P
+            P = this.convState(s,snum,'P');
+            P_pred = this.convState(s,snum,'P_pred');
+            
+            cvxcstr = [];
+            
+            N = this.mpc_hor;
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    cvxcstr = [cvxcstr;P_pred(:,:,jj,ii) == semidefinite(2)];
+                    cvxcstr = [cvxcstr;P(:,:,jj,ii) == semidefinite(2)];
+                end
             end
+                
         end
         
         % for KF        
