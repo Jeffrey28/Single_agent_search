@@ -621,3 +621,7 @@ for iii = 2:N+1
     val2 = val2+sum((xx(2*max_idx-1:2*max_idx,iii)-z(1:2,iii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
 end
 %}
+
+%% test the newly added gradest function from Matlab File Exchange
+z = @(xy) sin(diff(xy)) + xy(2)*exp(xy(1))
+[grad,err ] = gradest(z,[1 1])

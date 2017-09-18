@@ -1,10 +1,10 @@
 %% Sim Setup
-addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
-addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % soem issue occurs when vec function is called (in my code, it happens when using log_det)
+% addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
+% addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % soem issue occurs when vec function is called (in my code, it happens when using log_det)
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 40;
+sim_len = 60;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
@@ -21,27 +21,27 @@ save_video = true;
 
 %% Set field %%%
 % target info
-target.pos = [35;15]; %[15;15]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
+target.pos = [27;26]; %[15;15]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
 % nonlinear model, used for EKF
 % setup for static target, KF
-% target.f = @(x) x;
-% target.del_f = @(x) eye(2);
-% target.A = eye(2);%[0.99 0;0 0.98];
-% target.B = [0;0]; %[0.3;-0.3];[0;0];
-% target.Q = 0*eye(2); % Covariance of process noise model for the target
+target.f = @(x) x;
+target.del_f = @(x) eye(2);
+target.A = eye(2);%[0.99 0;0 0.98];
+target.B = [0;0]; %[0.3;-0.3];[0;0];
+target.Q = 0*eye(2); % Covariance of process noise model for the target
 
 % % setup for moving target, KF
-target.f = @(x) x+[-0.5;0.5];%[0.5;0.5]
-target.del_f = @(x) eye(2);
-% this A, B is temporily defined to make this part compatible with KF in
-% Robot.m. Later clean this part to unify the representation of KF and PF.
-% Make sure A corresponds to del_f and B is the affine term of f.
-target.A = eye(2);%[0.99 0;0 0.98];
-target.B = [-0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
-target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
+% target.f = @(x) x+[0.5;0.5];%[0.5;0.5]
+% target.del_f = @(x) eye(2);
+% % this A, B is temporily defined to make this part compatible with KF in
+% % Robot.m. Later clean this part to unify the representation of KF and PF.
+% % Make sure A corresponds to del_f and B is the affine term of f.
+% target.A = eye(2);%[0.99 0;0 0.98];
+% target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
+% target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
 
 target.model_idx = 1;
 target.traj = target.pos;
@@ -60,7 +60,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [10;10;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[15;5;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[15;5;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -135,7 +135,7 @@ elseif strcmp(plan_mode,'nl')
 %     inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 %     inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
     % PF
-    inPara_rbt.max_gmm_num = 1;%6;
+    inPara_rbt.max_gmm_num = 3;%6;
     [X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
     inPara_rbt.particles = [X(:),Y(:)]';
     inPara_rbt.est_pos = target.pos+ [5;-5];
@@ -143,7 +143,7 @@ elseif strcmp(plan_mode,'nl')
 end
 
 % planning
-inPara_rbt.mpc_hor = 5;%3;
+inPara_rbt.mpc_hor = 3;%3;
 inPara_rbt.dt = dt;
 
 % simulation parameters
@@ -155,7 +155,7 @@ cfg = {};
 % sqp loop
 cfg.initial_trust_box_size = 1;
 cfg.improve_ratio_threshold = .25;
-cfg.min_trust_box_size = 1e-3;%1e-2;%1e-4; % tol for sqp iteration
+cfg.min_trust_box_size = 1e-2;%1e-2;%1e-4; % tol for sqp iteration
 cfg.min_approx_improve = 1e-2;% 1e-4; % tol for sqp iteration
 cfg.trust_shrink_ratio = .1; %this.tr_dec;
 cfg.trust_expand_ratio = 1.5; %this.tr_inc;

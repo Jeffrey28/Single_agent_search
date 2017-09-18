@@ -372,7 +372,7 @@
                     'Regularize',0.001,'CovType','full');
                 AIC(kk)= gmm_model{kk}.AIC;
             end
-            sprintf('Robot.m, Line %d. gmm fitting takes time as:',MFileLineNr());
+            fprintf('Robot.m, Line %d. gmm fitting takes time as:',MFileLineNr());
             toc;
             
             [minAIC,numComponents] = min(AIC);
@@ -391,14 +391,46 @@
             end
             
             this.wt = best_model.PComponents';
+           
+            
+            % ad-hoc way of merging close gmm componenets
+            % needs a more systematic way of doing this later
+            %{
+            for kk = 1:this.gmm_num
+                if kk == this.gmm_num
+                    break
+                end
+                [idx,cetr,sumd] = kmeans(this.gmm_mu',kk);
+                if all(sumd < 2)
+                    break
+                end
+            end
+            
+            if kk < this.gmm_num
+               new_mu = zeros(2,kk);
+               new_sigma = zeros(2,2,kk);
+               new_wt = zeros(kk,1);
+               tmp_P = reshape(this.gmm_sigma,4,this.gmm_num);
+               for ii = 1:kk
+                   new_mu(:,ii) = sum(this.wt(idx==ii)'.*this.gmm_mu(:,idx==ii),2)/sum(this.wt(idx==ii));                   
+                   new_sigma(:,:,ii) = reshape(sum(this.wt(idx==ii)'.*tmp_P(:,idx==ii),2)/sum(this.wt(idx==ii)),2,2);
+                   new_wt(ii) = sum(this.wt(idx==ii));
+               end
+               this.gmm_mu = new_mu;
+               this.gmm_sigma = new_sigma;
+               this.wt = new_wt;
+               this.gmm_num = kk;
+            end
+            %}
             
             % convert the data form to be compatible with the main code
             this.est_pos = this.gmm_mu(:);
-            for ii = 1:numComponents
+            for ii = 1:this.gmm_num %numComponents
                 this.P{ii} = this.gmm_sigma(:,:,ii);
-            end 
+            end
         end
-        
+            
+       
         %% planning
         
         % try re-writing the problem using cvx solver. Different from
@@ -963,7 +995,7 @@
             
             % visualize the seed path
             hold on
-            this.plotSeedTraj(z,x_olp,fld)
+%             this.plotSeedTraj(z,x_olp,fld)
         end
                
         function [init_state] = genInitState_kf(this,fld,prev_state)
@@ -1118,16 +1150,17 @@
 
                 if cfg.f_use_numerical % && ~isempty(f)
                     fval = f(x);
-                    [fgrad, fhess] = this.getNumGradHess(f,x,cfg.full_hessian);
+                    [fgrad, ~] = this.getNumGradHess(f,x,cfg.full_hessian);
+%                     [fgrad, fhess] = this.getNumGradHess(f,x,cfg.full_hessian);
                     % diagonal adjustment
-                    mineig = min(eigs(fhess));
+%                     mineig = min(eigs(fhess));
 %                     if mineig < 0
 %                         fprintf('[sqp loop] Robot.m, line %d', MFileLineNr())
 %                         fprintf('negative hessian detected. adjusting by %.3g\n',-mineig);
 %                         fhess = fhess + eye(dim_x) * ( - mineig);
 %                     end
                 else %if ~isempty(f)
-                    [fval, fgrad, fhess] = f(x);
+%                     [fval, fgrad, fhess] = f(x);
 %                 else
 %                     fval = 0;
 %                     fgrad = 0; 
@@ -1448,7 +1481,8 @@
                end         
                %}
                val = val+sum(u(:,ii-1).^2); % penalize on control input
-               val = val+abs(sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2)-2); % penalize the distance between sensor and MLE target postion with maximal weight
+               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2);
+%                val = val+abs(sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2)-2); % penalize the distance between sensor and MLE target postion with maximal weight
             end
 %             val = 0.1*val;
 %             val = 0;
@@ -1809,11 +1843,19 @@
 %             z = [x(:);P(:)];
 %             f = @this.cmpObj;
             y = f(s);
-            assert(length(y)==1);
+            assert(length(y)==1);           
             
+%             fprintf('          [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+%             fprintf('          time of gradient computation.\n');
+
+%             tic
+%             grad = gradest(f,s);
+%             toc
+            
+            %
+%             tic
             grad = zeros(1,length(s));
             hess = zeros(length(s));
-            
             eps = 1e-5;
             sp = s;
             
@@ -1825,7 +1867,7 @@
                         sp(i) = s(i) - eps/2;
                         ylo = f(sp);
                         sp(i) = s(i);
-                        hess(i,i) = (yhi + ylo - 2*y)/(eps.^2 / 4);
+%                         hess(i,i) = (yhi + ylo - 2*y)/(eps.^2 / 4);
                         grad(i) = (yhi - ylo) / eps;
                     end
                 else
@@ -1833,17 +1875,29 @@
                     hess = this.numerical_jac(@(z) this.numerical_jac(f,z), s);
                     hess = (hess + hess')/2;
                 end
-                mineigv = min(eig(hess));
-                hess = hess+(mineigv+0.1)*eye(length(s));
+%                 mineigv = min(eig(hess));
+%                 hess = hess+(mineigv+0.1)*eye(length(s));
             end
+%             toc
+            %}
         end
         
         % jacobian
-        function grad = getNumJac(this,f,s)
+        function jaco = getNumJac(this,f,s)
+            
+%             fprintf('          [inner sqp loop] Robot.m, line %d\n', MFileLineNr())
+%             fprintf('          time of Jacobian computation.\n');
+
+%             tic
+%             jaco = jacobianest(f,s);
+%             toc
+
             % modified from Pieter Abbeel's CS287            
+            %
+%             tic
             y = f(s);
             
-            grad = zeros(length(y), length(s));
+            jaco = zeros(length(y), length(s));
             
             eps = 1e-5;
             sp = s;
@@ -1854,8 +1908,10 @@
                 sp(i) = s(i) - eps/2;
                 ylo = f(sp);
                 sp(i) = s(i);
-                grad(:,i) = (yhi - ylo) / eps;
-            end            
+                jaco(:,i) = (yhi - ylo) / eps;
+            end  
+%             toc
+            %}
         end
         
         % gradient, hessian        
@@ -2053,22 +2109,6 @@
             
             % draw FOV
             this.drawFOV(z,fld,'plan')
-%             for ii = 1:N+1
-%                 a1 = z(3,ii)-this.theta0;  % A random direction
-%                 a2 = z(3,ii)+this.theta0;
-%                 t = linspace(a1,a2,50);
-%                 x0 = z(1,ii);
-%                 y0 = z(2,ii);
-%                 x1 = z(1,ii) + this.r*cos(t);
-%                 y1 = z(2,ii) + this.r*sin(t);
-%                 plot([x0,x1,x0],[y0,y1,y0],'r--','LineWidth',0.5)
-%             end
-%             
-%             xlim([fld.fld_cor(1),fld.fld_cor(2)]);
-%             ylim([fld.fld_cor(3),fld.fld_cor(4)]);
-%             box on
-%             axis equal
-%             drawnow
         end
         
         function drawFOV(this,z,fld,fov_mode)
