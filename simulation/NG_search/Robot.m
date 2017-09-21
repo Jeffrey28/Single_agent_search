@@ -438,7 +438,7 @@
         % try re-writing the problem using cvx solver. Different from
         % cvxPlanner below, which formulates the problem as a convex P (turns
         % out not!), this one formulates the problem as QP each iteration
-        function [optz,optu, s, snum,merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode) % cvxPlanner(this,fld,init_sol)
+        function [optz,optu, s, snum,merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode,solver) % cvxPlanner(this,fld,init_sol)
             % merit, model_merit, new_merit are the merit function value of
             % x, approx merit value of xp, and merit function value of xp
             
@@ -541,8 +541,6 @@
                 fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
                 fprintf('  gamma loop #%d\n',gam_iter)
                 
-                penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties
-                
                 switch plan_mode
                     case 'lin'
                         objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
@@ -553,48 +551,73 @@
                 %%% objective
                 obj = @(s) this.getObj(s,snum,alp1,alp2,alp3);
                 
-                %% loop 2: penalty iteration
-%                 ctol = 1e-2;
-%                 mu = 0.1;
-                pen_iter = 0;
-                while(1) % loop 2 starts
-                    pen_iter = pen_iter+1;
-                    fprintf('    [Penalty loop] Robot.m, line %d\n', MFileLineNr())                                        
-                    fprintf('    pentaly loop #%d\n',pen_iter);                    
-                    
-                    trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
-                    
-                    objNLineq = @(s) 0; % nonlinear inequality constraint here
-                    objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
-%                     objNLeq = @(s) 0;                   
-                    
-                    %% loop 3: trust region SQP
-                    A_ineq = [];
-                    b_ineq = [];
-                    A_eq = [];
-                    b_eq = [];
-                    
-                    % make initial solution feasible
-                    [s,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
-                    if (~success)
-                        return;
-                    end
-                    
-                    % loop 3 starts
-                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
-                    % loop 3 ends                   
-                    
-                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter                        
-                        break;
-                    end
-%                     trust_box_size = cfg.initial_trust_box_size;
-                    penalty_coeff = cfg.merit_coeff_increase_ratio*penalty_coeff;
-                end % loop 2 ends
+               switch solver
+                   case 'ipopt'
+                       %% loop 2: rely on ipopt itself
+                       objNLineq = @(s) 0; % nonlinear inequality constraint here
+                       objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
+                       % use yalmip to define
+                       sp = sdpvar(length(s),1);
+                       constr = [constrLinIneq(sp) == 0, constrLinEq(sp) == 0,...
+                           objNLineq(sp) == 0, objNLeq(sp) == 0];
+                       opt = sdpsettings('verbose',1,'solver','ipopt','usex0',1);
+%                        tic
+                       sol = optimize(constr,obj(sp),opt);
+                       
+                       if sol.problem == 0
+                           s = sp;
+                       else
+                           break
+                       end
+%                        run_time = toc;
                 
-                if ~success %infea_flag
-                    % if CVS infeasible, directly reuse solution from
-                    % previous step
-                    break
+                   case 'sqp'
+                       penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties
+                       
+                       %% loop 2: penalty iteration
+                       %                 ctol = 1e-2;
+                       %                 mu = 0.1;
+                       pen_iter = 0;
+                       while(1) % loop 2 starts
+                           pen_iter = pen_iter+1;
+                           fprintf('    [Penalty loop] Robot.m, line %d\n', MFileLineNr())
+                           fprintf('    pentaly loop #%d\n',pen_iter);
+                           
+                           trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
+                           
+                           objNLineq = @(s) 0; % nonlinear inequality constraint here
+                           objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
+                           %                     objNLeq = @(s) 0;
+                           
+                           %% loop 3: trust region SQP
+                           A_ineq = [];
+                           b_ineq = [];
+                           A_eq = [];
+                           b_eq = [];
+                           
+                           % make initial solution feasible
+                           [s,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
+                           if (~success)
+                               return;
+                           end
+                           
+                           % loop 3 starts
+                           [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                           % loop 3 ends
+                           
+                           if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
+                               break;
+                           end
+                           %                     trust_box_size = cfg.initial_trust_box_size;
+                           penalty_coeff = cfg.merit_coeff_increase_ratio*penalty_coeff;
+                       end % loop 2 ends
+                                                 
+                    if ~success %infea_flag
+                        % if CVS infeasible, directly reuse solution from
+                        % previous step
+                        break
+                    end
+                    %%% sqp solver ends
                 end
                 
                 x = this.convState(s,snum,'x');
