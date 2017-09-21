@@ -540,12 +540,12 @@ for iii = 1:N+1
 end
 %}
 %% check obj grad and constraints
-%{
-hlabel = labelResult(h(xp),'h',N);
-hlinlabel = labelResult(hlin(xp),'hlin',N);
-hjaclabel = labelResult(hjac,'hjac',N);
-glinlabel = labelResult(glin(xp),'glin',N);
-fgradlabel = labelResult(fgrad,'fgrad',N)';
+%
+hlabel = labelResult(h(xp),'h',this.gmm_num,N);
+hlinlabel = labelResult(hlin(xp),'hlin',this.gmm_num,N);
+hjaclabel = labelResult(hjac,'hjac',this.gmm_num,N);
+glinlabel = labelResult(glin(xp),'glin',this.gmm_num,N);
+fgradlabel = labelResult(fgrad,'fgrad',this.gmm_num,N)';
 
 % check xp-x
 xdiff = xp-x;
@@ -623,5 +623,7 @@ end
 %}
 
 %% test the newly added gradest function from Matlab File Exchange
+%{
 z = @(xy) sin(diff(xy)) + xy(2)*exp(xy(1))
 [grad,err ] = gradest(z,[1 1])
+%}

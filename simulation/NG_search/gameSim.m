@@ -68,20 +68,34 @@ for ii = 1:sim_len
     %
     if strcmp(plan_mode,'lin')
 %         [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
-        [optz,optu,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
     elseif strcmp(plan_mode,'nl')
 %         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
-        [optz,optu,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
     end
     
     merit_set(:,ii) = [merit;model_merit;new_merit];
     
     rbt = rbt.updState(optu);
+    rbt.snum = snum;
 %     fprintf('[main loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
 %     display(rbt.state);
     %}
+    
+    % debug purpose only
+    % show the solution of path planner. Note that z in this solution is
+    % different from optz since optz is computed using kinematic model as
+    % optu (which is same as u here).
+    
+    u = rbt.convState(s,snum,'u');
+    z = rbt.convState(s,snum,'z');
+    x = rbt.convState(s,snum,'x'); 
+    P = rbt.convState(s,snum,'P');
+    x_pred = rbt.convState(s,snum,'x_pred');
+    P_pred = rbt.convState(s,snum,'P_pred');
+    K = rbt.convState(s,snum,'K');
     
     % draw plot
     sim.plotTraj(rbt,fld)

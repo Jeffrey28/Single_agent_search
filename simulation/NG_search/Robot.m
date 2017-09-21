@@ -65,6 +65,8 @@
         
         % configuration of optimization
         cfg;
+        snum;
+        
         
         % performance metrics
         ml_pos;
@@ -436,7 +438,7 @@
         % try re-writing the problem using cvx solver. Different from
         % cvxPlanner below, which formulates the problem as a convex P (turns
         % out not!), this one formulates the problem as QP each iteration
-        function [optz,optu, merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode) % cvxPlanner(this,fld,init_sol)
+        function [optz,optu, s, snum,merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode) % cvxPlanner(this,fld,init_sol)
             % merit, model_merit, new_merit are the merit function value of
             % x, approx merit value of xp, and merit function value of xp
             
@@ -494,8 +496,9 @@
             % s = [z(:),u(:),x(:),xpred(:),P(:),P_pred(:),K(:)]   
             [s,snum] = this.setState(zref,uref,xref,x_pred_ref,Pref,P_pred_ref,Kref);
             
-            cfg.snum = snum;
-            this.cfg = cfg;
+%             cfg.snum = snum;
+%             this.cfg = cfg;
+%             this.snum = snum;
             
             %%% functions and parameters for scp                     
             %%% objective
@@ -666,7 +669,8 @@
             optz = zref;
             optu = uref;
             
-            % visualize the planned path
+            
+            % visualize the FOV along the planned path
             %%% xref in this part needs change when infeasibility happens
             this.plotPlannedTraj(optz,xref,fld)
 %             }
@@ -1477,11 +1481,11 @@
                    % penalty
 %                    tar_pos = x(2*jj-1:2*jj,ii);                  
 
-                   val = val-this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
+                   val = val-10*this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
                end         
                %}
                val = val+sum(u(:,ii-1).^2); % penalize on control input
-               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2);
+               val = val+10*sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2);
 %                val = val+abs(sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2)-2); % penalize the distance between sensor and MLE target postion with maximal weight
             end
 %             val = 0.1*val;
@@ -2089,8 +2093,7 @@
         end
         
         function plotPlannedTraj(this,z,x,fld)
-            % Plotting for the planned trajectory, i.e. the one
-            % cvxPlanner_kf
+            % Plotting FOV along the planned path
             
             hdl1 = plot(z(1,:),z(2,:),'r','markers',1);
             set(hdl1,'MarkerFaceColor','r');

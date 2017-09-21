@@ -1,11 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%2345678901234567890123456789012345678901234567890123456789012345678901234567890
-%        1         2         3         4         5         6         7         8
-
-\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
-
-%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
-
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you 
 \IEEEoverridecommandlockouts                              % This command is only needed if 
                                                           % you want to use the \thanks command
 
@@ -23,7 +16,8 @@
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
 \usepackage{amsmath,amssymb,amsfonts} % assumes amsmath package installed
-\usepackage{algorithm,algpseudocode}
+\usepackage{algorithm} %algpseudocode
+\usepackage{algorithmic}[1]
 %\usepackage{booktabs}
 \usepackage{dsfont}
 \usepackage{gensymb} % degree symbol
@@ -52,6 +46,12 @@
 \Crefname{prop}{Proposition}{Propositions}
 \crefname{rem}{remark}{remarks}
 \Crefname{rem}{Remark}{Remarks}
+
+\newcommand{\alp}{\alpha} % parameter for approximaiting infov binary variable
+\newcommand{\incalp}{k} % increase factor of alpha
+\newcommand{\tstep}{\tau} % time step
+\newcommand{\tol}{\epsilon} % tolerance for convergence
+\newcommand{\infov}{\delta} %binary variable indicating whether in FOV
 
 %=====todonotes===== %
 \usepackage{todonotes}
@@ -414,5 +414,28 @@ This section compiles the possible contributions I can make in this and other fo
 	\item make the problem a cvx optimization or some other form (e.g., proximal gradient) to better utilize the form of the problem.
 \end{enumerate}
 1,3,4 are the possible main contributions of the work.
+
+\begin{algorithm}
+	\caption{MPC-based Informative Path Planning with Sensing Discontinuities }
+	\begin{algorithmic}
+	\STATE \textbf{Inputs}:\\
+	$\hat{b}_{1:N},\hat{u}_{1:N-1}$: belief space trajectory initialization\\
+	$N$: MPC prediction horizon\\
+	Cost and constraint definitions
+	\STATE \textbf{Parameters}:\\
+	$\alpha$: Approximation parameter for relaxing discrete sensing constraints\\
+	$k$: Coefficient to control rate of increase of $\alpha$\\
+	$\tau$: Execution time step\\
+	$\epsilon$: Convergence toleration parameter\\
+	\STATE \textbf{Variables}:
+	$\bar{b}_{1:N}$, $\bar{u}_{1:N}$: Optimization variables.\\
+	$\delta_{1:N}$: Binary vector to track value of continuous approximation for convergence criterion\\
+	
+	\FOR {$\tau = 1\dots N$}
+	\STATE $\alp \leftarrow \alp_\text{init}$
+	\ENDFOR
+	\end{algorithmic}
+\end{algorithm}
+
 
 \end{document}
