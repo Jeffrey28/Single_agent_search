@@ -1,12 +1,14 @@
 %% Sim Setup
-% addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
-% addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % soem issue occurs when vec function is called (in my code, it happens when using log_det)
+addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
+addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % some issue occurs when vec function is called (in my code, it happens when using log_det)
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
 sim_len = 30;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
+
+solver = 'ipopt'; % 'sqp'
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
@@ -17,7 +19,8 @@ end
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = true;
+save_video = false;
+
 
 %% Set field %%%
 % target info
@@ -27,21 +30,21 @@ target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
 % nonlinear model, used for EKF
 % setup for static target, KF
-% target.f = @(x) x;
-% target.del_f = @(x) eye(2);
-% target.A = eye(2);%[0.99 0;0 0.98];
-% target.B = [0;0]; %[0.3;-0.3];[0;0];
-% target.Q = 0*eye(2); % Covariance of process noise model for the target
+target.f = @(x) x;
+target.del_f = @(x) eye(2);
+target.A = eye(2);%[0.99 0;0 0.98];
+target.B = [0;0]; %[0.3;-0.3];[0;0];
+target.Q = 0*eye(2); % Covariance of process noise model for the target
 
 % % setup for moving target, KF
-target.f = @(x) x+[0.5;0.5];%[0.5;0.5]
-target.del_f = @(x) eye(2);
-% this A, B is temporily defined to make this part compatible with KF in
-% Robot.m. Later clean this part to unify the representation of KF and PF.
-% Make sure A corresponds to del_f and B is the affine term of f.
-target.A = eye(2);%[0.99 0;0 0.98];
-target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
-target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
+% target.f = @(x) x+[0.5;0.5];%[0.5;0.5]
+% target.del_f = @(x) eye(2);
+% % this A, B is temporily defined to make this part compatible with KF in
+% % Robot.m. Later clean this part to unify the representation of KF and PF.
+% % Make sure A corresponds to del_f and B is the affine term of f.
+% target.A = eye(2);%[0.99 0;0 0.98];
+% target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
+% target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
 
 target.model_idx = 1;
 target.traj = target.pos;
@@ -184,5 +187,10 @@ cfg.callback = @(x,info) 0; % can change to plotting function later
 inPara_rbt.cfg = cfg;
 
 % inPara_rbt.gam = 1;
-rbt = Robot(inPara_rbt);
 
+switch solver
+    case 'sqp'
+        rbt = Robot(inPara_rbt);
+    case 'ipopt'
+        rbt = Robot2(inPara_rbt);
+end
