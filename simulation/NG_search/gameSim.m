@@ -33,6 +33,7 @@ if save_video
     open(vidObj);
 end
 
+tic
 for ii = 1:sim_len
     fprintf('[main loop] gameSim.m, line %d, Progress: %d\n',MFileLineNr(),ii/sim_len)    
     
@@ -114,6 +115,8 @@ for ii = 1:sim_len
 %     end     
    %}
 end
+fprintf('gameSim.m, Line %d. gmm fitting takes time as:',MFileLineNr());
+toc
 
 if save_video
     close(vidObj);

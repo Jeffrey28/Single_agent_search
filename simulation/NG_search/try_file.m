@@ -1,4 +1,5 @@
 %% test the update law of KF during the debug of Planner
+%{
 % var_P1 = zeros(2,2,N+1);
 % P_pred1 = zeros(2,2,N);
 % K1 = zeros(2,2,N);
@@ -23,7 +24,7 @@
 %     hold on
 %     plot(x,y)
 % end
-
+%}
 %% test ekf
 %{
 xg = [10;10]; % target position
@@ -164,6 +165,7 @@ end
 %}
 
 %% test the cvx planning result
+%{
 % for jjj = 1:this.gmm_num
 %     for iii = 1:N
 %         value((P(2*jjj-1:2*jjj,2*iii+1:2*iii+2)-P_pred(2*jjj-1:2*jjj,2*iii-1:2*iii)))*gamma_den...
@@ -246,6 +248,7 @@ end
 % 
 % opt = sdpsettings('solver','mosek','verbose',3,'debug',1,'showprogress',1);
 % sol = optimize(constr,obj,opt);
+%}
 
 %% test what composes variables in Ipopt
 %{
@@ -540,7 +543,7 @@ for iii = 1:N+1
 end
 %}
 %% check obj grad and constraints
-%
+%{
 hlabel = labelResult(h(xp),'h',this.gmm_num,N);
 hlinlabel = labelResult(hlin(xp),'hlin',this.gmm_num,N);
 hjaclabel = labelResult(hjac,'hjac',this.gmm_num,N);
@@ -626,4 +629,34 @@ end
 %{
 z = @(xy) sin(diff(xy)) + xy(2)*exp(xy(1))
 [grad,err ] = gradest(z,[1 1])
+%}
+
+%% test a new formulation of converting messy obj
+P1 = eye(2);
+P2 = 2*eye(2);
+x1 = sdpvar(2,1);
+x2 = sdpvar(2,1);
+opt = sdpsettings('verbose',2,'solver','ipopt','usex0',0,'debug',1);
+
+% original problem
+obj1 = -log(exp(-(x1-x2)'/P1*(x1-x2)/2)/(2*pi*sqrt(det(P1)))+exp(-(x1-x2)'/P2*(x1-x2)/2)/(2*pi*sqrt(det(P2))));
+constr1 = [[7;8]>=x1>=[1;2];[7;8]>=x2>=[5;6]];
+sol1 = optimize(constr1,obj1,opt);
+value(x1)
+value(x2)
+value(obj1)
+
+% epigraph form
+t = sdpvar(1);
+m1 = sdpvar(1);
+m2 = sdpvar(1);
+
+obj2 = t;
+constr2 = [-(x1-x2)'/P1*(x1-x2)>=2*log(m1)+2*log(2*pi)+log(det(P1));...
+    -(x1-x2)'/P2*(x1-x2)>=2*log(m2)+2*log(2*pi)+log(det(P2));...
+    m1+m2>=exp(-t); m1>=0; m2>=0;[7;8]>=x1>=[1;2];[7;8]>=x2>=[5;6]];
+sol2 = optimize(constr2,obj2,opt);
+value(x1)
+value(x2)
+value(obj2)
 %}

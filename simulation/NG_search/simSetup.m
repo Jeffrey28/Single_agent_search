@@ -4,7 +4,7 @@ addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % some issue occurs when v
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 30;
+sim_len = 20;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
@@ -19,7 +19,7 @@ end
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = false;
+save_video = true;
 
 
 %% Set field %%%
@@ -30,21 +30,21 @@ target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
 % nonlinear model, used for EKF
 % setup for static target, KF
-target.f = @(x) x;
-target.del_f = @(x) eye(2);
-target.A = eye(2);%[0.99 0;0 0.98];
-target.B = [0;0]; %[0.3;-0.3];[0;0];
-target.Q = 0*eye(2); % Covariance of process noise model for the target
+% target.f = @(x) x;
+% target.del_f = @(x) eye(2);
+% target.A = eye(2);%[0.99 0;0 0.98];
+% target.B = [0;0]; %[0.3;-0.3];[0;0];
+% target.Q = 0*eye(2); % Covariance of process noise model for the target
 
 % % setup for moving target, KF
-% target.f = @(x) x+[0.5;0.5];%[0.5;0.5]
-% target.del_f = @(x) eye(2);
-% % this A, B is temporily defined to make this part compatible with KF in
-% % Robot.m. Later clean this part to unify the representation of KF and PF.
-% % Make sure A corresponds to del_f and B is the affine term of f.
-% target.A = eye(2);%[0.99 0;0 0.98];
-% target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
-% target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
+target.f = @(x) x+[0.5;0.5];%[0.5;0.5]
+target.del_f = @(x) eye(2);
+% this A, B is temporily defined to make this part compatible with KF in
+% Robot.m. Later clean this part to unify the representation of KF and PF.
+% Make sure A corresponds to del_f and B is the affine term of f.
+target.A = eye(2);%[0.99 0;0 0.98];
+target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
+target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
 
 target.model_idx = 1;
 target.traj = target.pos;
@@ -192,5 +192,6 @@ switch solver
     case 'sqp'
         rbt = Robot(inPara_rbt);
     case 'ipopt'
-        rbt = Robot2(inPara_rbt);
+%         rbt = Robot2(inPara_rbt);
+        rbt = Robot3(inPara_rbt);
 end
