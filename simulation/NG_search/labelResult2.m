@@ -150,6 +150,15 @@ switch fctname
             constrHeader = [constrHeader;{sprintf('x(1,%d)-x_pred(1,%d)',ii+1,ii)};...
                 {sprintf('x(2,%d)-x_pred(2,%d)',ii+1,ii)}];
         end
+        
+        % symmetric constraint of P and Pinv   
+        for ii = 1:N+1
+            for jj = 1:gmm_num
+                constrHeader = [constrHeader;{sprintf('P(1,2,%d,%d)-P(2,1,%d,%d)',jj,ii)};...
+                    {sprintf('Pinv(1,2,%d,%d)-Pinv(2,1,%d,%d)',jj,ii)}];
+            end
+        end
+        
         labeledRes = [constrHeader,cellRes];
         
     case 'glin'
@@ -183,6 +192,24 @@ switch fctname
                 {sprintf('z(2,%d)-fld_cor(4)',ii+1)};{sprintf('fld_cor(1)-z(1,%d)',ii+1)};...
                 {sprintf('fld_cor(3)-z(2,%d)',ii+1)}];
         end
+        
+        % auxiliary variable t,m are nonnegative
+        % t
+        for ii = 1:N
+            for jj = 1:gmm_num                
+                constrHeader = [constrHeader;{sprintf('-auxt(%d,%d)',jj,ii)}];
+            end
+        end
+        
+        % m
+        for ii = 1:N
+            for jj = 1:gmm_num
+                for ll = 1:gmm_num
+                    constrHeader = [constrHeader;{sprintf('-auxm(%d,%d,%d)',jj,ll,ii)}];
+                end
+            end
+        end
+        
         labeledRes = [constrHeader,cellRes];
         
     case 'h'
@@ -211,6 +238,35 @@ switch fctname
                 {sprintf('P(2,1,%d)=0',ii)};{sprintf('P(1,2,%d)',ii)};...
                 {sprintf('P(2,2,%d)',ii)}];
         end
+        
+        % triu(P(:,:,jj,ii)*Pinverse(:,:,jj,ii))-eye(2)
+        for ii = 1:N+1
+            for jj = 1:gmm_num
+                constrHeader = [constrHeader;{sprintf('[P(:,:,%d,%d)*Pinv(:,:,%d,%d)-1](1,1)',jj,ii)};...
+                    {sprintf('[P(:,:,%d,%d)-Pinv(:,:,%d,%d)](2,1)',jj,ii)};...
+                    {sprintf('[P(:,:,%d,%d)-Pinv(:,:,%d,%d)](1,2)',jj,ii)};...
+                    {sprintf('[P(:,:,%d,%d)-Pinv(:,:,%d,%d)-1](2,2)',jj,ii)}];
+            end
+        end
+        labeledRes = [constrHeader,cellRes];
+    case 'g'
+        % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(P(ll))+2log(auxm(jj,ll))
+        % <= 0
+        for ii = 1:N
+            for jj = 1:gmm_num
+                for ll = 1:gmm_num
+                    constrHeader = [constrHeader;{sprintf('mrelation(%d,%d,%d)',jj,ll,ii)}];
+                end
+            end
+        end
+        
+        % exp(-auxt(jj)/wt(jj))-sum(auxm(jj,:)) <= 0
+        for ii = 1:N
+            for jj = 1:gmm_num
+                constrHeader = [constrHeader;{sprintf('tmrelation(%d,%d)',jj,ii)}];                
+            end
+        end
+        
         labeledRes = [constrHeader,cellRes];
 end
 end

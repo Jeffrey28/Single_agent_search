@@ -542,7 +542,7 @@ for iii = 1:N+1
         tar_pos,this.alp1,this.alp2,this.alp3)
 end
 %}
-%% check obj grad and constraints
+%% check obj grad and constraints (sqp)
 %{
 hlabel = labelResult(h(xp),'h',this.gmm_num,N);
 hlinlabel = labelResult(hlin(xp),'hlin',this.gmm_num,N);
@@ -632,6 +632,7 @@ z = @(xy) sin(diff(xy)) + xy(2)*exp(xy(1))
 %}
 
 %% test a new formulation of converting messy obj
+%{
 P1 = eye(2);
 P2 = 2*eye(2);
 x1 = sdpvar(2,1);
@@ -660,3 +661,25 @@ value(x1)
 value(x2)
 value(obj2)
 %}
+
+%% check initial guess values for computing obj and constraint satisfaction (ipopt)
+refobj = obj(s);
+reflinIneq = [constrLinIneq(s),constrLinIneq(s) <= 0]; 
+reflinEq = [constrLinEq(s),constrLinEq(s) == 0];
+refNLineq = [objNLineq(s),objNLineq(s) <= 0];
+refNLeq = [objNLeq(s),objNLeq(s) == 0];
+
+Labels = labelResult2(s,'s',this.gmm_num,N);
+LabelLinIneq = labelResult2(reflinIneq,'glin',this.gmm_num,N);
+LabelLinEq = labelResult2(reflinEq,'hlin',this.gmm_num,N);
+LabelNlIneq = labelResult2(refNLineq,'g',this.gmm_num,N);
+LabelNlEq = labelResult2(refNLeq,'h',this.gmm_num,N);
+
+%% check the limiting case of P_k|k
+Ainf = eye(2);
+Cinf = eye(2);
+Qinf = 0.01*eye(2);
+Rinf = 5*eye(2);
+[Pinf,~,~] = dare(Ainf',Cinf',Qinf,Rinf,zeros(2,2),eye(2));
+Pinf_pred = Ainf*Pinf*Ainf';
+Kinf = Pinf_pred*Cinf'/(Cinf*Pinf_pred'*Cinf'+Rinf);

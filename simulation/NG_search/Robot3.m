@@ -572,22 +572,24 @@
                 constr = [constrLinIneq(sp) <= 0; constrLinEq(sp) == 0;...
                     objNLineq(sp) <= 0; objNLeq(sp) == 0];
                 assign(sp,s);
-                opt = sdpsettings('verbose',2,'solver','ipopt','usex0',1,'debug',1);
+                opt = sdpsettings('verbose',4,'solver','ipopt','usex0',1,'debug',1);
                 
                 optobj = obj(sp);
                 
                 sol = optimize(constr,optobj,opt);
                 
-                if sol.problem == 0
-                    success = true;
-                    s = value(sp);
-                else
-                    success = false;
-                    fprintf('  [ipopt loop] Robot.m, line %d.\n',MFileLineNr())
-                    fprintf('  solution failed\n')
-                    fprintf('  the issue is %d\n: %s\n',sol.problem,sol.info)
-                    break
-                end
+                s = value(sp);
+                
+%                 if sol.problem == 0
+%                     success = true;
+%                     s = value(sp);
+%                 else
+%                     success = false;
+%                     fprintf('  [ipopt loop] Robot.m, line %d.\n',MFileLineNr())
+%                     fprintf('  solution failed\n')
+%                     fprintf('  the issue is %d\n: %s\n',sol.problem,sol.info)
+%                     break
+%                 end
                 %%% layer 2 ends
                 
                 x = this.convState(s,snum,'x');
@@ -653,12 +655,14 @@
             
             uref = this.convState(s,snum,'u');
             
-            if ~success %infea_flag
-                uref = [uref(:,2:end),uref(:,end)];
-            end
-
             % use actual dynamics to simulate
             zref = this.simState(uref,zref(:,1));
+            
+            %%% also revise this part in sqp code
+%             if ~success %if not solved successfully, reuse previous input
+%                 uref = [uref(:,2:end),uref(:,end)];
+%             end
+            
             optz = zref;
             optu = uref;
             
@@ -1131,6 +1135,8 @@
         
         %% robot state updating
         function this = updState(this,u)
+            % use u to compute state z, which replaces current z to be the
+            % new state
             st = this.state;
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
@@ -1139,6 +1145,8 @@
         end               
         
         function z = simState(this,u,z0)
+            % use u to compute state z. 1st element in z is the current
+            % state
             if nargin > 2
                 st = z0;
             else
@@ -1671,7 +1679,7 @@
             Pinverse = this.convState(s,snum,'Pinverse'); 
             
             h = [];
-            for ii = 1:N
+            for ii = 1:N+1
                 for jj = 1:this.gmm_num
                     tmp = triu(P(:,:,jj,ii)*Pinverse(:,:,jj,ii))-eye(2);
                     h = [h;tmp(:)];
@@ -1691,6 +1699,9 @@
             
             val1 = [];
             val2 = [];
+            
+            % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(P(ll))+2log(auxm(jj,ll))
+            % <= 0
             for ii = 2:N+1
                 for jj = 1:this.gmm_num
                     for ll = 1:this.gmm_num
@@ -1704,9 +1715,11 @@
                 end
             end
             
+            % exp(-auxt(jj)/wt(jj))-sum(auxm(jj,:)) <= 0
             for ii = 1:N
                 for jj = 1:this.gmm_num
-                    val2 = [val2;exp(-auxt(jj,ii)/this.wt(jj))-sum(auxm(jj,:,ii))];
+%                     val2 = [val2;exp(-auxt(jj,ii)/this.wt(jj))-sum(auxm(jj,:,ii))];
+                    val2 = [val2;(-auxt(jj,ii)/this.wt(jj))-log(sum(auxm(jj,:,ii)))];
                 end
             end
             
@@ -1794,7 +1807,7 @@
             end    
             
             % auxiliary variable t,m are nonnegative
-            glin = [glin;-auxm(:);-auxt(:)];
+            glin = [glin;-auxt(:);-auxm(:)];
         end
         
         % other convex constraints that are not linear equ/inequ
