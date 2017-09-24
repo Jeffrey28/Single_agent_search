@@ -563,7 +563,7 @@
                 
                 %% layer 2: rely on ipopt itself
                 objNLineq = @(s) objAux(s); % nonlinear inequality constraint here
-                objNLeq = @(s) [objKin(s);objBel(s);objPinverse(s)]; % nonlinear equality constraint here
+                objNLeq = @(s) [objKin(s);objPinverse(s)]; %;objBel(s)% nonlinear equality constraint here
                 
                 % use yalmip to define
                 sp = sdpvar(length(s),1);
@@ -572,7 +572,8 @@
                 constr = [constrLinIneq(sp) <= 0; constrLinEq(sp) == 0;...
                     objNLineq(sp) <= 0; objNLeq(sp) == 0];
                 assign(sp,s);
-                opt = sdpsettings('verbose',4,'solver','ipopt','usex0',1,'debug',1);
+                opt = sdpsettings('verbose',3,'solver','ipopt','usex0',1,'debug',1);
+                opt.ipopt.tol = 10^-3;
                 
                 optobj = obj(sp);
                 
@@ -1561,8 +1562,7 @@
                    val = val-10*this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));                   
                end 
                %}
-               val = val+10*sum(auxt(:,ii-1));
-               %}
+               val = val+10*sum(auxt(:,ii-1));               
                val = val+sum(u(:,ii-1).^2); % penalize on control input
                val = val+10*sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2);
 %                val = val+abs(sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2)-2); % penalize the distance between sensor and MLE target postion with maximal weight
@@ -1639,6 +1639,10 @@
                     val1 = [val1;tmp(:)];
                     
                     % mean
+                    %%%%% note: this part is not used currently, since we
+                    %%%%% assume MAP. In future version, I will probably
+                    %%%%% use this part once MAP assumption is removed
+                    %{
                     % x_k+1|k+1=x_k+1|k+\sum
                     % w_ll*gamma_ll*K*(h(x^ll_k+1|k)-h(x_k+1|k))
                     gm = sdpvar(this.gmm_num,1);
@@ -1650,6 +1654,7 @@
                             (h(xpred(2*ll-1:2*ll,ii),z(1:2,ii+1))-h(xpred(2*jj-1:2*jj,ii),z(1:2,ii+1)));
                     end
                     val3 = [val3;x(2*jj-1:2*jj,ii+1)-xpred(2*jj-1:2*jj,ii)-tmp2];
+                    %}
                     
                     % covariance
                     % P_k+1|k+1=P_k+1|k-\sum w_ll*gamma_ll*K*C*P_k+1|k
@@ -1726,6 +1731,7 @@
             h = [val1;val2];
         end
         
+        % linear equality constraint
         function val = getLinEqConstr(this,s,snum,tar)
             % linear equality constraints
             z = this.convState(s,snum,'z');
@@ -1783,12 +1789,16 @@
             end
             
             val = [val;val1;val2;val3;val4];
+            %}
         end
         
+        % linear inequality constraint
         function glin = getLinIneqConstr(this,s,snum,fld)
             % linear inequality constraints
             z = this.convState(s,snum,'z');
             u = this.convState(s,snum,'u');
+            P = this.convState(s,snum,'P'); 
+            P_pred = this.convState(s,snum,'P_pred');
             auxm = this.convState(s,snum,'auxm');
             auxt = this.convState(s,snum,'auxt');
             
@@ -1805,6 +1815,16 @@
                 glin = [glin;z(1:2,ii+1)-[fld.fld_cor(2);fld.fld_cor(4)];...
                     [fld.fld_cor(1);fld.fld_cor(3)]-z(1:2,ii+1)];
             end    
+            
+            % a weaker constraint for P, Ppred to be psd: P(1,1), P(2,2),
+            % P_pred(1,1),P_pred(2,2) >= smnum
+            smnum = 10^-6; % a small number
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    glin = [glin;smnum-[P(1,1,jj,ii+1);P(2,2,jj,ii+1);...
+                        P_pred(1,1,jj,ii);P_pred(2,2,jj,ii)]];
+                end
+            end
             
             % auxiliary variable t,m are nonnegative
             glin = [glin;-auxt(:);-auxm(:)];

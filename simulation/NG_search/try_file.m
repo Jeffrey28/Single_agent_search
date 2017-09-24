@@ -676,6 +676,7 @@ LabelNlIneq = labelResult2(refNLineq,'g',this.gmm_num,N);
 LabelNlEq = labelResult2(refNLeq,'h',this.gmm_num,N);
 
 %% check the limiting case of P_k|k
+%{
 Ainf = eye(2);
 Cinf = eye(2);
 Qinf = 0.01*eye(2);
@@ -683,3 +684,4 @@ Rinf = 5*eye(2);
 [Pinf,~,~] = dare(Ainf',Cinf',Qinf,Rinf,zeros(2,2),eye(2));
 Pinf_pred = Ainf*Pinf*Ainf';
 Kinf = Pinf_pred*Cinf'/(Cinf*Pinf_pred'*Cinf'+Rinf);
+%}
