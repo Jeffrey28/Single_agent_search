@@ -63,7 +63,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [15;5;pi/2;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [15;10;pi/2;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -138,7 +138,7 @@ elseif strcmp(plan_mode,'nl')
 %     inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 %     inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
     % PF
-    inPara_rbt.max_gmm_num = 3; %1;%6;
+    inPara_rbt.max_gmm_num = 1; %1;%6;
     [X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
     inPara_rbt.particles = [X(:),Y(:)]';
     inPara_rbt.est_pos = target.pos+ [5;-5];
@@ -193,5 +193,6 @@ switch solver
         rbt = Robot(inPara_rbt);
     case 'ipopt'
 %         rbt = Robot2(inPara_rbt);
-        rbt = Robot3(inPara_rbt);
+%         rbt = Robot3(inPara_rbt);
+        rbt = Robot4(inPara_rbt);
 end

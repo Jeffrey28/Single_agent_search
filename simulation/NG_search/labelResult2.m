@@ -75,6 +75,13 @@ for ii = 1:N
     end
 end
 
+% gamma variable
+for ii = 1:N
+    for jj = 1:gmm_num
+        varHeader = [varHeader,{sprintf('gamvar(%d,%d)',jj,ii)}];
+    end
+end
+
 %%% turn result into cell
 cellRes = num2cell(res);
 constrHeader = {};
@@ -193,6 +200,16 @@ switch fctname
                 {sprintf('fld_cor(3)-z(2,%d)',ii+1)}];
         end
         
+        % P, Ppred has positive diagonal element
+        for ii = 1:N
+            for jj = 1:gmm_num                
+                constrHeader = [constrHeader;{sprintf('-P(1,1,%d,%d)',jj,ii+1)};...
+                    {sprintf('-P(2,2,%d,%d)',jj,ii+1)};...
+                    {sprintf('-Ppred(1,1,%d,%d)',jj,ii+1)};...
+                    {sprintf('-Ppred(2,2,%d,%d)',jj,ii+1)}];
+            end
+        end
+        
         % auxiliary variable t,m are nonnegative
         % t
         for ii = 1:N
@@ -248,7 +265,16 @@ switch fctname
                     {sprintf('[P(:,:,%d,%d)-Pinv(:,:,%d,%d)-1](2,2)',jj,ii)}];
             end
         end
+        
+        % gam_var(jj,ii)*gamDen(jj,ii) = 1
+        for ii = 1:N
+            for jj = 1:gmm_num
+                constrHeader = [constrHeader;{sprintf('gam_var(%d,%d)',jj,ii)}];
+            end
+        end
+        
         labeledRes = [constrHeader,cellRes];
+        
     case 'g'
         % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(P(ll))+2log(auxm(jj,ll))
         % <= 0

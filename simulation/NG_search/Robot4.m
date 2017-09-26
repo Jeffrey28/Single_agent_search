@@ -1,4 +1,4 @@
- classdef Robot3
+ classdef Robot4
      % this class uses ipopt for solution
     properties
         % motion specs
@@ -75,7 +75,7 @@
     end
     
     methods
-        function this = Robot3(inPara)
+        function this = Robot4(inPara)
             this.state = inPara.state;
             this.traj = inPara.state;
             this.a_lb = inPara.a_lb;
@@ -564,7 +564,7 @@
                 
                 %% layer 2: rely on ipopt itself
                 objNLineq = @(s) objAux(s); % nonlinear inequality constraint here
-                objNLeq = @(s) [objKin(s);objPinverse(s)]; %;objBel(s)% nonlinear equality constraint here
+                objNLeq = @(s) [objKin(s);objPinverse(s);objBel(s)]; %% nonlinear equality constraint here
                 
                 % use yalmip to define
                 sp = sdpvar(length(s),1);
@@ -574,7 +574,7 @@
                     objNLineq(sp) <= 0; objNLeq(sp) == 0];
                 assign(sp,s);
                 opt = sdpsettings('verbose',3,'solver','ipopt','usex0',1,'debug',1);
-                opt.ipopt.tol = 10^-3;
+                opt.ipopt.tol = 10^-2;
                 
                 optobj = obj(sp);
                 
@@ -994,7 +994,11 @@
                     K(2*jj-1:2*jj,2*ii-1:2*ii)= P_pred(:,:,jj,ii)*C'/T;
 %                     gam = this.inFOV(x_olp(2*jj-1:2*jj,ii));
                     gam = this.gam(z(1:2,ii+1),z(3,ii+1),x_olp(2*jj-1:2*jj,ii+1),alp1,alp2,alp3);
-                    gam_var(jj,ii) = gam;
+%                     if gam < 10^-10
+%                         gam_var(jj,ii) = 0;
+%                     else
+                        gam_var(jj,ii) = gam;
+%                     end
                     P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-gam*K(2*jj-1:2*jj,2*ii-1:2*ii)*P_pred(:,:,jj,ii)*C;                                        
                 end
             end
@@ -1393,6 +1397,7 @@
             P_orig = this.convState(s,snum,'P');
             P_pred_orig = this.convState(s,snum,'P_pred');
             K_orig = this.convState(s,snum,'K');
+            gam_var_orig = this.convState(s,snum,'gam_var');
             
             N = this.mpc_hor;
             
@@ -1451,6 +1456,7 @@
             xpred = zeros(size(xpred_orig));
             P_pred = zeros(size(P_pred_orig));
             Pinverse = zeros(size(P_orig));
+            gam_var = zeros(size(gam_var_orig));
             
             % initialization
             x(:,1) = x_orig(:,1);
@@ -1486,6 +1492,8 @@
                         gm(ll) = this.gam(z(1:2,ii+1),z(3,ii+1),xpred(2*ll-1:2*ll,ii),alp1,alp2,alp3);
                         tmp = tmp+this.wt(ll)*gm(ll)*K(:,:,jj,ii)*...
                             (h(xpred(2*ll-1:2*ll,ii),z(1:2,ii+1))-h(xpred(2*jj-1:2*jj,ii),z(1:2,ii+1)));
+                        gam_var(ll,ii) = gm(ll);
+                        
                     end
                     x(2*jj-1:2*jj,ii+1) = xpred(2*jj-1:2*jj,ii)+tmp;
                     P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-this.wt'*gm*K(:,:,jj,ii)*C*P_pred(:,:,jj,ii);                   
@@ -1518,7 +1526,7 @@
                 end
             end
             
-            snew = setState(this,z,u_orig,x,xpred,P,P_pred,K,Pinverse,auxt,auxm);
+            snew = setState(this,z,u_orig,x,xpred,P,P_pred,K,Pinverse,auxt,auxm,gam_var);
         end
         
         %% objective function
@@ -1675,8 +1683,14 @@
                         tar_pos = xpred(2*ll-1:2*ll,ii); % use each gmm component mean as a possible target position
                         tmp_sum = tmp_sum+this.wt(ll)*gam_var(ll,ii)*T*P_pred(:,:,jj,ii);
                         % gam_var=1/gam_den
-                        val4 = [val4;gam_var(ll,ii)*gam_den(z(1:2,ii+1),z(3,ii+1),...
-                            tar_pos,alp1,alp2,alp3)-1];
+%                         val4 = [val4;gam_var(ll,ii)*gam_den(z(1:2,ii+1),z(3,ii+1),...
+%                             tar_pos,alp1,alp2,alp3)-1];
+                        val4 = [val4;log(gam_var(ll,ii))+log(gam_den(z(1:2,ii+1),z(3,ii+1),...
+                            tar_pos,alp1,alp2,alp3))];
+%                         val4 = [val4;log(gam_var(ll,ii))+log(this.gam_den1(z(1:2,ii+1),...
+%                             tar_pos,alp1))+log(this.gam_den2(z(1:2,ii+1),...
+%                             tar_pos,z(3,ii+1),alp2))+log(this.gam_den3(z(1:2,ii+1),...
+%                             tar_pos,z(3,ii+1),alp3))];
 %                         tmp_sum = tmp_sum+this.wt(ll)*gam(z(1:2,ii+1),z(3,ii+1),...
 %                         tar_pos,alp1,alp2,alp3)*T*P_pred(:,:,jj,ii);
                     end
@@ -1717,7 +1731,7 @@
             val1 = [];
             val2 = [];
             
-            % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(P(ll))+2log(auxm(jj,ll))
+            % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(|P(ll)|)+2log(auxm(jj,ll))
             % <= 0
             for ii = 2:N+1
                 for jj = 1:this.gmm_num
@@ -2192,16 +2206,19 @@
         function gam_den = gam_den1(this,z,x0,alp)
             tmp = alp*(sum((x0-z).^2)-this.r^2);
             % yalmip cannot accept if statement in constraint
+%             gam_pow = tmp;
             gam_den = 1+exp(tmp);            
         end
         
         function gam_den = gam_den2(this,z,x0,theta,alp)
-            tmp = alp*[sin(theta-this.theta0),-cos(theta-this.theta0)]*(x0-z);            
+            tmp = alp*[sin(theta-this.theta0),-cos(theta-this.theta0)]*(x0-z);
+%             gam_pow = tmp;
             gam_den = 1+exp(tmp);            
         end
         
         function gam_den = gam_den3(this,z,x0,theta,alp)
             tmp = alp*[-sin(theta+this.theta0),cos(theta+this.theta0)]*(x0-z);
+%             gam_pow = tmp;
             gam_den = 1+exp(tmp);            
         end       
         
