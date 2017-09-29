@@ -67,9 +67,12 @@ for ii = 1:N
 end
 
 % auxm
+% note the order of ll, jj ,ii in varHeader. I made mistake before. In
+% fact, when thinking about auxm in s, we can realize that the 1st
+% dimension is first stacked.
 for ii = 1:N
-    for jj = 1:gmm_num
-        for ll = 1:gmm_num
+    for ll = 1:gmm_num
+        for jj = 1:gmm_num
             varHeader = [varHeader,{sprintf('auxm(%d,%d,%d)',jj,ll,ii)}];
         end
     end
@@ -79,6 +82,30 @@ end
 for ii = 1:N
     for jj = 1:gmm_num
         varHeader = [varHeader,{sprintf('gamvar(%d,%d)',jj,ii)}];
+    end
+end
+
+% slkm
+for ii = 1:N
+    for ll = 1:gmm_num
+        for jj = 1:gmm_num
+            varHeader = [varHeader,{sprintf('slkm(%d,%d,%d)',jj,ll,ii)}];
+        end
+    end
+end
+
+% slkt
+for ii = 1:N
+    for jj = 1:gmm_num
+        varHeader = [varHeader,{sprintf('slkt(%d,%d)',jj,ii)}];
+    end
+end
+
+for ii = 1:N
+    for ll = 1:gmm_num
+        for jj = 1:gmm_num
+            varHeader = [varHeader,{sprintf('auxgau(%d,%d,%d)',jj,ll,ii)}];
+        end
     end
 end
 
@@ -96,38 +123,7 @@ switch fctname
     case 'fgrad'
         % fgrad
         % column: variables in s (note: fgrad is a row vector)
-        labeledRes = [varHeader;cellRes];
-        
-    case 'hjac'
-        % hjac
-        % jacobian of h
-        % column: variables in s
-        % row: nonlinear equality constraints
-        
-        %
-        for ii = 1:N
-            % z(:,ii+1) - (z(:,ii)+ [z(4,ii)*cos(z(3,ii)); z(4,ii)*sin(z(3,ii));...
-            % u(:,ii)]*dt);
-            constrHeader = [constrHeader;{sprintf('z(1,%d)-z(1,%d)',ii,ii-1)};...
-                {sprintf('z(2,%d)-z(2,%d)',ii,ii-1)};{sprintf('z(3,%d)-z(3,%d)',ii,ii-1)};...
-                {sprintf('z(4,%d)-z(4,%d)',ii,ii-1)}];
-        end
-        
-        for ii = 1:N
-            % K = P_k+1|k*C_k+1'(C_k+1*P_k+1|k*C_k+1'+R)^-1
-            constrHeader = [constrHeader;{sprintf('K(1,1,%d)',ii)};...
-                {sprintf('K(2,1,%d)=0',ii)};{sprintf('K(1,2,%d)',ii)};...
-                {sprintf('K(2,2,%d)',ii)}]; % K(2,1,%d) is actually not a constraint since I use triu. this one is always 0.
-        end
-        
-        for ii = 1:N
-            % P_k+1|k+1 = P_k+1|k-gamma*K*C*P_k+1|k
-            constrHeader = [constrHeader;{sprintf('P(1,1,%d)',ii)};...
-                {sprintf('P(2,1,%d)',ii)};{sprintf('P(1,2,%d)',ii)};...
-                {sprintf('P(2,2,%d)',ii)}];
-        end
-        
-        labeledRes = [{'nothing'},varHeader;constrHeader,cellRes];
+        labeledRes = [varHeader;cellRes]';        
         
     case 'hlin'
         % hlin
@@ -249,8 +245,8 @@ switch fctname
         
         labeledRes = [constrHeader,cellRes];
         
-    case 'h'
-        % nonlinear equality constraint
+    case {'h','hjac'}
+        % nonlinear equality constraint or its jacobian        
         % h is a column vector
         % row: value for nonlinear equality constraints
         
@@ -297,11 +293,8 @@ switch fctname
             end
         end
         
-        labeledRes = [constrHeader,cellRes];
-        
-    case 'g'
         % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(P(ll))+2log(auxm(jj,ll))
-        % <= 0
+        % == 0
         for ii = 1:N
             for jj = 1:gmm_num
                 for ll = 1:gmm_num
@@ -310,13 +303,47 @@ switch fctname
             end
         end
         
-        % exp(-auxt(jj)/wt(jj))-sum(auxm(jj,:)) <= 0
+        % exp(-auxt(jj)/wt(jj))-sum(auxm(jj,:)) == 0
         for ii = 1:N
             for jj = 1:gmm_num
                 constrHeader = [constrHeader;{sprintf('tmrelation(%d,%d)',jj,ii)}];                
             end
         end
         
+        % auxgau = (x_jj-x_ll)'*Pinv(ll)*(x_jj-x_ll)/2
+        for ii = 1:N
+            for jj = 1:gmm_num
+                for ll = 1:gmm_num
+                    constrHeader = [constrHeader;{sprintf('auxgau(%d,%d,%d)',jj,ll,ii)}];
+                end
+            end
+        end
+        
+        if strcmp(fctname,'h')        
+            labeledRes = [constrHeader,cellRes];            
+        else
+            labeledRes = [{'nothing'},varHeader;constrHeader,cellRes];
+        end
+        
+    case 'g'
+%         % (x(jj)-x(ll))'*Pinv(ll)*(x(jj)-x(ll))+2log(2pi/wt(ll))+log(P(ll))+2log(auxm(jj,ll))
+%         % <= 0
+%         for ii = 1:N
+%             for jj = 1:gmm_num
+%                 for ll = 1:gmm_num
+%                     constrHeader = [constrHeader;{sprintf('mrelation(%d,%d,%d)',jj,ll,ii)}];
+%                 end
+%             end
+%         end
+%         
+%         % exp(-auxt(jj)/wt(jj))-sum(auxm(jj,:)) <= 0
+%         for ii = 1:N
+%             for jj = 1:gmm_num
+%                 constrHeader = [constrHeader;{sprintf('tmrelation(%d,%d)',jj,ii)}];                
+%             end
+%         end
+%       
+        constrHeader = [];
         labeledRes = [constrHeader,cellRes];
 end
 end

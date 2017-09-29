@@ -438,4 +438,52 @@ This section compiles the possible contributions I can make in this and other fo
 \end{algorithm}
 
 
+\section{Current formulation}
+
+\begin{align}
+\min_{u_{1:N}}\; & -\sum\limits_{k=1}^{N+1} \sum\limits_{i=1}^{L}w_i\log  
+\sum\limits_{j=1}^Lw_j\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k})\\
+\text{s.t. }\; & z_{k+1}=f^r(z_k,u^r_k),\\
+& \hat{x}^t_{k+1|k}=f^g(\hat{x}^t_{k|k})\\
+&P_{k+1|k}=A^i_kP^i_{k|k}A^{i'}_k+Q\\
+&K^i_{k+1}=P^i_{k+1|k}C^{i'}_{k+1}(C^i_{k+1}P^{i'}_{k+1|k}C^{i'}_{k+1}+R)^{-1}\\
+&\hat{x}^i_{k+1|k+1}=\hat{x}^i_{k+1|k}\\
+&P^i_{k+1|k+1}=P^i_{k+1|k}-\sum\limits_j w_j\gamma_{k+1}K^i_{k+1}C^i_{k+1}P^i_{k+1|k}\\
+& z_{k+1}\in\mathcal{X}, \, u^r_{k+1}\in\mathcal{U},\\
+& k=1,\dots,N,
+\end{align}
+where
+\begin{equation}
+\gamma\approx \frac{1}{\gamma_1(z,\theta)}\frac{1}{\gamma_2(z,\theta)}\frac{1}{\gamma_3(z,\theta)},
+\end{equation}
+\begin{align*}
+\gamma_1(z,\theta)&=1+\exp^{\alpha_1(\|x-z\|^2_2-r^2)},\\
+\gamma_2(z,\theta)&=1+\exp^{\alpha_2(a^T_1x-b_1)},\\
+\gamma_3(z,\theta)&=1+\exp^{\alpha_3((a^T_2x-b_2)}.
+\end{align*}
+
+We rewrite the objective function using epigraph form.
+We first introduce $t_{ik}$ such that
+\begin{equation}\label{eqn:t_ik}
+t_{ik}\geq -w_i\log \alpha_{ik},
+\end{equation}
+where 
+\[\alpha_{ik}=\sum\limits_{j=1}^Lw_j\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k}).\] 
+\Cref{eqn:t_ik} is equivalent to
+\[\alpha_{ik}\geq \exp^{-t_{ik}/w_i} .\]
+Since $\alpha_{ik}$ is a Gaussian function, which involves division by a decision variable matrix. 
+So we introduce another variable $m_{ijk}$ such that
+\[\alpha_{ik}\geq \sum\limits_j m_{ijk}\geq \exp^{-t_{ik}/w_i} .\]
+Especially, we enforce that 
+\[ m_{ijk}\leq w_j\mathcal{N}(\hat{x}^i_{k|k}|\hat{x}^j_{k|k},P^j_{k|k}). \]
+This is equivalent to
+\begin{equation}
+-(\hat{x}^i_k-\hat{x}^j_k)^T{P^j_k}^{-1}(\hat{x}^i_k-\hat{x}^j_k)\geq 2\log \frac{2\pi}{w_j}+\log 
+||P^j_k|+2\log m_{ijk},
+\end{equation}
+which now becomes a constraint.
+Another constraint is 
+\begin{equation}
+\log \sum\limits_j m_{ijk}\geq {-t_{ik}/w_i}
+\end{equation}
 \end{document}

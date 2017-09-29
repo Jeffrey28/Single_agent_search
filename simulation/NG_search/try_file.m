@@ -663,17 +663,23 @@ value(obj2)
 %}
 
 %% check initial guess values for computing obj and constraint satisfaction (ipopt)
+% debug ipopt
 refobj = obj(s);
 reflinIneq = [constrLinIneq(s),constrLinIneq(s) <= 0]; 
 reflinEq = [constrLinEq(s),constrLinEq(s) == 0];
 refNLineq = [objNLineq(s),objNLineq(s) <= 0];
 refNLeq = [objNLeq(s),objNLeq(s) == 0];
 
-Labels = labelResult2(s,'s',this.gmm_num,N);
-LabelLinIneq = labelResult2(reflinIneq,'glin',this.gmm_num,N);
-LabelLinEq = labelResult2(reflinEq,'hlin',this.gmm_num,N);
-LabelNlIneq = labelResult2(refNLineq,'g',this.gmm_num,N);
-LabelNlEq = labelResult2(refNLeq,'h',this.gmm_num,N);
+Labels = labelResult3(s,'s',this.gmm_num,N);
+LabelLinIneq = labelResult3(reflinIneq,'glin',this.gmm_num,N);
+LabelLinEq = labelResult3(reflinEq,'hlin',this.gmm_num,N);
+LabelNlIneq = labelResult3(refNLineq,'g',this.gmm_num,N);
+LabelNlEq = labelResult3(refNLeq,'h',this.gmm_num,N);
+
+% debug sqp
+Labelx = labelResult3(x,'s',this.gmm_num,N);
+Labelfgrad = labelResult3(fgrad,'fgrad',this.gmm_num,N);
+Labelhjac = labelResult3(hjac,'hjac',this.gmm_num,N);
 
 %% check the limiting case of P_k|k
 %{

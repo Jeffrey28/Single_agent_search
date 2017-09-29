@@ -194,5 +194,5 @@ switch solver
     case 'ipopt'
 %         rbt = Robot2(inPara_rbt);
 %         rbt = Robot3(inPara_rbt);
-        rbt = Robot4(inPara_rbt);
+        rbt = Robot5(inPara_rbt);
 end

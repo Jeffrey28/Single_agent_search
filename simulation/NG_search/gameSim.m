@@ -69,12 +69,14 @@ for ii = 1:sim_len
     %
     if strcmp(plan_mode,'lin')
 %         [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
-        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+%         [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_ipopt(fld,optz,optu,plan_mode);
     elseif strcmp(plan_mode,'nl')
 %         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
-        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+%         [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_ipopt(fld,optz,optu,plan_mode);
     end
     
     merit_set(:,ii) = [merit;model_merit;new_merit];
