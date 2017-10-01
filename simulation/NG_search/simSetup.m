@@ -4,7 +4,7 @@ addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % some issue occurs when v
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 20;
+sim_len = 30;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
@@ -24,7 +24,7 @@ save_video = true;
 
 %% Set field %%%
 % target info
-target.pos = [15;15];%[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
+target.pos = [35;20]; %[15;15];%[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
@@ -37,13 +37,13 @@ target.B = [0;0]; %[0.5;-0.5];
 % target.Q = 0*eye(2); % Covariance of process noise model for the target
 
 % % setup for moving target, KF
-target.f = @(x) x+[0.5;0.5];%[0.5;0.5]
+target.f = @(x) x+[-0.5;0.5];%[0.5;0.5]
 target.del_f = @(x) eye(2);
 % this A, B is temporily defined to make this part compatible with KF in
 % Robot.m. Later clean this part to unify the representation of KF and PF.
 % Make sure A corresponds to del_f and B is the affine term of f.
 target.A = eye(2);%[0.99 0;0 0.98];
-target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
+target.B = [-0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
 target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
 
 target.model_idx = 1;
@@ -138,7 +138,7 @@ elseif strcmp(plan_mode,'nl')
 %     inPara_rbt.gmm_num = size(inPara_rbt.est_pos,2);
 %     inPara_rbt.wt = ones(inPara_rbt.gmm_num,1)/inPara_rbt.gmm_num;
     % PF
-    inPara_rbt.max_gmm_num = 1; %1;%6;
+    inPara_rbt.max_gmm_num = 3; %1;%6;
     [X,Y] = meshgrid((xMin+0.5):(xMax-0.5),(yMin+0.5):(yMax-0.5));
     inPara_rbt.particles = [X(:),Y(:)]';
     inPara_rbt.est_pos = target.pos+ [5;-5];
@@ -187,12 +187,5 @@ cfg.callback = @(x,info) 0; % can change to plotting function later
 inPara_rbt.cfg = cfg;
 
 % inPara_rbt.gam = 1;
-
-switch solver
-    case 'sqp'
-        rbt = Robot(inPara_rbt);
-    case 'ipopt'
-%         rbt = Robot2(inPara_rbt);
-%         rbt = Robot3(inPara_rbt);
-        rbt = Robot5(inPara_rbt);
-end
+rbt = Robot(inPara_rbt);
+    

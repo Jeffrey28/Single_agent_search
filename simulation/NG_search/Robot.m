@@ -438,7 +438,7 @@
         % try re-writing the problem using cvx solver. Different from
         % cvxPlanner below, which formulates the problem as a convex P (turns
         % out not!), this one formulates the problem as QP each iteration
-        function [optz,optu, s, snum,merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode,solver) % cvxPlanner(this,fld,init_sol)
+        function [optz,optu, s, snum,merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode) % cvxPlanner(this,fld,init_sol)
             % merit, model_merit, new_merit are the merit function value of
             % x, approx merit value of xp, and merit function value of xp
             
@@ -481,7 +481,7 @@
                 case 'lin'
                     init_sol = genInitState_kf(this,fld,prev_state);
                 case 'nl'
-                    init_sol = genInitState(this,fld,prev_state,solver);
+                    init_sol = genInitState(this,fld,prev_state);
             end
             
             zref = init_sol.z;
@@ -543,81 +543,58 @@
                 
                 switch plan_mode
                     case 'lin'
-                        objBel = @(s) this.getBelConstr_kf(s,snum,solver,alp1,alp2,alp3); % belief update
+                        objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
                     case 'nl'
-                        objBel = @(s) this.getBelConstr(s,snum,solver,alp1,alp2,alp3); % belief update
+                        objBel = @(s) this.getBelConstr(s,snum,alp1,alp2,alp3); % belief update
                 end
                 
                 %%% objective
                 obj = @(s) this.getObj(s,snum,alp1,alp2,alp3);
                 
-               switch solver
-                   case 'ipopt'
-                       %% loop 2: rely on ipopt itself
-                       objNLineq = @(s) 0; % nonlinear inequality constraint here
-                       objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
-                       % use yalmip to define
-                       sp = sdpvar(length(s),1);
-                       constr = [constrLinIneq(sp) == 0, constrLinEq(sp) == 0,...
-                           objNLineq(sp) == 0, objNLeq(sp) == 0];
-                       opt = sdpsettings('verbose',1,'solver','ipopt','usex0',1);
-%                        tic
-                       sol = optimize(constr,obj(sp),opt);
-                       
-                       if sol.problem == 0
-                           s = sp;
-                       else
-                           break
-                       end
-%                        run_time = toc;
+                penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties
                 
-                   case 'sqp'
-                       penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties
-                       
-                       %% loop 2: penalty iteration
-                       %                 ctol = 1e-2;
-                       %                 mu = 0.1;
-                       pen_iter = 0;
-                       while(1) % loop 2 starts
-                           pen_iter = pen_iter+1;
-                           fprintf('    [Penalty loop] Robot.m, line %d\n', MFileLineNr())
-                           fprintf('    pentaly loop #%d\n',pen_iter);
-                           
-                           trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
-                           
-                           objNLineq = @(s) 0; % nonlinear inequality constraint here
-                           objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
-                           %                     objNLeq = @(s) 0;
-                           
-                           %% loop 3: trust region SQP
-                           A_ineq = [];
-                           b_ineq = [];
-                           A_eq = [];
-                           b_eq = [];
-                           
-                           % make initial solution feasible
-                           [s,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
-                           if (~success)
-                               return;
-                           end
-                           
-                           % loop 3 starts
-                           [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
-                           % loop 3 ends
-                           
-                           if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
-                               break;
-                           end
-                           %                     trust_box_size = cfg.initial_trust_box_size;
-                           penalty_coeff = cfg.merit_coeff_increase_ratio*penalty_coeff;
-                       end % loop 2 ends
-                                                 
-                    if ~success %infea_flag
-                        % if CVS infeasible, directly reuse solution from
-                        % previous step
-                        break
+                %% loop 2: penalty iteration
+                %                 ctol = 1e-2;
+                %                 mu = 0.1;
+                pen_iter = 0;
+                while(1) % loop 2 starts
+                    pen_iter = pen_iter+1;
+                    fprintf('    [Penalty loop] Robot.m, line %d\n', MFileLineNr())
+                    fprintf('    pentaly loop #%d\n',pen_iter);
+                    
+                    trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
+                    
+                    objNLineq = @(s) 0; % nonlinear inequality constraint here
+                    objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
+                    %                     objNLeq = @(s) 0;
+                    
+                    %% loop 3: trust region SQP
+                    A_ineq = [];
+                    b_ineq = [];
+                    A_eq = [];
+                    b_eq = [];
+                    
+                    % make initial solution feasible
+                    [s,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
+                    if (~success)
+                        return;
                     end
-                    %%% sqp solver ends
+                    
+                    % loop 3 starts
+                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                    % loop 3 ends
+                    
+                    if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
+                        break;
+                    end
+                    %                     trust_box_size = cfg.initial_trust_box_size;
+                    penalty_coeff = cfg.merit_coeff_increase_ratio*penalty_coeff;
+                end % loop 2 ends
+                
+                if ~success %infea_flag
+                    % if CVS infeasible, directly reuse solution from
+                    % previous step
+                    break
                 end
                 
                 x = this.convState(s,snum,'x');
@@ -926,7 +903,7 @@
 %             end
         end
         
-        function [init_state] = genInitState(this,fld,prev_state,solver)
+        function [init_state] = genInitState(this,fld,prev_state)
             % generate initial states for cvxPlanner
             % quantities to compute: x,z,u,K,P,P_pred,x_pred, theta_bar
             N = this.mpc_hor;
@@ -1012,7 +989,7 @@
                     T = C*P_pred(:,:,jj,ii)*C'+R;
                     K(2*jj-1:2*jj,2*ii-1:2*ii)= P_pred(:,:,jj,ii)*C'/T;
 %                     gam = this.inFOV(x_olp(2*jj-1:2*jj,ii));
-                    gam = this.gam(solver,z(1:2,ii+1),z(3,ii+1),x_olp(2*jj-1:2*jj,ii+1),alp1,alp2,alp3);
+                    gam = this.gam(z(1:2,ii+1),z(3,ii+1),x_olp(2*jj-1:2*jj,ii+1),alp1,alp2,alp3);
                     P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-gam*K(2*jj-1:2*jj,2*ii-1:2*ii)*P_pred(:,:,jj,ii)*C;
                 end
             end
@@ -1434,7 +1411,9 @@
             
             % initialization
             x(:,1) = x_orig(:,1);
-            P(:,:,1,1) = P_orig(:,:,1,1); 
+            for jj = 1:this.gmm_num
+                P(:,:,jj,1) = P_orig(:,:,jj,1);
+            end
             
 %             for ii = 1:N
 %                 for jj = 1:this.gmm_num
@@ -1543,7 +1522,7 @@
             end
         end
         
-        function h = getBelConstr(this,s,snum,solver,alp1,alp2,alp3)
+        function h = getBelConstr(this,s,snum,alp1,alp2,alp3)
             % belief update constraint (nonlinear equality)
             z = this.convState(s,snum,'z'); 
             u = this.convState(s,snum,'u'); 
@@ -1588,16 +1567,11 @@
                     % mean
                     % x_k+1|k+1=x_k+1|k+\sum
                     % w_ll*gamma_ll*K*(h(x^ll_k+1|k)-h(x_k+1|k))
-                    switch solver
-                        case 'sqp'
-                            gm = zeros(this.gmm_num,1);
-                        case 'ipopt'
-                            gm = sdpvar(this.gmm_num,1);
-                    end
-                    
+                    gm = zeros(this.gmm_num,1);
+                        
                     tmp2 = 0;
                     for ll = 1:this.gmm_num
-                        gm(ll) = this.gam(solver,z(1:2,ii+1),z(3,ii+1),xpred(2*ll-1:2*ll,ii),alp1,alp2,alp3);
+                        gm(ll) = this.gam(z(1:2,ii+1),z(3,ii+1),xpred(2*ll-1:2*ll,ii),alp1,alp2,alp3);
                         tmp2 = tmp2+this.wt(ll)*gm(ll)*K(:,:,jj,ii)*...
                             (h(xpred(2*ll-1:2*ll,ii),z(1:2,ii+1))-h(xpred(2*jj-1:2*jj,ii),z(1:2,ii+1)));
                     end
@@ -1612,7 +1586,7 @@
                         %%% note: gamma depends on ll, C depends
                         %%% only on jj
                         tar_pos = xpred(2*ll-1:2*ll,ii); % use each gmm component mean as a possible target position
-                        tmp_sum = tmp_sum+this.wt(ll)*gam(solver,z(1:2,ii+1),z(3,ii+1),...
+                        tmp_sum = tmp_sum+this.wt(ll)*gam(z(1:2,ii+1),z(3,ii+1),...
                         tar_pos,alp1,alp2,alp3)*T*P_pred(:,:,jj,ii);
                     end
 %                     h = h+sum(sum(abs(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum)));
@@ -1640,6 +1614,7 @@
             val1 = [];
             val2 = [];
             val3 = [];
+            val4 = [];
 
             % initial condition
             % z(:,1) == this.state;
@@ -1651,6 +1626,7 @@
             val = [val;x(:,1)-this.est_pos(:)];
             for jj = 1:this.gmm_num
                tmp = triu(P(:,:,jj,1))-triu(this.P{jj}); %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
+%                tmp = P(:,:,jj,1)-this.P{jj}; %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
                val = [val;tmp(:)];
             end
             
@@ -1669,7 +1645,15 @@
                     val3 = [val3;x(2*jj-1:2*jj,ii+1)-x_pred(2*jj-1:2*jj,ii)];
                 end
             end
-            val = [val;val1;val2;val3];
+            
+            for ii = 2:N+1
+                for jj = 1:this.gmm_num
+                    val4 = [val4;P(1,2,jj,ii) - P(2,1,jj,ii)];
+                    val4 = [val4;P_pred(1,2,jj,ii-1) - P_pred(2,1,jj,ii-1)];
+                end
+            end
+            
+            val = [val;val1;val2;val3;val4];
         end
         
         function glin = getLinIneqConstr(this,s,snum,fld)
@@ -2008,56 +1992,41 @@
         
          %% sensor model approximation
         % exact value of gamma
-        function gam_exact = gam(this,solver,z,theta,x0,alp1,alp2,alp3) 
-            gam_exact = 1/this.gam_den(solver,z,theta,x0,alp1,alp2,alp3);
+        function gam_exact = gam(this,z,theta,x0,alp1,alp2,alp3) 
+            gam_exact = 1/this.gam_den(z,theta,x0,alp1,alp2,alp3);
         end
                 
         % denominator of gamma
-        function gam_d = gam_den(this,solver,z,theta,x0,alp1,alp2,alp3)
-            gam_d = this.gam_den1(solver,z,x0,alp1)*this.gam_den2(solver,z,x0,theta,alp2)*...
-                this.gam_den3(solver,z,x0,theta,alp3);
+        function gam_d = gam_den(this,z,theta,x0,alp1,alp2,alp3)
+            gam_d = this.gam_den1(z,x0,alp1)*this.gam_den2(z,x0,theta,alp2)*...
+                this.gam_den3(z,x0,theta,alp3);
         end
         
-        function gam_den = gam_den1(this,solver,z,x0,alp)
+        function gam_den = gam_den1(this,z,x0,alp)
             tmp = alp*(sum((x0-z).^2)-this.r^2);
-            switch solver
-                case 'sqp'
-                    if tmp > this.thr
-                        gam_den = 1+exp(this.thr);
-                    else
-                        gam_den = 1+exp(tmp);
-                    end
-                case 'ipopt'
-                    % yalmip cannot accept if statement in constraint
-                    gam_den = 1+exp(tmp);
+            if tmp > this.thr
+                gam_den = 1+exp(this.thr);
+            else
+                gam_den = 1+exp(tmp);
             end
         end
         
-        function gam_den = gam_den2(this,solver,z,x0,theta,alp)
-            tmp = alp*[sin(theta-this.theta0),-cos(theta-this.theta0)]*(x0-z);
-            switch solver
-                case 'sqp'
-                    if tmp > this.thr
-                        gam_den = 1+exp(this.thr);
-                    else
-                        gam_den = 1+exp(tmp);
-                    end
-                case 'ipopt'
-                    gam_den = 1+exp(tmp);
+        function gam_den = gam_den2(this,z,x0,theta,alp)
+            tmp = alp*[sin(theta-this.theta0),-cos(theta-this.theta0)]*(x0-z);            
+            if tmp > this.thr
+                gam_den = 1+exp(this.thr);
+            else
+                gam_den = 1+exp(tmp);
             end
+            
         end
         
-        function gam_den = gam_den3(this,solver,z,x0,theta,alp)
-            tmp = alp*[-sin(theta+this.theta0),cos(theta+this.theta0)]*(x0-z);
-            switch solver
-                case 'sqp'
-                    if tmp > this.thr
-                        gam_den = 1+exp(this.thr);
-                    else
-                        gam_den = 1+exp(tmp);
-                    end
-                case 'ipopt'
-                    gam_den = 1+exp(tmp);
+        function gam_den = gam_den3(this,z,x0,theta,alp)
+            tmp = alp*[-sin(theta+this.theta0),cos(theta+this.theta0)]*(x0-z);            
+            if tmp > this.thr
+                gam_den = 1+exp(this.thr);
+            else
+                gam_den = 1+exp(tmp);
             end
         end       
         
