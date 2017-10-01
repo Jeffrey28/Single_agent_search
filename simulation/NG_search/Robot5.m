@@ -1683,6 +1683,7 @@
             val2 = [];
             val3 = [];
             val4 = [];
+            val5 = [];
             
             N = this.mpc_hor;            
             dt = this.dt;
@@ -1778,7 +1779,15 @@
                     
                 end
             end
-            h = [val1;val2;val4];
+            
+            for ii = 1:N+1
+                for jj = 1:this.gmm_num
+                    val5 = [val5;-P(1,1,jj,ii)*P(2,2,jj,ii)+...
+                        P(1,2,jj,ii)*P(2,1,jj,ii)];
+                end
+            end
+            
+            h = [val1;val2;val4;val5];
         end
         
         function h = getPinverseConstr(this,s,snum)

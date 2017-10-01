@@ -12,6 +12,7 @@ clear % clear global variables
 close all
 
 simSetup;
+dbstop if error
 % [sim_len,sim,rbt,fld] = simSetup2();
 %% %%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%% 
 % optimal solution for seeding ngPlanner
@@ -75,8 +76,8 @@ for ii = 1:sim_len
 %         [optz,optu] = rbt.ngPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner(fld,optz,optu);
 %         [optz,optu] = rbt.cvxPlanner_sqp(fld,optz,optu);
-%         [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
-        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_ipopt(fld,optz,optu,plan_mode);
+        [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);
+%         [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_ipopt(fld,optz,optu,plan_mode);
     end
     
     merit_set(:,ii) = [merit;model_merit;new_merit];

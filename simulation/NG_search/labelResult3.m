@@ -283,6 +283,12 @@ switch fctname
             end
         end
         
+        for ii = 1:N+1
+                for jj = 1:gmm_num
+                    constrHeader = [constrHeader;{sprintf('P(:,:,%d,%d) psd',jj,ii)}];
+            end
+        end
+        
         % triu(P(:,:,jj,ii)*Pinverse(:,:,jj,ii))-eye(2)
         for ii = 1:N+1
             for jj = 1:gmm_num
