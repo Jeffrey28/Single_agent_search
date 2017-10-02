@@ -174,17 +174,21 @@ switch fctname
         end
         
         for ii = 1:N
-            % K = P_k+1|k*C_k+1'(C_k+1*P_k+1|k*C_k+1'+R)^-1
-            constrHeader = [constrHeader;{sprintf('K(1,1,%d)',ii)};...
-                {sprintf('K(2,1,%d)=0',ii)};{sprintf('K(1,2,%d)',ii)};...
-                {sprintf('K(2,2,%d)',ii)}];
+            for jj = 1:gmm_num
+                % K = P_k+1|k*C_k+1'(C_k+1*P_k+1|k*C_k+1'+R)^-1
+                constrHeader = [constrHeader;{sprintf('K(1,1,%d,%d)',jj,ii)};...
+                    {sprintf('K(2,1,%d,%d)=0',jj,ii)};{sprintf('K(1,2,%d,%d)',jj,ii)};...
+                    {sprintf('K(2,2,%d,%d)',jj,ii)}];
+            end
         end
         
         for ii = 1:N
-            % P_k+1|k+1 = P_k+1|k-gamma*K*C*P_k+1|k
-            constrHeader = [constrHeader;{sprintf('P(1,1,%d)',ii)};...
-                {sprintf('P(2,1,%d)=0',ii)};{sprintf('P(1,2,%d)',ii)};...
-                {sprintf('P(2,2,%d)',ii)}];
+            for jj = 1:gmm_num
+                % P_k+1|k+1 = P_k+1|k-gamma*K*C*P_k+1|k
+                constrHeader = [constrHeader;{sprintf('P(1,1,%d,%d)',jj,ii)};...
+                    {sprintf('P(2,1,%d,%d)=0',jj,ii)};{sprintf('P(1,2,%d,%d)',jj,ii)};...
+                    {sprintf('P(2,2,%d,%d)',jj,ii)}];
+            end
         end
         labeledRes = [constrHeader,cellRes];
 end

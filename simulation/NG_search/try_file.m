@@ -676,11 +676,37 @@ LabelLinEq = labelResult3(reflinEq,'hlin',this.gmm_num,N);
 LabelNlIneq = labelResult3(refNLineq,'g',this.gmm_num,N);
 LabelNlEq = labelResult3(refNLeq,'h',this.gmm_num,N);
 
+%% check initial guess values for computing obj and constraint satisfaction (sqp)
 % debug sqp
-Labelx = labelResult3(x,'s',this.gmm_num,N);
-Labelfgrad = labelResult3(fgrad,'fgrad',this.gmm_num,N);
-Labelhjac = labelResult3(hjac,'hjac',this.gmm_num,N);
+% in cvx_planner function
+%{
+tmpvar = sfea;
+tmpglin = constrLinIneq;
+tmphlin =  constrLinEq;
+tmpg = objNLineq;
+tmph = objNLeq;
+%}
 
+% in minimize_merit_function function
+%
+tmpvar = xp;
+tmpglin = glin;
+tmphlin =  hlin;
+tmpg = g;
+tmph = h; 
+%}
+reflinIneq = [tmpglin(tmpvar),tmpglin(tmpvar) <= 0]; 
+reflinEq = [tmphlin(tmpvar),tmphlin(tmpvar) == 0];
+refNLineq = [tmpg(tmpvar),tmpg(tmpvar) <= 0];
+refNLeq = [tmph(tmpvar),tmph(tmpvar) == 0];
+
+Labels = labelResult(tmpvar,'s',this.gmm_num,N);
+Labelfgrad = labelResult(fgrad,'fgrad',this.gmm_num,N)';
+Labelhjac = labelResult(hjac,'hjac',this.gmm_num,N);
+LabelLinIneq = labelResult(reflinIneq,'glin',this.gmm_num,N);
+LabelLinEq = labelResult(reflinEq,'hlin',this.gmm_num,N);
+LabelNlIneq = labelResult(refNLineq,'g',this.gmm_num,N);
+LabelNlEq = labelResult(refNLeq,'h',this.gmm_num,N);
 %% check the limiting case of P_k|k
 %{
 Ainf = eye(2);

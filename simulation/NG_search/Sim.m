@@ -39,13 +39,38 @@ classdef Sim
             %}
             
             % draw prob map (based on particle filter)
+            % old version (before 10/2/17). Will remove if the new version
+            % works
+            %{
             gmm_obj = gmdistribution(rbt.gmm_mu',rbt.gmm_sigma,rbt.wt');
                     
             tmp = pdf(gmm_obj,[X(:),Y(:)]);
             prob_map_gmm = (reshape(tmp,ylen,xlen))';
+            %}
+            
+            % new version (10/2/17)
+            prob_map_gmm = zeros(ylen,xlen);
+            gmm_obj = gmdistribution(rbt.gmm_mu',rbt.gmm_sigma,rbt.wt');
+            compcdf = @(x) cdf(gmm_obj,x');
+            for ii = 1:ylen
+                for jj = 1:xlen
+                    % use probability map to draw the plot
+                    % (ii,jj) represents the probability mass of the
+                    % rectangle (X(jj,ii)+0.5;Y(jj,ii)+0.5)->[X(jj,ii)-0.5;Y(jj,ii)+0.5]->
+                    % [X(jj,ii)-0.5;Y(jj,ii)-0.5]->[X(jj,ii)+0.5;Y(jj,ii)-0.5]
+                    prob_map_gmm(jj,ii) = compcdf([X(jj,ii)+0.5;Y(jj,ii)+0.5])-...
+                        compcdf([X(jj,ii)-0.5;Y(jj,ii)+0.5])-...
+                        compcdf([X(jj,ii)+0.5;Y(jj,ii)-0.5])+...
+                        compcdf([X(jj,ii)-0.5;Y(jj,ii)-0.5]);
+                    %                     prob_map_kf(jj,ii) = exp(-([X(jj,ii);Y(jj,ii)]-rbt.est_pos)'/(2*rbt.P)*([X(jj,ii);Y(jj,ii)]-rbt.est_pos));
+                end
+            end
+            prob_map_gmm = prob_map_gmm/sum(sum(prob_map_gmm));
+            
             
             shading interp
-            contourf(prob_map_gmm','LineColor','none');
+%             contourf(prob_map_kf','LineColor','none');
+            contourf(prob_map_gmm,'LineColor','none');
             load('MyColorMap','mymap')
             colormap(mymap);
             colorbar        
@@ -138,6 +163,8 @@ classdef Sim
 %             y1 = rbt.traj(2,end) + rbt.r*sin(t);
 %             plot([x0,x1,x0],[y0,y1,y0],'y-','LineWidth',1.5)
             
+            drawFOV(rbt,rbt.state,fld,'cur');
+
             xlim([fld.fld_cor(1),fld.fld_cor(2)]);
             ylim([fld.fld_cor(3),fld.fld_cor(4)]);
             box on

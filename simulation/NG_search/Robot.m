@@ -383,6 +383,12 @@
             this.gmm_num = numComponents;
             this.gmm_mu = best_model.mu';
             this.gmm_sigma = best_model.Sigma;
+
+            % (10/1) for temporary debug only. delete soon
+%             this.gmm_num = 1;
+%             this.gmm_mu = [15;17];
+%             this.gmm_sigma = 2*eye(2);
+            
             % optimization will generate bad behavior if sigma is too
             % small. so constrain the min sig
             for ii = 1:this.gmm_num
@@ -393,7 +399,8 @@
             end
             
             this.wt = best_model.PComponents';
-           
+            % (10/1) for temporary debug only. delete soon
+%             this.wt = 1;
             
             % ad-hoc way of merging close gmm componenets
             % needs a more systematic way of doing this later
@@ -428,6 +435,15 @@
             % convert the data form to be compatible with the main code
             this.est_pos = this.gmm_mu(:);
             for ii = 1:this.gmm_num %numComponents
+                %%%%% (10/1) this is a very ugly temporary fix. See details
+%                 %%%%% in oneNote.
+                if this.gmm_sigma(1,1,ii) < 2
+                    this.gmm_sigma(1,1,ii) = 2;
+                end
+                
+                if this.gmm_sigma(2,2,ii) < 2
+                    this.gmm_sigma(2,2,ii) = 2;
+                end
                 this.P{ii} = this.gmm_sigma(:,:,ii);
             end
         end
@@ -508,8 +524,12 @@
             fQ = zeros(length(s)); 
             q = zeros(1,length(s));
             
-            %%% kinematics constraints
+            %%% NL constraints
+            % kinematics constraints
             objKin = @(s) this.getKinConstr(s,snum);
+            
+            % psd
+            objpsd = @(s) this.psdConstr(s,snum);
             
             %%% linear equality constraints          
             % belief dynamics (note: this one could be written using
@@ -564,7 +584,7 @@
                     
                     trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
                     
-                    objNLineq = @(s) 0; % nonlinear inequality constraint here
+                    objNLineq = @(s) objpsd(s); % nonlinear inequality constraint here
                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
                     %                     objNLeq = @(s) 0;
                     
@@ -575,13 +595,13 @@
                     b_eq = [];
                     
                     % make initial solution feasible
-                    [s,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
+                    [sfea,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
                     if (~success)
                         return;
                     end
                     
                     % loop 3 starts
-                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(s, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
                     % loop 3 ends
                     
                     if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
@@ -669,10 +689,9 @@
             optz = zref;
             optu = uref;
             
-            
             % visualize the FOV along the planned path
-            %%% xref in this part needs change when infeasibility happens
-            this.plotPlannedTraj(optz,xref,fld)
+            %%%%% xref in this part needs change when infeasibility happens
+%             this.plotPlannedTraj(optz,xref,fld)
 %             }
         end
         
@@ -1476,8 +1495,8 @@
 %                        if mineigv <= 0
 %                            P(:,:,ll,ii) = P(:,:,ll,ii)+(-mineigv+0.01)*eye(size(P(:,:,ll,ii),1));
 %                        end                       
-%                        tmp = tmp+this.wt(ll)*mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
-                       tmp = tmp+this.wt(ll)*exp(-(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))'/P(:,:,ll,ii)*(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))/2)/(2*pi*sqrt(det(P(:,:,ll,ii))));
+                       tmp = tmp+this.wt(ll)*mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
+%                        tmp = tmp+this.wt(ll)*exp(-(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))'/P(:,:,ll,ii)*(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))/2)/(2*pi*sqrt(det(P(:,:,ll,ii))));
                    end
 %                    tmp_dis = sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2);
 %                    tmp_dis = abs(sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2)-1); % distance between sensor and MLE target position
@@ -1491,8 +1510,8 @@
                end         
                %}
                val = val+sum(u(:,ii-1).^2); % penalize on control input
-               val = val+10*sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2);
-%                val = val+abs(sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2)-2); % penalize the distance between sensor and MLE target postion with maximal weight
+               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+%                val = val+sum(abs((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2-1));
             end
 %             val = 0.1*val;
 %             val = 0;
@@ -1597,7 +1616,26 @@
             h = [val1;val2];
         end
         
-        function val = getLinEqConstr(this,s,snum,tar)
+        function g = psdConstr(this,s,snum)
+            P = this.convState(s,snum,'P');
+            P_pred = this.convState(s,snum,'P_pred');
+            
+            val1 = [];
+            val2 = [];
+            smnum = 10^-2;
+            N = this.mpc_hor;
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    val1 = [val1;smnum-(P(1,1,jj,ii+1)*P(2,2,jj,ii+1)-P(1,2,jj,ii+1)*...
+                        P(2,1,jj,ii+1))];
+                    val2 = [val2;smnum-(P_pred(1,1,jj,ii)*P_pred(2,2,jj,ii)-P_pred(1,2,jj,ii)*...
+                        P_pred(2,1,jj,ii))];
+                end
+            end
+            g = 10*[val1;val2];
+        end
+        
+        function hlin = getLinEqConstr(this,s,snum,tar)
             % linear equality constraints
             z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
             x = this.convState(s,snum,'x'); %s(snum(3,1):snum(3,2));
@@ -1653,14 +1691,16 @@
                 end
             end
             
-            val = [val;val1;val2;val3;val4];
+            hlin = [val;val1;val2;val3;val4];
         end
         
         function glin = getLinIneqConstr(this,s,snum,fld)
             % linear inequality constraints
             z = this.convState(s,snum,'z');
             u = this.convState(s,snum,'u');
-                        
+            P = this.convState(s,snum,'P');
+            P_pred = this.convState(s,snum,'P_pred');
+            
             N = this.mpc_hor;            
 %             glin = [];
             % bounds on states and input
@@ -1673,7 +1713,19 @@
             for ii = 1:N
                 glin = [glin;z(1:2,ii+1)-[fld.fld_cor(2);fld.fld_cor(4)];...
                     [fld.fld_cor(1);fld.fld_cor(3)]-z(1:2,ii+1)];
-            end            
+            end    
+            
+            % P, Ppred is psd: P(1,1), P_pred(1,1) >= smnum
+            %
+            smnum = 10^-1; % a small number
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    glin = [glin;smnum-[P(1,1,jj,ii+1);P(2,2,jj,ii+1);...
+                        P_pred(1,1,jj,ii);P_pred(2,2,jj,ii)]];
+                end
+            end
+            %}
+            
         end
         
         % other convex constraints that are not linear equ/inequ
