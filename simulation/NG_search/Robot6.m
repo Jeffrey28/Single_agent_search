@@ -625,13 +625,13 @@
                     objNLeq = @(s) [objKin(s);objBel(s)];
                     
                     % make initial solution feasible
-                    [sfea,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
+                    [sfea,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq,snum);
                     if (~success)
                         return;
                     end
                                         
                     % loop 3 starts
-                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, cvxConstr, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
                     % loop 3 ends
                     
                     if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
@@ -1177,7 +1177,7 @@
         
         %% %%%%% utilities for numerical optimization
         %% scp solver (adapted from CS 287 class)
-        function [x, trust_box_size, success, merit, model_merit, new_merit] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, cvxConstr, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld)
+        function [x, trust_box_size, success, merit, model_merit, new_merit] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld)
             % f: nonlinear, non-quad obj, g: nonlinear inequality constr, h: nonlinear equality constr.
             % glin: linear inequality constr, hlin: linear equality constr.
             
@@ -1275,8 +1275,8 @@
                         subject to
                             hlin(xp) == 0;
                             glin(xp) <= 0;
-                            % a temporary code to enforce psd of P, P_pred
                             
+                            % a temporary code to enforce psd of P, P_pred                            
                             P = this.convState(xp,snum,'P');
                             P_pred = this.convState(xp,snum,'P_pred');
                             for ii = 1:this.mpc_hor+1
@@ -1378,21 +1378,40 @@
             end % sqp
         end
            
-        function [x,success] = find_closest_feasible_point(this, x0, glin, hlin)
+        function [x,success] = find_closest_feasible_point(this, x0, glin, hlin,snum)
             % Find a point that satisfies linear constraints, if x0 doesn't
             % satisfy them
             
             success = true;
+            smnum = 10^-2;
+            
             if any(glin(x0) > 0) || any(hlin(x0) ~= 0)
                 fprintf('    Robot.m, line %d\n', MFileLineNr())
                 fprintf('    initialization doesn''t satisfy linear constraints. finding the closest feasible point\n');
                 
                 cvx_begin quiet
-                variables('x(length(x0))')
-                minimize('sum((x-x0).^2)')
+                variables x(length(x0))
+                expression P(2,2,this.gmm_num,this.mpc_hor)
+                expression P_pred(2,2,this.gmm_num,this.mpc_hor)
+                minimize sum((x-x0).^2)
                 subject to
                     hlin(x) == 0;
                     glin(x) <= 0;
+                    
+                    % a temporary code to enforce psd of P, P_pred
+                    P = this.convState(x,snum,'P');
+                    P_pred = this.convState(x,snum,'P_pred');
+                    for ii = 1:this.mpc_hor+1
+                        for jj = 1:this.gmm_num
+                            P(:,:,jj,ii)-smnum*eye(2) == semidefinite(2);
+                        end
+                    end
+                    
+                    for ii = 1:this.mpc_hor
+                        for jj = 1:this.gmm_num
+                            P_pred(:,:,jj,ii)-smnum*eye(2) == semidefinite(2);
+                        end
+                    end
                 cvx_end
                 
                 if strcmp(cvx_status,'Failed') || strcmp(cvx_status,'Infeasible')
