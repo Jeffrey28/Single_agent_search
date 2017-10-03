@@ -312,9 +312,10 @@
             
             % state update: since we use the static target, no update is needed
             pred_par = zeros(2,np); % predicted particle state
-            for ii = 1:np
+            for ii = 1:np                
                 pred_par(:,ii) = f(particles(:,ii));
             end
+            pred_par = (mvnrnd(pred_par',fld.target.Q))';
             
             % weight update
             for ii = 1:np
