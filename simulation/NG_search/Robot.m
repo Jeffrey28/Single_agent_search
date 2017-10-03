@@ -1587,6 +1587,9 @@
                     % mean
                     % x_k+1|k+1=x_k+1|k+\sum
                     % w_ll*gamma_ll*K*(h(x^ll_k+1|k)-h(x_k+1|k))
+                    %%%%% note: this part is not used currently, since we
+                    %%%%% assume MAP. In future version, I will probably
+                    %%%%% use this part once MAP assumption is removed
                     gm = zeros(this.gmm_num,1);
                         
                     tmp2 = 0;
