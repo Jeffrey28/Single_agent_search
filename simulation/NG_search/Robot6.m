@@ -592,6 +592,8 @@
 %                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
                     %                     objNLeq = @(s) 0;
                     
+%                     cvxConstr = @(s) this.psdConstr2(s,snum);
+                    
                     %% loop 3: trust region SQP
                     A_ineq = [];
                     b_ineq = [];
@@ -629,7 +631,7 @@
                     end
                                         
                     % loop 3 starts
-                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, cvxConstr, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
                     % loop 3 ends
                     
                     if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
@@ -1175,7 +1177,7 @@
         
         %% %%%%% utilities for numerical optimization
         %% scp solver (adapted from CS 287 class)
-        function [x, trust_box_size, success, merit, model_merit, new_merit] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld)
+        function [x, trust_box_size, success, merit, model_merit, new_merit] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, cvxConstr, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld)
             % f: nonlinear, non-quad obj, g: nonlinear inequality constr, h: nonlinear equality constr.
             % glin: linear inequality constr, hlin: linear equality constr.
             
@@ -1263,14 +1265,31 @@
                     % Make sure to include the constant term f(x) in the merit function
                     % objective as the resulting cvx_optval is used further below.
                     
-                    
+                    smnum = 10^-2;
                     cvx_begin quiet
                         variables xp(dim_x, 1);
+                        expression P(2,2,this.gmm_num,this.mpc_hor)
+                        expression P_pred(2,2,this.gmm_num,this.mpc_hor)
                         %                 minimize fquadlin(x) + fval + (x'*Q'+q+fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                         minimize fquadlin(xp) + fval + (fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                         subject to
                             hlin(xp) == 0;
                             glin(xp) <= 0;
+                            % a temporary code to enforce psd of P, P_pred
+                            
+                            P = this.convState(xp,snum,'P');
+                            P_pred = this.convState(xp,snum,'P_pred');
+                            for ii = 1:this.mpc_hor+1
+                                for jj = 1:this.gmm_num
+                                    P(:,:,jj,ii)-smnum*eye(2) == semidefinite(2);
+                                end
+                            end
+                            
+                            for ii = 1:this.mpc_hor
+                                for jj = 1:this.gmm_num
+                                    P_pred(:,:,jj,ii)-smnum*eye(2) == semidefinite(2);
+                                end
+                            end
                             
                             norm(xp-x,2) <= trust_box_size;
                     cvx_end
@@ -1522,9 +1541,13 @@
 %                        mineigv = min(eig(P(:,:,ll,ii)));                       
 %                        if mineigv <= 0
 %                            P(:,:,ll,ii) = P(:,:,ll,ii)+(-mineigv+0.01)*eye(size(P(:,:,ll,ii),1));
-%                        end                       
-                       tmp = tmp+this.wt(ll)*mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
-%                        tmp = tmp+this.wt(ll)*exp(-(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))'/P(:,:,ll,ii)*(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))/2)/(2*pi*sqrt(det(P(:,:,ll,ii))));
+%                        end
+                        % the reason I don't use mvnpdf here is because it
+                        % could happen that P(:,:,ll,ii) is not symmetric
+                        % numerically even after doing 
+                        % P(:,:,ll,ii) = (P(:,:,ll,ii)+P(:,:,ll,ii)')/2
+%                        tmp = tmp+this.wt(ll)*mvnpdf(x(2*jj-1:2*jj,ii),x(2*ll-1:2*ll,ii),P(:,:,ll,ii));
+                       tmp = tmp+this.wt(ll)*exp(-(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))'/P(:,:,ll,ii)*(x(2*jj-1:2*jj,ii)-x(2*ll-1:2*ll,ii))/2)/(2*pi*sqrt(det(P(:,:,ll,ii))));
                    end
 %                    tmp_dis = sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2);
 %                    tmp_dis = abs(sum((x(2*jj-1:2*jj,ii)-z(1:2,ii)).^2)-1); % distance between sensor and MLE target position
@@ -1638,7 +1661,8 @@
                         tar_pos,alp1,alp2,alp3)*T*P_pred(:,:,jj,ii);
                     end
 %                     h = h+sum(sum(abs(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum)));
-                    tmp2 = triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum);
+%                     tmp2 = triu(P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum);
+                    tmp2 = P(:,:,jj,ii+1)-P_pred(:,:,jj,ii)+tmp_sum;
                     val2 = [val2;tmp2(:)];
                 end
             end
@@ -1661,7 +1685,7 @@
                         P_pred(2,1,jj,ii))];
                 end
             end
-            g = 10*[val1;val2];
+            g = 100*[val1;val2];
         end
         
         function hlin = getLinEqConstr(this,s,snum,tar)
@@ -1692,8 +1716,8 @@
             val = [val;z(:,1)-this.state];
             val = [val;x(:,1)-this.est_pos(:)];
             for jj = 1:this.gmm_num
-               tmp = triu(P(:,:,jj,1))-triu(this.P{jj}); %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
-%                tmp = P(:,:,jj,1)-this.P{jj}; %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
+%                tmp = triu(P(:,:,jj,1))-triu(this.P{jj}); %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
+               tmp = P(:,:,jj,1)-this.P{jj}; %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
                val = [val;tmp(:)];
             end
             
@@ -1755,6 +1779,27 @@
             end
             %}
             
+        end
+        
+        function constr = psdConstr2(this,s,snum)
+            % this function explicitely enforces PSD constraint by using
+            % CVX's own psd enforcement.
+            
+            P = this.convState(s,snum,'P');
+            P_pred = this.convState(s,snum,'P_pred');
+            smnum = 10^-2;
+            N = this.mpc_hor;
+            
+            constr1 = [];
+            constr2 = [];
+            
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    constr1 = [constr1;P(:,:,jj,ii+1)-smnum*eye(2) == semidefinite(2)];
+                    constr2 = [constr2;P_pred(:,:,jj,ii)-smnum*eye(2) == semidefinite(2)];
+                end
+            end
+            constr = [constr1;constr2];
         end
         
         % other convex constraints that are not linear equ/inequ

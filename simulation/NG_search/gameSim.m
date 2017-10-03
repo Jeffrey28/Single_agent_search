@@ -36,7 +36,7 @@ end
 
 tic
 for ii = 1:sim_len
-    fprintf('[main loop] gameSim.m, line %d, Progress: %d\n',MFileLineNr(),ii/sim_len)    
+    fprintf('[main loop] gameSim.m, line %d, iteration %d, Progress: %d\n',MFileLineNr(),ii,ii/sim_len)    
     
     %% target moves
     fld = fld.targetMove();

@@ -190,6 +190,15 @@ switch fctname
                     {sprintf('P(2,2,%d,%d)',jj,ii)}];
             end
         end
+
+        for ii = 1:N
+            for jj = 1:gmm_num
+                % x_k+1|k = f(x_k)
+                constrHeader = [constrHeader;{sprintf('x(1,%d,%d)',jj,ii)};...
+                    {sprintf('x(2,%d,%d)',jj,ii)}];
+            end
+        end
+        
         labeledRes = [constrHeader,cellRes];
 end
 end

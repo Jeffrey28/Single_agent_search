@@ -689,7 +689,7 @@ tmph = objNLeq;
 
 % in minimize_merit_function function
 %
-tmpvar = xp;
+tmpvar = x;
 tmpglin = glin;
 tmphlin =  hlin;
 tmpg = g;
