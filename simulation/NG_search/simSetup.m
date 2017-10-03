@@ -8,7 +8,7 @@ sim_len = 40;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
-tar_model = 'lin'; % static, lin, cir, sin
+tar_model = 'sin'; % static, lin, cir, sin
 
 solver = 'ipopt'; % 'sqp'
 
