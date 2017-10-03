@@ -1,12 +1,14 @@
 %% Sim Setup
-addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
-addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % some issue occurs when vec function is called (in my code, it happens when using log_det)
+% addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
+% addpath('C:\Program Files\MATLAB\cvx\functions\vec_') % some issue occurs when vec function is called (in my code, it happens when using log_det)
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
 sim_len = 40;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
+
+tar_model = 'lin'; % static, lin, cir, sin
 
 solver = 'ipopt'; % 'sqp'
 
@@ -30,46 +32,53 @@ target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
 % nonlinear model, used for EKF
 
-%%% setup for static target, KF
-% target.f = @(x) x;
-% target.del_f = @(x) eye(2);
-% target.A = eye(2);%[0.99 0;0 0.98];
-% target.B = [0;0]; %[0.3;-0.3];[0;0];
-% target.Q = 0*eye(2); % Covariance of process noise model for the target
+switch tar_model
+    case 'static'
+        %%% setup for static target, KF
+        target.f = @(x) x;
+        target.del_f = @(x) eye(2);
+        target.A = eye(2);%[0.99 0;0 0.98];
+        target.B = [0;0]; %[0.3;-0.3];[0;0];
+        target.Q = 0*eye(2); % Covariance of process noise model for the target
+    
+    case 'lin'
+        %%% setup for moving target: linear model
+        
+        target.f = @(x) x+[0.5;0.5];
+        target.del_f = @(x) eye(2);
+        % this A, B is temporily defined to make this part compatible with KF in
+        % Robot.m. Later clean this part to unify the representation of KF and PF.
+        % Make sure A corresponds to del_f and B is the affine term of f.
+%         target.A = eye(2);%[0.99 0;0 0.98];
+%         target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
+        target.Q = 0.25*eye(2); %0.04 % Covariance of process noise model for the target
+    
+    case 'cir'
+        %%% setup for moving target: circular model
+        % this part is not finished yet
+        des_lin_vel = 1;
+        cetr = center_set(:,mode_cnt);
+        center_set = [20;20]; %[[50.5;150.5],[50.5;-150.5],[-50.5;50.5],[150.5;50.5]];
+        radius = norm(x-cetr);
+        ang_vel = des_lin_vel/radius;
+        d_ang = ang_vel*dt; % the angle increment
+        cur_ang = atan2(y-cetr(2),x-cetr(1));
 
-%%% setup for moving target: linear model
-target.f = @(x) x+[0.5;0.5];
-target.del_f = @(x) eye(2);
-% this A, B is temporily defined to make this part compatible with KF in
-% Robot.m. Later clean this part to unify the representation of KF and PF.
-% Make sure A corresponds to del_f and B is the affine term of f.
-target.A = eye(2);%[0.99 0;0 0.98];
-target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
-target.Q = 0.25*eye(2); %0.04 % Covariance of process noise model for the target
-
-%%% setup for moving target: circular model
-%{
-des_lin_vel = 1;
-cetr = center_set(:,mode_cnt);
-center_set = [20;20]; %[[50.5;150.5],[50.5;-150.5],[-50.5;50.5],[150.5;50.5]];
-radius = norm(x-cetr);
-ang_vel = des_lin_vel/radius;
-d_ang = ang_vel*dt; % the angle increment
-cur_ang = atan2(y-cetr(2),x-cetr(1));
-
-tmp_x = x - radius*sin(cur_ang)*d_ang;
-tmp_y = y + radius*cos(cur_ang)*d_ang;
-%}
-
-%%% setup for moving target: sinusoidal model
-%{
-u = [1;1];
-target.f = @(x) x+[u(1);u(2)*cos(0.2*x(1))];
-target.del_f = @(x) [1 0; -u(2)*sin(x(1)) 1];
-target.A = [1 0; -u(2)*sin(x(1)) 1];
-% target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
-target.Q = 0*eye(2); %0.04 % Covariance of process noise model for the target
-%}
+        tmp_x = x - radius*sin(cur_ang)*d_ang;
+        tmp_y = y + radius*cos(cur_ang)*d_ang;
+        %}
+    
+    case 'sin'
+        %%% setup for moving target: sinusoidal model
+        %
+        u = [1;1];
+        target.f = @(x) x+[u(1);u(2)*cos(0.2*x(1))];
+        target.del_f = @(x) [1 0; -u(2)*sin(x(1)) 1];
+%         target.A = [1 0; -u(2)*sin(x(1)) 1];
+        % target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
+        target.Q = 0.09*eye(2); %0.04 % Covariance of process noise model for the target
+        %}
+end
 
 target.model_idx = 1;
 target.traj = target.pos;
@@ -212,5 +221,5 @@ cfg.callback = @(x,info) 0; % can change to plotting function later
 inPara_rbt.cfg = cfg;
 
 % inPara_rbt.gam = 1;
-rbt = Robot(inPara_rbt);
+rbt = Robot6(inPara_rbt);
     

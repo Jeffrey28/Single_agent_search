@@ -1,4 +1,4 @@
- classdef Robot
+ classdef Robot6
     properties
         % motion specs
         traj;
@@ -42,6 +42,7 @@
         
         % target
         target;
+        A; 
         
         % filtering
         % xKF
@@ -74,7 +75,7 @@
     end
     
     methods
-        function this = Robot(inPara)
+        function this = Robot6(inPara)
             this.state = inPara.state;
             this.traj = inPara.state;
             this.a_lb = inPara.a_lb;
@@ -88,6 +89,7 @@
             this.R = inPara.R;
             this.h = inPara.h;
             this.del_h = inPara.del_h;
+            this.C = [];
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
             
@@ -109,6 +111,7 @@
             
             % target
             this.target = inPara.target;
+            this.A = [];
             
             % filtering
             this.sensor_type = inPara.sensor_type;
@@ -532,18 +535,18 @@
             % psd
             objpsd = @(s) this.psdConstr(s,snum);
             
-            %%% linear equality constraints          
-            % belief dynamics (note: this one could be written using
-            % A_eq,b_eq, but it's error-prone and time-consuming. 
-            % So I use this form.
-            switch plan_mode
-                case 'lin'
-                    constrLinEq = @(s) this.getLinEqConstr_kf(s,snum,tar);
-                case 'nl'
-                    constrLinEq = @(s) this.getLinEqConstr(s,snum,tar);
-            end
-            
-            %%% linear inequality constraints
+%             %% linear equality constraints          
+%             belief dynamics (note: this one could be written using
+%             A_eq,b_eq, but it's error-prone and time-consuming. 
+%             So I use this form.
+%             switch plan_mode
+%                 case 'lin'
+%                     constrLinEq = @(s) this.getLinEqConstr_kf(s,snum,tar);
+%                 case 'nl'
+%                     constrLinEq = @(s) this.getLinEqConstr(s,snum,tar);
+%             end
+%             
+            %% linear inequality constraints
             % bounds on states and input
             % this.w_lb <= u(1,:) <= this.w_ub;
             % this.a_lb <= u(2,:) <= this.a_ub;
@@ -562,12 +565,12 @@
                 fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
                 fprintf('  gamma loop #%d\n',gam_iter)
                 
-                switch plan_mode
-                    case 'lin'
-                        objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
-                    case 'nl'
-                        objBel = @(s) this.getBelConstr(s,snum,alp1,alp2,alp3); % belief update
-                end
+%                 switch plan_mode
+%                     case 'lin'
+%                         objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
+%                     case 'nl'
+%                         objBel = @(s) this.getBelConstr(s,snum,alp1,alp2,alp3); % belief update
+%                 end
                 
                 %%% objective
                 obj = @(s) this.getObj(s,snum,alp1,alp2,alp3);
@@ -586,7 +589,7 @@
                     trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
                     
                     objNLineq = @(s) objpsd(s); % nonlinear inequality constraint here
-                    objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
+%                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
                     %                     objNLeq = @(s) 0;
                     
                     %% loop 3: trust region SQP
@@ -595,12 +598,36 @@
                     A_eq = [];
                     b_eq = [];
                     
+                    % compute linearized A and C matrix
+                    this = this.linParam(s,snum,tar);
+                    
+                    %%% linear equality constraints
+                    % belief dynamics (note: this one could be written using
+                    % A_eq,b_eq, but it's error-prone and time-consuming.
+                    % So I use this form.
+                    switch plan_mode
+                        case 'lin'
+                            constrLinEq = @(s) this.getLinEqConstr_kf(s,snum,tar);
+                        case 'nl'
+                            constrLinEq = @(s) this.getLinEqConstr(s,snum,tar);
+                    end      
+                    
+                    %%% nonlinear equality constraint here
+                    switch plan_mode
+                        case 'lin'
+                            objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
+                        case 'nl'
+                            objBel = @(s) this.getBelConstr(s,snum,tar,alp1,alp2,alp3); % belief update
+                    end
+                    
+                    objNLeq = @(s) [objKin(s);objBel(s)];
+                    
                     % make initial solution feasible
                     [sfea,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
                     if (~success)
                         return;
                     end
-                    
+                                        
                     % loop 3 starts
                     [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
                     % loop 3 ends
@@ -1542,7 +1569,7 @@
             end
         end
         
-        function h = getBelConstr(this,s,snum,alp1,alp2,alp3)
+        function h = getBelConstr(this,s,snum,tar,alp1,alp2,alp3)
             % belief update constraint (nonlinear equality)
             z = this.convState(s,snum,'z'); 
             u = this.convState(s,snum,'u'); 
@@ -1570,27 +1597,24 @@
 %             alp2 = this.alp2;
 %             alp3 = this.alp3;
             
-            C = zeros(2,2,this.gmm_num,N);
+%             C = zeros(2,2,this.gmm_num,N);
             for ii = 1:N
                 % target prediction
                 for jj = 1:this.gmm_num
-                    C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+%                     C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
                                         
                     % x_k+1|k = f(x_k)
-                    val4 = [val4;x_pred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
+                    val4 = [val4;xpred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
                     
                     % update K
                     % K = P_k+1|k*C_k+1'(C_k+1*P_k+1|k*C_k+1'+R)^-1
-                    tmp = (K(:,:,jj,ii)*(C(:,:,jj,ii)*P_pred(:,:,jj,ii)*C(:,:,jj,ii)'+R)-...
-                        P_pred(:,:,jj,ii)*C(:,:,jj,ii)'); % used a scaling factor 
+                    tmp = (K(:,:,jj,ii)*(this.C(:,:,jj,ii)*P_pred(:,:,jj,ii)*this.C(:,:,jj,ii)'+R)-...
+                        P_pred(:,:,jj,ii)*this.C(:,:,jj,ii)'); % used a scaling factor 
                     val1 = [val1;tmp(:)];
                     
                     % mean
                     % x_k+1|k+1=x_k+1|k+\sum
                     % w_ll*gamma_ll*K*(h(x^ll_k+1|k)-h(x_k+1|k))
-                    %%%%% note: this part is not used currently, since we
-                    %%%%% assume MAP. In future version, I will probably
-                    %%%%% use this part once MAP assumption is removed
                     gm = zeros(this.gmm_num,1);
                         
                     tmp2 = 0;
@@ -1604,7 +1628,7 @@
                     % covariance
                     % P_k+1|k+1=P_k+1|k-\sum w_ll*gamma_ll*K*C*P_k+1|k
                     tmp_sum = zeros(2,2);
-                    T = K(:,:,jj,ii)*C(:,:,jj,ii);
+                    T = K(:,:,jj,ii)*this.C(:,:,jj,ii);
                     
                     for ll = 1:this.gmm_num
                         %%% note: gamma depends on ll, C depends
@@ -1642,11 +1666,11 @@
         
         function hlin = getLinEqConstr(this,s,snum,tar)
             % linear equality constraints
-            z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
-            x = this.convState(s,snum,'x'); %s(snum(3,1):snum(3,2));
-            x_pred = this.convState(s,snum,'x_pred'); %s(snum(4,1):snum(4,2));
-            P = this.convState(s,snum,'P'); %s(snum(5,1):snum(5,2));
-            P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));            
+            z = this.convState(s,snum,'z'); 
+            x = this.convState(s,snum,'x'); 
+            x_pred = this.convState(s,snum,'x_pred'); 
+            P = this.convState(s,snum,'P'); 
+            P_pred = this.convState(s,snum,'P_pred'); 
             
             f = tar.f;
             del_f = tar.del_f;
@@ -1673,15 +1697,15 @@
                val = [val;tmp(:)];
             end
             
-            A = zeros(2,2,this.gmm_num,N);
+%             A = zeros(2,2,this.gmm_num,N);
             for ii = 1:N
                 for jj = 1:this.gmm_num                    
                     % forward prediction
 %                     % x_k+1|k = f(x_k)
 %                     val1 = [val1;x_pred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
                     % P_k+1|k=A*P_k*A+Q
-                    A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
-                    tmp = triu(P_pred(:,:,jj,ii))-triu(A(:,:,jj,ii)*P(:,:,jj,ii)*A(:,:,jj,ii)'+Q);%+triu(slk_P_pred(:,:,jj,ii));
+%                     A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
+                    tmp = triu(P_pred(:,:,jj,ii))-triu(this.A(:,:,jj,ii)*P(:,:,jj,ii)*this.A(:,:,jj,ii)'+Q);%+triu(slk_P_pred(:,:,jj,ii));
                     val2 = [val2;tmp(:)];
                     % update
                     % x_k+1|k+1 = x_k+1|k
@@ -2047,7 +2071,27 @@
             end            
         end
         
-         %% sensor model approximation
+        %% linearized model
+        function this = linParam(this,s,snum,tar)
+            x = this.convState(s,snum,'x'); 
+            z = this.convState(s,snum,'z'); 
+            
+            del_f = tar.del_f;
+            del_h = this.del_h;
+            N = this.mpc_hor;
+            
+            this.A = zeros(2,2,this.gmm_num,N);
+            this.C = zeros(2,2,this.gmm_num,N);
+            
+            for ii = 1:N
+                for jj = 1:this.gmm_num  
+                    this.A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
+                    this.C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                end
+            end
+        end
+        
+        %% sensor model approximation
         % exact value of gamma
         function gam_exact = gam(this,z,theta,x0,alp1,alp2,alp3) 
             gam_exact = 1/this.gam_den(z,theta,x0,alp1,alp2,alp3);
