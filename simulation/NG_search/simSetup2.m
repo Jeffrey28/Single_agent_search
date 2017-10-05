@@ -8,20 +8,20 @@ sim_len = 40;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
-tar_model = 'static'; % static, lin, cir, sin, ped(estrian)
+tar_model = 'sin'; % static, lin, cir, sin, ped(estrian)
 
 solver = 'ipopt'; % 'sqp'
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'ran'; %rb % rb, ran, br, lin
+    sensor_type = 'lin'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
 sim = Sim(inPara_sim);
 
-save_video = false;
+save_video = true;
 
 
 %% Set field %%%
@@ -37,9 +37,9 @@ switch tar_model
         %%% setup for static target, KF
         target.f = @(x) x;
         target.del_f = @(x) eye(2);
-%         target.A = eye(2);%[0.99 0;0 0.98];
-%         target.B = [0;0]; %[0.3;-0.3];[0;0];
-        target.Q = 0.01*eye(2); % Covariance of process noise model for the target
+        target.A = eye(2);%[0.99 0;0 0.98];
+        target.B = [0;0]; %[0.3;-0.3];[0;0];
+        target.Q = 0*eye(2); % Covariance of process noise model for the target
     
     case 'lin'
         %%% setup for moving target: linear model
@@ -71,7 +71,7 @@ switch tar_model
     case 'sin'
         %%% setup for moving target: sinusoidal model
         %
-        u = [0.5;0.5];
+        u = [1;1];
         target.f = @(x) x+[u(1);u(2)*cos(0.2*x(1))];
         target.del_f = @(x) [1 0; -u(2)*sin(x(1)) 1];
 %         target.A = [1 0; -u(2)*sin(x(1)) 1];
@@ -98,7 +98,6 @@ fld = Field(inPara_fld);
 inPara_rbt = struct;
 % robot state
 inPara_rbt.state = [15;10;pi/2;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
-inPara_rbt.sdim = length(inPara_rbt.state);
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -118,6 +117,14 @@ inPara_rbt.sensor_type = sensor_type;
 inPara_rbt.theta0 = 60/180*pi; %60/180
 inPara_rbt.range = 10;%15 4.5;
 
+if strcmp(tar_model,'ped')
+    Ct = [1 0 0 0; 0 1 0 0];
+else
+    Ct = eye(2);
+end
+
+Cr = [1 0 0 0; 0 1 0 0];
+
 switch sensor_type 
     case 'rb'
         % range-bearing sensor
@@ -130,19 +137,16 @@ switch sensor_type
         % inPara_rbt.dist_rb = 20;
     case 'ran'
         % range-only sensor
-        inPara_rbt.h = @(x,z) sqrt(sum((x-z).^2)+0.1);
-        inPara_rbt.del_h = @(x,z) (x-z)'/sqrt(sum((x-z).^2)+0.1);
-        inPara_rbt.R = 1;
-        inPara_rbt.mdim = 1;
+        inPara_rbt.h = @(x,z) sqrt(sum((Ct*x-z).^2)+0.1);
+        inPara_rbt.del_h = Ct'*(Ct*x-z);
     case 'br'
         % bearing-only sensor
         
     case 'lin'
         % linear sensor model for KF use
-        inPara_rbt.h = @(x,z) x-z;
-        inPara_rbt.del_h = @(x,z) eye(2); % z is the robot state.
-        inPara_rbt.R = eye(2);
-        inPara_rbt.mdim = 2;
+        inPara_rbt.h = @(x,z) Ct*x-z;
+        inPara_rbt.del_h = @(x,z) Ct; % z is the robot state.
+        inPara_rbt.R = 9*eye(2); %0.01
 end
 
 % define gamma model

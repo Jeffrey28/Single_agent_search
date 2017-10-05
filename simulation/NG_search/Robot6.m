@@ -19,7 +19,8 @@
         % nonlinear sensor
         h; % y=h(x)
         del_h; % gradient of h
-        R; % covariance for sensor model
+        R; % variance(1-d)/covariance(high-d) for sensor model
+        mdim; % dimension of sensor measurement
         
         % sensor modeling
 %         gam; % function handle for gamma
@@ -43,6 +44,7 @@
         % target
         target;
         A; 
+        sdim; % dimension of state
         
         % filtering
         % xKF
@@ -92,6 +94,7 @@
             this.C = [];
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
+            this.mdim = inPara.mdim;
             
             % gamma modeling
 %             this.gam = inPara.gam; % function handle for gamma
@@ -112,6 +115,7 @@
             % target
             this.target = inPara.target;
             this.A = [];
+            this.sdim = inPara.sdim;  
             
             % filtering
             this.sensor_type = inPara.sensor_type;
@@ -163,18 +167,17 @@
             this.drawFOV(this.state,fld,'cur')
             hold on
             plot(fld.target.pos(1),fld.target.pos(2),'b','markers',5,'Marker','*');
-                        
+
             if strcmp(this.sensor_type,'rb')
                 % range-bearing sensor
                 if this.inFOV(tar_pos)
                     y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';
-                    display(mvnpdf(y,this.h(tar_pos,this.state(1:2)),this.R))
                 else
                     y = [-100;-100];
                 end
             elseif strcmp(this.sensor_type,'ran')
                 if this.inFOV(tar_pos)
-                    y = norm(tar_pos-this.state(1:2))+normrnd(0,this.R);
+                    y = this.h(tar_pos,this.state(1:2))+normrnd(0,this.R);
                 else
                     y = -100;
                 end
@@ -331,7 +334,14 @@
                     end
                 else
                     if this.inFOV(pred_par(:,ii))
-                        w(ii) = mvnpdf(y,this.h(pred_par(:,ii),this.state(1:2)),this.R);
+                        if strcmp(this.sensor_type,'ran')
+                            % note: for 1-d Gaussian, normpdf accepts std
+                            w(ii) = normpdf(y,this.h(pred_par(:,ii),this.state(1:2)),sqrt(this.R));
+                        else                            
+                            % note: for high-d Gaussian, mvnpdf accepts
+                            % covariance
+                            w(ii) = mvnpdf(y,this.h(pred_par(:,ii),this.state(1:2)),this.R);
+                        end
                     else
                         w(ii) = 10^-20;
                     end
@@ -451,8 +461,7 @@
                 this.P{ii} = this.gmm_sigma(:,:,ii);
             end
         end
-            
-       
+        
         %% planning
         
         % try re-writing the problem using cvx solver. Different from
@@ -588,11 +597,11 @@
                     
                     trust_box_size = cfg.initial_trust_box_size; % The trust region will be a box around the current iterate x.
                     
-                    objNLineq = @(s) objpsd(s); % nonlinear inequality constraint here
+                    objNLineq = @(s) 0; %objpsd(s); % nonlinear inequality constraint here
 %                     objNLeq = @(s) [objKin(s);objBel(s)]; % nonlinear equality constraint here
                     %                     objNLeq = @(s) 0;
                     
-%                     cvxConstr = @(s) this.psdConstr2(s,snum);
+                    cvxConstr = @(s) 0;% this.psdConstr2(s,snum);
                     
                     %% loop 3: trust region SQP
                     A_ineq = [];
@@ -600,6 +609,8 @@
                     A_eq = [];
                     b_eq = [];
                     
+                    %%%%% this part may need to be moved to be outside of
+                    %%%%% loop 1. I need to try this out later.
                     % compute linearized A and C matrix
                     this = this.linParam(s,snum,tar);
                     
@@ -965,6 +976,9 @@
             del_h = this.del_h;
             dt = this.dt;
             
+            sdim = this.sdim;
+            mdim = this.mdim;
+            
             alp1 = this.alp1;
             alp2 = this.alp2;
             alp3 = this.alp3;
@@ -972,11 +986,11 @@
             % open-loop prediction of target position. no measurement info 
             % is used
             % get x, x_pred
-            x_olp = zeros(2*this.gmm_num,N+1);
+            x_olp = zeros(2 * this.gmm_num,N+1);
             x_olp(:,1) = this.est_pos(:);
             for ii = 1:N
                 for jj = 1:this.gmm_num
-                    x_olp(2*jj-1:2*jj,ii+1) = f(x_olp(2*jj-1:2*jj,ii));
+                    x_olp(2*jj-1:2*jj,ii+1) = f(x_olp(2*(jj-1)+1:2*jj,ii));
                 end
             end            
             init_state.x_olp = x_olp;
@@ -989,7 +1003,7 @@
                 % primitives
                 
                 u = [0;0.5]*ones(1,N);
-                z = zeros(4,N+1);
+                z = zeros(sdim,N+1);
                 
                 z(:,1) = this.state;
                 
@@ -1024,7 +1038,7 @@
             % get P, P_pred, K
             P = zeros(2,2,this.gmm_num,N+1);
             P_pred = zeros(2,2,this.gmm_num,N);
-            K = zeros(2*this.gmm_num,2*N);
+            K = zeros(2,mdim,this.gmm_num,N);
             
             for jj = 1:this.gmm_num
                 P(:,:,jj,1) = this.P{jj};
@@ -1032,14 +1046,14 @@
             
             for ii = 1:N                
                 for jj = 1:this.gmm_num
-                    A = del_f(x_olp(2*jj-1:2*jj,ii+1));
-                    C = del_h(x_olp(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                    A = del_f(x_olp(2*(jj-1)+1:2*jj,ii+1));
+                    C = del_h(x_olp(2*(jj-1)+1:2*jj,ii+1),z(1:2,ii+1));
                     P_pred(:,:,jj,ii) = A*P(:,:,jj,ii)*A'+Q;
                     T = C*P_pred(:,:,jj,ii)*C'+R;
-                    K(2*jj-1:2*jj,2*ii-1:2*ii)= P_pred(:,:,jj,ii)*C'/T;
+                    K(:,:,jj,ii)= P_pred(:,:,jj,ii)*C'/T;
 %                     gam = this.inFOV(x_olp(2*jj-1:2*jj,ii));
-                    gam = this.gam(z(1:2,ii+1),z(3,ii+1),x_olp(2*jj-1:2*jj,ii+1),alp1,alp2,alp3);
-                    P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-gam*K(2*jj-1:2*jj,2*ii-1:2*ii)*P_pred(:,:,jj,ii)*C;
+                    gam = this.gam(z(1:2,ii+1),z(3,ii+1),x_olp(2*(jj-1)+1:2*jj,ii+1),alp1,alp2,alp3);
+                    P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-gam*K(:,:,jj,ii)*C*P_pred(:,:,jj,ii);
                 end
             end
             init_state.P = P;
@@ -1685,7 +1699,7 @@
                         P_pred(2,1,jj,ii))];
                 end
             end
-            g = 100*[val1;val2];
+            g = 10*[val1;val2];
         end
         
         function hlin = getLinEqConstr(this,s,snum,tar)
@@ -1699,6 +1713,8 @@
             f = tar.f;
             del_f = tar.del_f;
             Q = tar.Q;
+            sdim = this.sdim;
+            
             
             N = this.mpc_hor;
             val = [];
@@ -1723,26 +1739,39 @@
             
 %             A = zeros(2,2,this.gmm_num,N);
             for ii = 1:N
-                for jj = 1:this.gmm_num                    
+                for jj = 1:this.gmm_num
                     % forward prediction
 %                     % x_k+1|k = f(x_k)
 %                     val1 = [val1;x_pred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
                     % P_k+1|k=A*P_k*A+Q
 %                     A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
-                    tmp = triu(P_pred(:,:,jj,ii))-triu(this.A(:,:,jj,ii)*P(:,:,jj,ii)*this.A(:,:,jj,ii)'+Q);%+triu(slk_P_pred(:,:,jj,ii));
+                    tmp = P_pred(:,:,jj,ii)-(this.A(:,:,jj,ii)*P(:,:,jj,ii)*this.A(:,:,jj,ii)'+Q);%+triu(slk_P_pred(:,:,jj,ii));
                     val2 = [val2;tmp(:)];
                     % update
                     % x_k+1|k+1 = x_k+1|k
-                    val3 = [val3;x(2*jj-1:2*jj,ii+1)-x_pred(2*jj-1:2*jj,ii)];
+                    val3 = [val3;x(2*(jj-1)+1:2*jj,ii+1)-x_pred(2*(jj-1)+1:2*jj,ii)];
                 end
             end
             
-            for ii = 2:N+1
+            % symmetric constraint
+            %%%%%% may ducplicate with the psd constraint. However, when
+            %%%%%% using ipopt this may be useful since psd constraint is
+            %%%%%% not application is ipopt
+            %{
+            for ii = 1:N+1
                 for jj = 1:this.gmm_num
-                    val4 = [val4;P(1,2,jj,ii) - P(2,1,jj,ii)];
-                    val4 = [val4;P_pred(1,2,jj,ii-1) - P_pred(2,1,jj,ii-1)];
+                    tmp1 = triu(P(:,:,jj,ii) - P(:,:,jj,ii)',1);                    
+                    val4 = [val4;tmp1(:)];
                 end
             end
+            
+            for ii = 1:N+1
+                for jj = 1:this.gmm_num
+                    tmp2 = triu(P_pred(:,:,jj,ii-1) - P_pred(:,:,jj,ii-1)',1);  
+                    val4 = [val4;tmp2(:)];
+                end
+            end
+            %}
             
             hlin = [val;val2;val3;val4]; %val1
         end
@@ -1769,7 +1798,8 @@
             end    
             
             % P, Ppred is psd: P(1,1), P_pred(1,1) >= smnum
-            %
+            %%%%% this part is not needed for sqp, but is needed for ipopt.
+            %{
             smnum = 10^-1; % a small number
             for ii = 1:N
                 for jj = 1:this.gmm_num
@@ -1781,9 +1811,12 @@
             
         end
         
+        % this function was intended to explicitely enforce PSD
+        % constraint by using CVX's own psd enforcement. However, this
+        % function is not usable by CVX syntax. So I abandon this for
+        % now.
         function constr = psdConstr2(this,s,snum)
-            % this function explicitely enforces PSD constraint by using
-            % CVX's own psd enforcement.
+            
             
             P = this.convState(s,snum,'P');
             P_pred = this.convState(s,snum,'P_pred');
@@ -1800,29 +1833,7 @@
                 end
             end
             constr = [constr1;constr2];
-        end
-        
-        % other convex constraints that are not linear equ/inequ
-        % constraints.
-        % not finished, not working, and thus not in use.
-        % the sdp constraint is kinda hard to formualte in this function to
-        % make it usable for the cvx syntax
-        function cvxcstr = getCvxConstr(this,s,snum)           
-            % psd constraints of P
-            P = this.convState(s,snum,'P');
-            P_pred = this.convState(s,snum,'P_pred');
-            
-            cvxcstr = [];
-            
-            N = this.mpc_hor;
-            for ii = 1:N
-                for jj = 1:this.gmm_num
-                    cvxcstr = [cvxcstr;P_pred(:,:,jj,ii) == semidefinite(2)];
-                    cvxcstr = [cvxcstr;P(:,:,jj,ii) == semidefinite(2)];
-                end
-            end
-                
-        end
+        end        
         
         % for KF        
         function val = getLinEqConstr_kf(this,s,snum,tar)
@@ -1931,6 +1942,8 @@
         function t = convState(this,s,snum,schar)
            % convert the state collection s into a corresponding state variable
            N = this.mpc_hor;
+           mdim = this.mdim;
+           
            switch schar
                case 'z'
                    t = s(snum.idx(1,1):snum.idx(1,2));
@@ -1952,7 +1965,7 @@
                    t = reshape(t,2,2,this.gmm_num,N);
                case 'K'
                    t = s(snum.idx(7,1):snum.idx(7,2));
-                   t = reshape(t,2,2,this.gmm_num,N);
+                   t = reshape(t,2,mdim,this.gmm_num,N);
            end
         end
         
@@ -2117,6 +2130,8 @@
         end
         
         %% linearized model
+        % generate A, C matrix for Guassian sum filter in the optimization
+        % process
         function this = linParam(this,s,snum,tar)
             x = this.convState(s,snum,'x'); 
             z = this.convState(s,snum,'z'); 
@@ -2126,12 +2141,12 @@
             N = this.mpc_hor;
             
             this.A = zeros(2,2,this.gmm_num,N);
-            this.C = zeros(2,2,this.gmm_num,N);
+            this.C = zeros(this.mdim,2,this.gmm_num,N);
             
             for ii = 1:N
                 for jj = 1:this.gmm_num  
                     this.A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
-                    this.C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                    this.C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1))';
                 end
             end
         end

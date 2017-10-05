@@ -86,7 +86,7 @@ for ii = 1:sim_len
     rbt.snum = snum;
 %     fprintf('[main loop] gameSim.m, line %d, robot state:\n', MFileLineNr())
 %     display(rbt.state);
-    %}
+    %
     
     % debug purpose only
     % show the solution of path planner. Note that z in this solution is
@@ -100,6 +100,7 @@ for ii = 1:sim_len
     x_pred = rbt.convState(s,snum,'x_pred');
     P_pred = rbt.convState(s,snum,'P_pred');
     K = rbt.convState(s,snum,'K');
+    %}
     
     % draw plot
     sim.plotTraj(rbt,fld)

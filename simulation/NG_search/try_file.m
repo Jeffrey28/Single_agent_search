@@ -26,23 +26,75 @@
 % end
 %}
 %% test ekf
+% single sensor case
 %{
 xg = [10;10]; % target position
 xs = [15;15]; % sensor position
-f = @(x) x;
-h = @(x) x-xs;
-del_f = @(x) eye(2);
-del_h = @(x) eye(2);
-Q = 0.01*eye(2);
-R = 5*eye(2);
-x = xg+[6;7];
+f = @(x,z) x;
+h = @(x,z) sqrt(sum((x-z).^2));
+del_f = @(x,z) eye(2);
+del_h = @(x,z) (x-z)'/sqrt(sum((x-z).^2));
+Q = 0*eye(2);
+R = 0.01;
+x = xg+[10;-10];
 P = 100*eye(2);
-y = xg-xs;
-for ii = 1:50
-[x_next,P_next,x_pred,P_pred] = ekf(f,Q,h,R,y,del_f,del_h,x,P);
-x = x_next;
-P = P_next;
+simlen = 100;
+xhist = zeros(2,simlen+1);
+Phist = zeros(2,2,simlen+1);
+xhist(:,1) = x;
+Phist(:,:,1) = P;
+
+f2 = @(x) f(x,xs);
+h2 = @(x) h(x,xs);
+del_f2 = @(x) del_f(x,xs);
+del_h2 = @(x) del_h(x,xs);
+
+for ii = 1:simlen
+    y = normrnd(h(xg,xs),R,1,1);
+    [x_next,P_next,x_pred,P_pred] = ekf(f2,Q,h2,R,y,del_f2,del_h2,x,P);
+    x = x_next;
+    P = P_next;
+    xhist(:,ii+1) = x;
+    Phist(:,:,ii+1) = P;
 end
+figure(2)
+plot(1:simlen+1,sqrt(sum((xhist-xg).^2,1)))
+%}
+
+% two sensor case
+%
+xg = [10;10]; % target position
+xs = [15,15;15,5]; % sensor position
+f = @(x,z) x;
+h = @(x,z) [sqrt(sum((x-z(:,1)).^2));sqrt(sum((x-z(:,2)).^2))];
+del_f = @(x,z) eye(2);
+del_h = @(x,z) [(x-z(:,1))'/sqrt(sum((x-z(:,1)).^2));...
+    (x-z(:,2))'/sqrt(sum((x-z(:,2)).^2))];
+Q = 0*eye(2);
+R = 0.01*eye(2);
+x = xg+[0;-10];
+P = 100*eye(2);
+simlen = 100;
+xhist = zeros(2,simlen+1);
+Phist = zeros(2,2,simlen+1);
+xhist(:,1) = x;
+Phist(:,:,1) = P;
+
+f2 = @(x) f(x,xs);
+h2 = @(x) h(x,xs);
+del_f2 = @(x) del_f(x,xs);
+del_h2 = @(x) del_h(x,xs);
+
+for ii = 1:simlen
+    y = mvnrnd(h(xg,xs)',R)';
+    [x_next,P_next,x_pred,P_pred] = ekf(f2,Q,h2,R,y,del_f2,del_h2,x,P);
+    x = x_next;
+    P = P_next;
+    xhist(:,ii+1) = x;
+    Phist(:,:,ii+1) = P;
+end
+figure(2)
+plot(1:simlen+1,sqrt(sum((xhist-xg).^2,1)))
 %}
 
 %% visualize FOV
@@ -664,6 +716,7 @@ value(obj2)
 
 %% check initial guess values for computing obj and constraint satisfaction (ipopt)
 % debug ipopt
+%{
 refobj = obj(s);
 reflinIneq = [constrLinIneq(s),constrLinIneq(s) <= 0]; 
 reflinEq = [constrLinEq(s),constrLinEq(s) == 0];
@@ -675,6 +728,7 @@ LabelLinIneq = labelResult3(reflinIneq,'glin',this.gmm_num,N);
 LabelLinEq = labelResult3(reflinEq,'hlin',this.gmm_num,N);
 LabelNlIneq = labelResult3(refNLineq,'g',this.gmm_num,N);
 LabelNlEq = labelResult3(refNLeq,'h',this.gmm_num,N);
+%}
 
 %% check initial guess values for computing obj and constraint satisfaction (sqp)
 % debug sqp
@@ -688,13 +742,13 @@ tmph = objNLeq;
 %}
 
 % in minimize_merit_function function
-%
+%{
 tmpvar = x;
 tmpglin = glin;
 tmphlin =  hlin;
 tmpg = g;
 tmph = h; 
-%}
+
 reflinIneq = [tmpglin(tmpvar),tmpglin(tmpvar) <= 0]; 
 reflinEq = [tmphlin(tmpvar),tmphlin(tmpvar) == 0];
 refNLineq = [tmpg(tmpvar),tmpg(tmpvar) <= 0];
@@ -707,6 +761,7 @@ LabelLinIneq = labelResult(reflinIneq,'glin',this.gmm_num,N);
 LabelLinEq = labelResult(reflinEq,'hlin',this.gmm_num,N);
 LabelNlIneq = labelResult(refNLineq,'g',this.gmm_num,N);
 LabelNlEq = labelResult(refNLeq,'h',this.gmm_num,N);
+%}
 %% check the limiting case of P_k|k
 %{
 Ainf = eye(2);

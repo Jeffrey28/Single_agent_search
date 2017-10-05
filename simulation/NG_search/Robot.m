@@ -1010,7 +1010,7 @@
                     K(2*jj-1:2*jj,2*ii-1:2*ii)= P_pred(:,:,jj,ii)*C'/T;
 %                     gam = this.inFOV(x_olp(2*jj-1:2*jj,ii));
                     gam = this.gam(z(1:2,ii+1),z(3,ii+1),x_olp(2*jj-1:2*jj,ii+1),alp1,alp2,alp3);
-                    P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-gam*K(2*jj-1:2*jj,2*ii-1:2*ii)*P_pred(:,:,jj,ii)*C;
+                    P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-gam*K(2*jj-1:2*jj,2*ii-1:2*ii)*C*P_pred(:,:,jj,ii);
                 end
             end
             init_state.P = P;
