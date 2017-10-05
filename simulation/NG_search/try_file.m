@@ -772,3 +772,6 @@ Rinf = 5*eye(2);
 Pinf_pred = Ainf*Pinf*Ainf';
 Kinf = Pinf_pred*Cinf'/(Cinf*Pinf_pred'*Cinf'+Rinf);
 %}
+
+%% debug why no point can be found to satisfy linear constraints
+[optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);

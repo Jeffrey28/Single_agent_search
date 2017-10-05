@@ -347,6 +347,15 @@
                     end
                 end
             end
+            
+            % (10/4) set particles outside of field to have 0 weight
+            for ii = 1:np
+                if any([fld.fld_cor(1);fld.fld_cor(3)] > pred_par(:,ii))||...
+                        any([fld.fld_cor(2);fld.fld_cor(4)] < pred_par(:,ii))
+                    w(ii) = 0;
+                end
+            end
+            
             w = w/sum(w);
             
             % resampling
@@ -636,13 +645,13 @@
                     objNLeq = @(s) [objKin(s);objBel(s)];
                     
                     % make initial solution feasible
-                    [sfea,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq);
+                    [sfea,success] = this.find_closest_feasible_point(s,constrLinIneq,constrLinEq,snum);
                     if (~success)
                         return;
                     end
                                         
                     % loop 3 starts
-                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, cvxConstr, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
+                    [s, trust_box_size, success, merit, model_merit, new_merit] = this.minimize_merit_function(sfea, fQ, q, obj, A_ineq, b_ineq, A_eq, b_eq, constrLinIneq, constrLinEq, objNLineq, objNLeq, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld);
                     % loop 3 ends
                     
                     if(hinge(objNLineq(s)) + abssum(objNLeq(s)) < cfg.cnt_tolerance || pen_iter >= cfg.max_penalty_iter ) %cfg.max_iter
@@ -1166,10 +1175,39 @@
         
         %% robot state updating
         function this = updState(this,u)
+            % update robot state using control input
             st = this.state;
+            
+            if u(1) > this.w_ub
+                fprintf('[main loop] Robot.m, line %d, u(1)=%d> w_ub. Adjusted to upper bound\n',MFileLineNr(),u(1))    
+                u(1) = this.w_ub;
+            elseif u(1) < this.w_lb
+                fprintf('[main loop] Robot.m, line %d, u(1)=%d< w_lb. Adjusted to lower bound\n',MFileLineNr(),u(1))
+                u(1) = this.w_lb;
+            end
+                
+            if u(2) > this.a_ub
+                fprintf('[main loop] Robot.m, line %d, u(2)=%d> a_ub. Adjusted to upper bound\n',MFileLineNr(),u(2))    
+                u(2) = this.a_ub;
+            elseif u(2) < this.a_lb
+                fprintf('[main loop] Robot.m, line %d, u(2)=%d< a_lb. Adjusted to upper bound\n',MFileLineNr(),u(2))    
+                u(2) = this.a_lb;
+            end
+            
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
+            if this.state(4) > this.v_ub
+                fprintf('[main loop] Robot.m, line %d, z(4)=%d> v_ub. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
+                this.state(4) = this.v_ub;
+            elseif this.state(4) < this.v_lb
+                fprintf('[main loop] Robot.m, line %d, z(4)=%d< v_lb. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
+                this.state(4) = this.v_lb;
+            end
+            
+            %%%%% there should be psd checker for P. May fill this part
+            %%%%% later
+            
             this.traj = [this.traj,this.state];
         end               
         
@@ -1191,7 +1229,7 @@
         
         %% %%%%% utilities for numerical optimization
         %% scp solver (adapted from CS 287 class)
-        function [x, trust_box_size, success, merit, model_merit, new_merit] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, cvxConstr, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld)
+        function [x, trust_box_size, success, merit, model_merit, new_merit] = minimize_merit_function(this, x, Q, q, f, A_ineq, b_ineq, A_eq, b_eq, glin, hlin, g, h, hinge, abssum, cfg, penalty_coeff, trust_box_size, snum, fld)
             % f: nonlinear, non-quad obj, g: nonlinear inequality constr, h: nonlinear equality constr.
             % glin: linear inequality constr, hlin: linear equality constr.
             
@@ -1289,8 +1327,8 @@
                         subject to
                             hlin(xp) == 0;
                             glin(xp) <= 0;
-                            % a temporary code to enforce psd of P, P_pred
                             
+                            % a temporary code to enforce psd of P, P_pred                            
                             P = this.convState(xp,snum,'P');
                             P_pred = this.convState(xp,snum,'P_pred');
                             for ii = 1:this.mpc_hor+1
@@ -1392,21 +1430,40 @@
             end % sqp
         end
            
-        function [x,success] = find_closest_feasible_point(this, x0, glin, hlin)
+        function [x,success] = find_closest_feasible_point(this, x0, glin, hlin,snum)
             % Find a point that satisfies linear constraints, if x0 doesn't
             % satisfy them
             
             success = true;
+            smnum = 10^-2;
+            
             if any(glin(x0) > 0) || any(hlin(x0) ~= 0)
                 fprintf('    Robot.m, line %d\n', MFileLineNr())
                 fprintf('    initialization doesn''t satisfy linear constraints. finding the closest feasible point\n');
                 
                 cvx_begin quiet
-                variables('x(length(x0))')
-                minimize('sum((x-x0).^2)')
+                variables x(length(x0))
+                expression P(2,2,this.gmm_num,this.mpc_hor)
+                expression P_pred(2,2,this.gmm_num,this.mpc_hor)
+                minimize sum((x-x0).^2)
                 subject to
                     hlin(x) == 0;
                     glin(x) <= 0;
+                    
+                    % a temporary code to enforce psd of P, P_pred
+                    P = this.convState(x,snum,'P');
+                    P_pred = this.convState(x,snum,'P_pred');
+                    for ii = 1:this.mpc_hor+1
+                        for jj = 1:this.gmm_num
+                            P(:,:,jj,ii)-smnum*eye(2) == semidefinite(2);
+                        end
+                    end
+                    
+                    for ii = 1:this.mpc_hor
+                        for jj = 1:this.gmm_num
+                            P_pred(:,:,jj,ii)-smnum*eye(2) == semidefinite(2);
+                        end
+                    end
                 cvx_end
                 
                 if strcmp(cvx_status,'Failed') || strcmp(cvx_status,'Infeasible')
