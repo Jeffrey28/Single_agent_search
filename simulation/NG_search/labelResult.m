@@ -109,11 +109,11 @@ switch fctname
         constrHeader = [constrHeader;{'z(1,1)-init'};{'z(2,1)-init'};...
             {'z(3,1)-init'};{'z(4,1)-init'};{'x(1,1)-init'};{'x(2,1)-init'};...
             {'P(1,1,1)-init'};{'P(2,1,1)-init'};{'P(1,2,1)-init'};{'P(2,2,1)-init'}];
-        % x_k+1|k = f(x_k)
-        for ii = 1:N
-            constrHeader = [constrHeader;{sprintf('x_pred(1,%d)-f(x(1,%d))',ii,ii)};...
-                {sprintf('x_pred(2,%d)-f(x(2,%d))',ii,ii)}];
-        end
+%         % x_k+1|k = f(x_k)
+%         for ii = 1:N
+%             constrHeader = [constrHeader;{sprintf('x_pred(1,%d)-f(x(1,%d))',ii,ii)};...
+%                 {sprintf('x_pred(2,%d)-f(x(2,%d))',ii,ii)}];
+%         end
         % P_k+1|k=A*P_k*A+Q
         for ii = 1:N
             constrHeader = [constrHeader;{sprintf('P_pred(1,1,%d)-AP(1,1,%d))A',ii,ii)};...
@@ -125,6 +125,8 @@ switch fctname
             constrHeader = [constrHeader;{sprintf('x(1,%d)-x_pred(1,%d)',ii+1,ii)};...
                 {sprintf('x(2,%d)-x_pred(2,%d)',ii+1,ii)}];
         end
+        
+        
         labeledRes = [constrHeader,cellRes];
         
     case 'glin'

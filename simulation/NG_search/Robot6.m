@@ -337,6 +337,15 @@
                     end
                 end
             end
+            
+            % (10/4) set particles outside of field to have 0 weight
+            for ii = 1:np
+                if any([fld.fld_cor(1);fld.fld_cor(3)] > pred_par(:,ii))||...
+                        any([fld.fld_cor(2);fld.fld_cor(4)] < pred_par(:,ii))
+                    w(ii) = 0;
+                end
+            end
+            
             w = w/sum(w);
             
             % resampling
@@ -1152,10 +1161,39 @@
         
         %% robot state updating
         function this = updState(this,u)
+            % update robot state using control input
             st = this.state;
+            
+            if u(1) > this.w_ub
+                fprintf('[main loop] Robot.m, line %d, u(1)=%d> w_ub. Adjusted to upper bound\n',MFileLineNr(),u(1))    
+                u(1) = this.w_ub;
+            elseif u(1) < this.w_lb
+                fprintf('[main loop] Robot.m, line %d, u(1)=%d< w_lb. Adjusted to lower bound\n',MFileLineNr(),u(1))
+                u(1) = this.w_lb;
+            end
+                
+            if u(2) > this.a_ub
+                fprintf('[main loop] Robot.m, line %d, u(2)=%d> a_ub. Adjusted to upper bound\n',MFileLineNr(),u(2))    
+                u(2) = this.a_ub;
+            elseif u(2) < this.a_lb
+                fprintf('[main loop] Robot.m, line %d, u(2)=%d< a_lb. Adjusted to upper bound\n',MFileLineNr(),u(2))    
+                u(2) = this.a_lb;
+            end
+            
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
+            if this.state(4) > this.v_ub
+                fprintf('[main loop] Robot.m, line %d, z(4)=%d> v_ub. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
+                this.state(4) = this.v_ub;
+            elseif this.state(4) < this.v_lb
+                fprintf('[main loop] Robot.m, line %d, z(4)=%d< v_lb. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
+                this.state(4) = this.v_lb;
+            end
+            
+            %%%%% there should be psd checker for P. May fill this part
+            %%%%% later
+            
             this.traj = [this.traj,this.state];
         end               
         
