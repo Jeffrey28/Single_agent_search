@@ -28,7 +28,7 @@ save_video = true;
 %% Set field %%%
 % target info
 % target.pos = [17;18];%[15;15];%[30;20]; %[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
-target.state = [45;15;3*pi/4;0.5];
+target.state = [18;15;pi/4;0.5];
 
 % linear model, used for KF
 % target.A = eye(2);%[0.99 0;0 0.98];
@@ -199,13 +199,12 @@ if strcmp(plan_mode,'lin')
 elseif strcmp(plan_mode,'nl')
     % PF
     inPara_rbt.max_gmm_num = 3;
-    [X,Y] = meshgrid((xMin+0.5):0.5:(xMax-0.5),(yMin+0.5):0.5:(yMax-0.5));
+    [X,Y] = meshgrid((xMin+0.5):0.5:(xMax-0.5),(yMin+0.5):0.5:(yMax-0.5));    
     if strcmp(tar_model,'ped')
-        xlen = length(X(:));
-        theta = linspace(0,2*pi,xlen);
-        v = linspace(0,3,xlen);
+        xlen = size(X,1);
+        [theta,v] = meshgrid(linspace(0,2*pi,xlen),linspace(0,2,xlen));
         inPara_rbt.particles = [X(:),Y(:),theta(:),v(:)]';
-        inPara_rbt.est_state = target.state+[5;-5;0.5;0.5];
+        inPara_rbt.est_state = target.state+[5;-5;0.1;0.5];
         inPara_rbt.P = {}; %{[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
     else
         inPara_rbt.particles = [X(:),Y(:)]'; 

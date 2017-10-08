@@ -554,6 +554,9 @@
                 end
                 this.P{ii} = this.gmm_sigma(:,:,ii);
             end
+            
+            % (10/8) visualize particles (for debugging purpose only)
+%             scatter (this.particles(1,:),this.particles(2,:))
         end
         
         %% planning
