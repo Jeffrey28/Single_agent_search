@@ -1320,7 +1320,7 @@
                     smnum = 10^-2;
                     cvx_begin quiet
                         variables xp(dim_x, 1);
-                        expression P(2,2,this.gmm_num,this.mpc_hor)
+                        expression P(2,2,this.gmm_num,this.mpc_hor+1)
                         expression P_pred(2,2,this.gmm_num,this.mpc_hor)
                         %                 minimize fquadlin(x) + fval + (x'*Q'+q+fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
                         minimize fquadlin(xp) + fval + (fgrad)*(xp-x) + penalty_coeff*( hinge(gval+gjac*(xp-x)) + abssum(hval+hjac*(xp-x)) )
