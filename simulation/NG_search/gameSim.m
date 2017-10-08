@@ -11,7 +11,7 @@
 clear % clear global variables
 close all
 
-simSetup;
+simSetup2;
 dbstop if error
 % [sim_len,sim,rbt,fld] = simSetup2();
 %% %%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%% 
