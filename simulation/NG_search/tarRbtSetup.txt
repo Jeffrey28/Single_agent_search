@@ -1,0 +1,34 @@
+This file records the parameters used for generating different simulation results. Later on this could be put into the simSetup code. So this is a temporary file.
+
+PF-moving-sin-tar-lin-sensor-inside-03-Oct-2017: 
+rbt: [5;15;pi/3;0]; tar: [5;20] u [0.5;0.5] Q 0.25*eye(2)
+
+PF-inside-fov-ran-sen-moving-lin-tar-04-Oct-2017:
+rbt: [15;10;pi/3;0]; tar: pos [20;15] u [0.5;0.5] Q 0.25*eye(2)
+
+PF-inside-fov-ran-sen-moving-sin-tar-04-Oct-2017:
+rbt: [5;15;pi/3;0]; tar: pos [10;20] u [0.5;0.5] Q 0.09*eye(2)
+
+PF-outside-fov-ran-sen-static-tar-05-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [40;30] u [0;0] Q 0*eye(2)
+
+PF-outside-fov-ran-sen-static-tar-05-Oct-2017(2):
+rbt: [40;10;pi/2;0]; tar: pos [15;35] u [0;0] Q 0*eye(2)
+
+PF-outside-fov-ran-sen-static-tar-06-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [35;20] u [0;0] Q 0*eye(2)
+
+PF-outside-fov-ran-sen-moving-lin-tar-06-Oct-2017:
+rbt: [20;10;pi/3;0]; tar: pos [45;15] u [-0.5;0.5] Q 0.25*eye(2)
+
+PF-outside-fov-lin-sen-moving-lin-tar-06-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [40;30] u [-0.5;0.5] Q 0.25*eye(2)
+
+PF-inside-fov-lin-sen-moving-ped-tar-06-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [12;12;pi/4;1] Q = blkdiag(10^-6*eye(2),0.01*eye(2))
+
+PF-outside-fov-lin-sen-lin-tar-07-Oct-2017:
+rbt: [35;10;pi/2;0]; tar: pos [15;35] u [-0.5;0.5] Q 0.25*eye(2)
+
+PF-outside-fov-lin-sen-static-tar-07-Oct-2017 (2):
+rbt: [10;10;pi/2;0]; tar: pos [40;35] u [0;0] Q 0.0001*eye(2)

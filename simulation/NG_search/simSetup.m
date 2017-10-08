@@ -98,6 +98,7 @@ fld = Field(inPara_fld);
 inPara_rbt = struct;
 % robot state
 inPara_rbt.state = [20;10;pi/3;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.sdim = length(inPara_rbt.state);
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
