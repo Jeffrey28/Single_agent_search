@@ -11,12 +11,12 @@ plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
 tar_model = 'ped'; % static, lin, cir, sin, ped(estrian)
 
-solver = 'ipopt'; % 'sqp'
+solver = 'sqp'; % 'sqp'
 
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'lin'; %rb % rb, ran, br, lin
+    sensor_type = 'ran'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
@@ -115,7 +115,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [20;10;pi/3;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [25;10;pi/2;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;
@@ -157,8 +157,8 @@ switch sensor_type
         % range-only sensor
         inPara_rbt.h = @(x,z) sqrt(sum((Ct*x-z).^2)+0.1);
         inPara_rbt.opth = @(x,z) sqrt(sum((Ct(:,1:2)*x-z).^2)+0.1);
-        inPara_rbt.del_h = @(x,z) Ct'*(Ct*x-z);
-        inPara_rbt.opt_del_h = @(x,z) 0; %%%%% (10/6) fix later
+        inPara_rbt.del_h = @(x,z) Ct'*(Ct*x-z)/sqrt(sum((x-z).^2)+0.1);
+        inPara_rbt.opt_del_h = @(x,z) (Ct(:,1:2)*x-z)'/sqrt(sum((Ct(:,1:2)*x-z).^2)+0.1);
         inPara_rbt.R = 1;
         inPara_rbt.mdim = 1;
     case 'br'
