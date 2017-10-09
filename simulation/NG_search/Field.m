@@ -29,7 +29,7 @@ classdef Field
                 %
                 new_state = zeros(size(tmp));
                 new_state(tar.pos_idx) = mvnrnd(tmp(tar.pos_idx),Q(tar.pos_idx,tar.pos_idx))';                
-                tmp2 = normrnd(tmp(3),sqrt(Q(3,3)));
+%                 tmp2 = normrnd(tmp(3),sqrt(Q(3,3)));
                 % shift theta to be within [0,2*pi]
                 pd = makedist('normal');
                 pd.mu = tmp(3);
