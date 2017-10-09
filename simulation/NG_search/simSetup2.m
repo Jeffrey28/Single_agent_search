@@ -85,6 +85,8 @@ switch tar_model
         %%% setup for moving target: pedestrian (constant speed point mass) model
         % similar to robot's unicyle model except that there is no input
         % and noises are only for orientation and speed.
+        target.theta_bd = [target.state(3)-5/180*pi;target.state(3)+5/180*pi];
+        target.v_bd = [target.state(4)-0.5;target.state(4)+0.5];
         target.f = @(x) x+[x(4)*cos(x(3));x(4)*sin(x(3));0;0];
         target.del_f = @(x) [1 0 -x(4)*sin(x(3)) cos(x(3)); ...
             0 1 x(4)*cos(x(3)) sin(x(3));...
@@ -198,14 +200,24 @@ if strcmp(plan_mode,'lin')
 elseif strcmp(plan_mode,'nl')
     % PF
     inPara_rbt.max_gmm_num = 3;
-    [X,Y] = meshgrid((xMin+0.5):0.5:(xMax-0.5),(yMin+0.5):0.5:(yMax-0.5));    
+    
     if strcmp(tar_model,'ped')
-        xlen = size(X,1);
-        [theta,v] = meshgrid(linspace(0,2*pi,xlen),linspace(0,2,xlen));
-        inPara_rbt.particles = [X(:),Y(:),theta(:),v(:)]';
-        inPara_rbt.est_state = target.state+[5;-5;0.1;0.5];
+        [X,Y] = meshgrid((xMin+0.5):1:(xMax-0.5),(yMin+0.5):1:(yMax-0.5));    
+%         xlen = size(X,1);
+%         [theta,v] = meshgrid(linspace(0,2*pi,xlen),linspace(0,2,xlen));
+%         inPara_rbt.particles = [X(:),Y(:),theta(:),v(:)]';
+        [theta,v] = meshgrid(linspace(target.theta_bd(1),target.theta_bd(2),5)...
+            ,linspace(target.v_bd(1),target.v_bd(2),5));        
+        % mesh x-y with theta-v 
+        tmpxy = [X(:),Y(:)];
+        tmptv = [theta(:),v(:)];
+        [tmpcord1,tmpcord2] = meshgrid(1:length(tmpxy),1:length(tmptv));
+        inPara_rbt.particles = [tmpxy(tmpcord1(:),:),tmptv(tmpcord2(:),:)]';
+        
+        inPara_rbt.est_state = target.state+[5;-5;0.3;0.5];        
         inPara_rbt.P = {}; %{[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
     else
+        [X,Y] = meshgrid((xMin+0.5):0.5:(xMax-0.5),(yMin+0.5):0.5:(yMax-0.5));
         inPara_rbt.particles = [X(:),Y(:)]'; 
         inPara_rbt.est_pos = target.pos+ [5;-5];
         inPara_rbt.P = {}; %{[100 0; 0 100];[100 0; 0 100];[100 0; 0 100]};
