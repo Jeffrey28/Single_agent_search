@@ -34,7 +34,7 @@ classdef Field
                 pd = makedist('normal');
                 pd.mu = tmp(3);
                 pd.sigma = sqrt(Q(3,3));
-                t1 = truncate(pd,0,2*pi);
+                t1 = truncate(pd,tar.theta_bd(1),tar.theta_bd(2));
                 new_state(3) = random(t1,1,1);
 %                 new_state(3) = tmp2-2*pi*floor(tmp2/(2*pi));
                 % use truncated gaussian to sample from range [0,inf] for
@@ -42,7 +42,7 @@ classdef Field
 %                 pd = makedist('normal');
                 pd.mu = tmp(4);
                 pd.sigma = sqrt(Q(4,4));
-                t2 = truncate(pd,0,2);
+                t2 = truncate(pd,tar.v_bd(1),tar.v_bd(2));
                 new_state(4) = random(t2,1,1);
                 tar.state = new_state;
                 %}

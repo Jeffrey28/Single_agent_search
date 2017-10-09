@@ -336,7 +336,8 @@
                 
                 % here I use a very simple code, utilizing the fact that
                 % noises of states are uncorrelated               
-                %
+                % old version
+                %{
                 for ii = 1:np
                     tmp = f(particles(:,ii));
                     new_state = zeros(size(tmp));
@@ -351,7 +352,7 @@
                     
                     pd.mu = tmp(3);
                     pd.sigma = sqrt(Q(3,3));
-                    t1 = truncate(pd,0,2*pi);
+                    t1 = truncate(pd,tar.theta_bd(1),tar.theta_bd(2));
                     new_state(3) = random(t1,1,1);                    
                     
                     % from range [0,2] for
@@ -359,10 +360,26 @@
                     
                     pd.mu = tmp(4);
                     pd.sigma = sqrt(Q(4,4));
-                    t2 = truncate(pd,0,2);
+                    t2 = truncate(pd,tar.v_bd(1),tar.v_bd(2));
                     new_state(4) = random(t2,1,1);
                     pred_par(:,ii) = new_state;
                 end
+                %}
+                % new version
+                % temporarily use uniform distribution since variation of 
+                % theta and v is assumed small
+                tmp_par = zeros(size(particles));
+                for ii = 1:np
+                    tmp_par(:,ii) = f(particles(:,ii));
+                end
+                
+%                 new_state = zeros(size(tmp));
+                new_state_xy = mvnrnd(tmp_par(tar.pos_idx,:)',Q(tar.pos_idx,tar.pos_idx))';% make new_state to be 2-by-np                
+                
+                new_state_theta = tar.theta_bd(1)+(tar.theta_bd(2)-tar.theta_bd(1))*rand(1,np);
+                new_state_v = tar.v_bd(1)+(tar.v_bd(2)-tar.v_bd(1))*rand(1,np);
+                pred_par = [new_state_xy;new_state_theta;new_state_v];
+                
                 %}
                 
                 % use package
