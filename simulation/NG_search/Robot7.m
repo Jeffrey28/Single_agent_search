@@ -9,6 +9,7 @@
         w_ub;
         v_lb;
         v_ub;
+        Qr; % noise of motion
         
         % sensor specs
         sensor_type;
@@ -74,7 +75,6 @@
         cfg;
         snum;
         
-        
         % performance metrics
         ml_pos;
         ent_pos;
@@ -90,6 +90,7 @@
             this.w_ub = inPara.w_ub;
             this.v_lb = inPara.v_lb;
             this.v_ub = inPara.v_ub;
+            this.Qr = inPara.Qr;
             
             % sensor specs
             this.R = inPara.R;
@@ -481,7 +482,7 @@
             this.particles = new_particles;
             
             % (10/8) visualize particles (for debugging purpose only)
-            scatter (this.particles(1,:),this.particles(2,:))
+%             scatter (this.particles(1,:),this.particles(2,:))
             %}
             
             %% find mean value for xknown variables
@@ -1310,6 +1311,7 @@
         function this = updState(this,u)
             % update robot state using current control input (only one-step
             % update)
+            
             st = this.state;
             
             if u(1) > this.w_ub
@@ -1331,12 +1333,32 @@
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
+            % (10/9) added noise in motion model
+            new_state = mvnrnd(this.state',this.Qr)';
+            this.state = new_state;
+            
             if this.state(4) > this.v_ub
                 fprintf('[main loop] Robot.m, line %d, z(4)=%d> v_ub. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
                 this.state(4) = this.v_ub;
             elseif this.state(4) < this.v_lb
                 fprintf('[main loop] Robot.m, line %d, z(4)=%d< v_lb. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
                 this.state(4) = this.v_lb;
+            end
+            
+            if this.state(1) > 50
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d> 50. Adjusted to upper bound\n',MFileLineNr(),this.state(1))
+                this.state(1) = 50;
+            elseif this.state(1) < 0
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d< 0. Adjusted to upper bound\n',MFileLineNr(),this.state(1))
+                this.state(1) = 0;
+            end
+            
+            if this.state(2) > 50
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d> 50. Adjusted to upper bound\n',MFileLineNr(),this.state(2))
+                this.state(2) = 50;
+            elseif this.state(2) < 0
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d< 0. Adjusted to upper bound\n',MFileLineNr(),this.state(2))
+                this.state(2) = 0;
             end
             
             %%%%% there should be psd checker for P. May fill this part
