@@ -5,7 +5,7 @@ addpath('/Users/changliu/Documents/MATLAB/cvx/functions/vec_') % some issue occu
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 50;
+sim_len = 60;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
@@ -94,7 +94,7 @@ switch tar_model
             0 0 0 1];
         target.optf = @(x,y) x+[y(2)*cos(y(1));y(2)*sin(y(1))]; % general model f used in optimization
         target.opt_del_f = @(x,y) eye(2);
-        target.Q = blkdiag(10^-6*eye(2),[0.01,0;0,0.09]);
+        target.Q = blkdiag(10^-1*eye(2),[0.01,0;0,0.09]);
         target.optQ = target.Q(1:2,1:2);
 end
 
@@ -126,6 +126,7 @@ inPara_rbt.v_lb = 0;
 inPara_rbt.v_ub = 3;
 % robot kinematics
 inPara_rbt.g = @(z,u) z+u*dt;
+inPara_rbt.Qr = blkdiag(0.09*eye(2),[0.01,0;0,0.04]);
 inPara_rbt.del_g = @(z,u) z+u*dt;
 % target defintion
 inPara_rbt.target = target;
