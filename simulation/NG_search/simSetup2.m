@@ -5,7 +5,7 @@ addpath('/Users/changliu/Documents/MATLAB/cvx/functions/vec_') % some issue occu
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 70;
+sim_len = 40;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
@@ -16,7 +16,7 @@ solver = 'sqp'; % 'sqp'
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'lin'; %rb % rb, ran, br, lin
+    sensor_type = 'ran'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
@@ -28,7 +28,7 @@ save_video = true;
 %% Set field %%%
 % target info
 % target.pos = [17;18];%[15;15];%[30;20]; %[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
-target.state = [22;2;pi/4;1];
+target.state = [12;2;pi/4;1];
 
 % linear model, used for KF
 % target.A = eye(2);%[0.99 0;0 0.98];
@@ -94,7 +94,7 @@ switch tar_model
             0 0 0 1];
         target.optf = @(x,y) x+[y(2)*cos(y(1));y(2)*sin(y(1))]; % general model f used in optimization
         target.opt_del_f = @(x,y) eye(2);
-        target.Q = blkdiag(10^-6*eye(2),[0.01 0;0 0.09]);
+        target.Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09]);
         target.optQ = target.Q(1:2,1:2);
 end
 
@@ -117,7 +117,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [30;5;pi;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [20;5;pi;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 % input constraint
 inPara_rbt.a_lb = -3;
 inPara_rbt.a_ub = 1;

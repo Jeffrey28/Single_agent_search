@@ -67,7 +67,7 @@ for ii = 1:sim_len
     end
    
     %% robot motion planning
-    %{
+    %
     if strcmp(plan_mode,'lin')
 %         [optz,optu] = rbt.cvxPlanner_kf(fld,optz,optu);
 %         [optz,optu,s,snum,merit, model_merit, new_merit] = rbt.cvxPlanner_scp(fld,optz,optu,plan_mode);

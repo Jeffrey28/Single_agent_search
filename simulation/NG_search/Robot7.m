@@ -681,6 +681,15 @@
             abssum = @(x) sum(abs(x));
             
             gam_iter = 1;
+            
+            %(10/9) determine whether est_tar is inside FOV.
+            if sum(this.y == -100) >= 1 % if no measurement is received
+                infovflag = false;
+            else
+                infovflag = true;
+            end
+
+            
             %% loop 1: change alpha in \gamma modeling
             while(1)        
                 fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
@@ -694,7 +703,7 @@
 %                 end
                 
                 %%% objective
-                obj = @(s) this.getObj(s,snum,alp1,alp2,alp3);
+                obj = @(s) this.getObj(s,snum,alp1,alp2,alp3,infovflag);
                 
                 penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties
                 
@@ -1723,7 +1732,7 @@
         
         %% objective function
         % for general NGP. 
-        function val = getObj(this,s,snum,alp1,alp2,alp3)
+        function val = getObj(this,s,snum,alp1,alp2,alp3,infovflag)
             x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
             u = this.convState(s,snum,'u'); %s(snum(3,1),snum(3,2));
             P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
@@ -1765,8 +1774,12 @@
                    val = val-10*this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
                end         
                %}
-               val = val+sum(u(:,ii-1).^2); % penalize on control input
-               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+%                val = val+sum(u(:,ii-1).^2); % penalize on control input
+                if ~infovflag
+                    val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+                end
+
+%                val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
 %                val = val+sum(abs((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2-1));
             end
 %             val = 0.1*val;
