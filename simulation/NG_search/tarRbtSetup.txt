@@ -47,3 +47,12 @@ rat: [20;5;pi;0]; tar: pos [12;2;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09
 
 search-using-PF-inside-fov-ran-sen-moving-ped-tar-ent-only-09-Oct-2017:
 rat: [20;5;pi;0]; tar: pos [12;2;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-outside-fov-lin-sen-moving-ped-tar-ent-only-09-Oct-2017:
+rat: [15;10;pi/2;0]; tar: pos [35;15;3*pi/4;0.5] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-outside-fov-ran-sen-moving-ped-tar-ent-only-09-Oct-2017:
+rat: [20;10;pi/3;0]; tar: pos [45;15;3*pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-outside-fov-lin-sen-moving-ped-tar-ent-only-10-Oct-2017:
+rat: [35;10;pi/2;0]; tar: pos [15;10;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
