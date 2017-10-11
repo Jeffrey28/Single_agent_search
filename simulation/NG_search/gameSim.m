@@ -28,7 +28,7 @@ if save_video
     if strcmp(plan_mode,'lin')
         vidObj = VideoWriter(sprintf('search-using-KF-static-%s.avi',date));
     elseif strcmp(plan_mode,'nl')
-        vidObj = VideoWriter(sprintf('search-using-PF-%s.avi',date));
+        vidObj = VideoWriter(sprintf('search-using-PF-fov-%s-sen-%s-tar-%s.avi',sensor_type,tar_model,date));
     end
     vidObj.FrameRate = 2;
     open(vidObj);

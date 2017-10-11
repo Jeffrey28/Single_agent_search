@@ -32,3 +32,6 @@ rbt: [35;10;pi/2;0]; tar: pos [15;35] u [-0.5;0.5] Q 0.25*eye(2)
 
 PF-outside-fov-lin-sen-static-tar-07-Oct-2017 (2):
 rbt: [10;10;pi/2;0]; tar: pos [40;35] u [0;0] Q 0.0001*eye(2)
+
+search-using-PF-outside-fov-lin-sen-mvoing-ped-tar-09-Oct-2017 (2)
+rbt: [15;10;pi/2;0]; tar: pos [30;10;3*pi/4;0] Q = blkdiag(10^-1*eye(2),[0.01,0; 0,0.09])
