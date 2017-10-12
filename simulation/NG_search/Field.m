@@ -60,11 +60,14 @@ classdef Field
                 tmp2 = mvrandn(l,u,Q,1); % generate truncated mvn with zero mean
                 tar.state = tmp2+tmp;
                 %}
+                tar.traj = [tar.traj,tar.state(1:2)];
             else
-                tar.state = mvnrnd(f(tar.state),Q)';
+%                 tar.state = mvnrnd(f(tar.state),Q)';
+                tar.pos = mvnrnd(f(tar.pos),Q)';
+                tar.traj = [tar.traj,tar.pos];
             end
             
-            tar.traj = [tar.traj,tar.state(1:2)];
+            
             this.target = tar;
         end
     end   

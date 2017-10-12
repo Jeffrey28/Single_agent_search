@@ -9,6 +9,7 @@
         w_ub;
         v_lb;
         v_ub;
+        Qr; % noise of motion
         
         % sensor specs
         sensor_type;
@@ -86,6 +87,7 @@
             this.w_ub = inPara.w_ub;
             this.v_lb = inPara.v_lb;
             this.v_ub = inPara.v_ub;
+            this.Qr = inPara.Qr;
             
             % sensor specs
             this.R = inPara.R;
@@ -578,6 +580,14 @@
             abssum = @(x) sum(abs(x));
             
             gam_iter = 1;
+            
+            %(10/9) determine whether est_tar is inside FOV.
+            if sum(this.y == -100) >= 1 % if no measurement is received
+                infovflag = false;
+            else
+                infovflag = true;
+            end
+            
             %% loop 1: change alpha in \gamma modeling
             while(1)        
                 fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
@@ -591,7 +601,7 @@
 %                 end
                 
                 %%% objective
-                obj = @(s) this.getObj(s,snum,alp1,alp2,alp3);
+                obj = @(s) this.getObj(s,snum,alp1,alp2,alp3,infovflag);
                 
                 penalty_coeff = cfg.initial_penalty_coeff; % Coefficient of l1 penalties
                 
@@ -1197,12 +1207,32 @@
             this.optu = [this.optu,u(:,1)];
             dt = this.dt;
             this.state = st+[st(4)*cos(st(3));st(4)*sin(st(3));u(:,1)]*dt;
+            % (10/9) added noise in motion model
+            new_state = mvnrnd(this.state',this.Qr)';
+            this.state = new_state;
+            
             if this.state(4) > this.v_ub
                 fprintf('[main loop] Robot.m, line %d, z(4)=%d> v_ub. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
                 this.state(4) = this.v_ub;
             elseif this.state(4) < this.v_lb
                 fprintf('[main loop] Robot.m, line %d, z(4)=%d< v_lb. Adjusted to upper bound\n',MFileLineNr(),this.state(4))
                 this.state(4) = this.v_lb;
+            end
+            
+            if this.state(1) > 50
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d> 50. Adjusted to upper bound\n',MFileLineNr(),this.state(1))
+                this.state(1) = 50;
+            elseif this.state(1) < 0
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d< 0. Adjusted to upper bound\n',MFileLineNr(),this.state(1))
+                this.state(1) = 0;
+            end
+            
+            if this.state(2) > 50
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d> 50. Adjusted to upper bound\n',MFileLineNr(),this.state(2))
+                this.state(2) = 50;
+            elseif this.state(2) < 0
+                fprintf('[main loop] Robot.m, line %d, z(1)=%d< 0. Adjusted to upper bound\n',MFileLineNr(),this.state(2))
+                this.state(2) = 0;
             end
             
             %%%%% there should be psd checker for P. May fill this part
@@ -1589,7 +1619,7 @@
         
         %% objective function
         % for general NGP. 
-        function val = getObj(this,s,snum,alp1,alp2,alp3)
+        function val = getObj(this,s,snum,alp1,alp2,alp3,infovflag)
             x = this.convState(s,snum,'x'); %s(snum(3,1),snum(3,2));
             u = this.convState(s,snum,'u'); %s(snum(3,1),snum(3,2));
             P = this.convState(s,snum,'P'); %s(snum(5,1),snum(5,2));
@@ -1631,8 +1661,10 @@
                    val = val-10*this.wt(jj)*log(tmp);%+this.wt(jj)*tmp_dis; %+(1-this.gam(z(1:2,ii),z(3,ii),tar_pos,alp1,alp2,alp3));
                end         
                %}
-               val = val+sum(u(:,ii-1).^2); % penalize on control input
-               val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+%                val = val+sum(u(:,ii-1).^2); % penalize on control input
+                if ~infovflag
+                    val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+                end
 %                val = val+sum(abs((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2-1));
             end
 %             val = 0.1*val;

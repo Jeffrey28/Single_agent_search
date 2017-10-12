@@ -16,7 +16,7 @@ solver = 'sqp'; % 'sqp'
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'lin'; %rb % rb, ran, br, lin
+    sensor_type = 'ran'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode);
@@ -28,7 +28,7 @@ save_video = true;
 %% Set field %%%
 % target info
 % target.pos = [17;18];%[15;15];%[30;20]; %[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
-target.state = [45;10;3*pi/4;1];
+target.state = [45;15;3*pi/4;1];
 
 % linear model, used for KF
 % target.A = eye(2);%[0.99 0;0 0.98];
