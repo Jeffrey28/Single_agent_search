@@ -1,0 +1,98 @@
+This file records the parameters used for generating different simulation results. Later on this could be put into the simSetup code. So this is a temporary file.
+
+PF-moving-sin-tar-lin-sensor-inside-03-Oct-2017: 
+rbt: [5;15;pi/3;0]; tar: [5;20] u [0.5;0.5] Q 0.25*eye(2)
+
+PF-inside-fov-ran-sen-moving-lin-tar-04-Oct-2017:
+rbt: [15;10;pi/3;0]; tar: pos [20;15] u [0.5;0.5] Q 0.25*eye(2)
+
+PF-inside-fov-ran-sen-moving-sin-tar-04-Oct-2017:
+rbt: [5;15;pi/3;0]; tar: pos [10;20] u [0.5;0.5] Q 0.09*eye(2)
+
+PF-outside-fov-ran-sen-static-tar-05-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [40;30] u [0;0] Q 0*eye(2)
+
+PF-outside-fov-ran-sen-static-tar-05-Oct-2017(2):
+rbt: [40;10;pi/2;0]; tar: pos [15;35] u [0;0] Q 0*eye(2)
+
+PF-outside-fov-ran-sen-static-tar-06-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [35;20] u [0;0] Q 0*eye(2)
+
+PF-outside-fov-ran-sen-moving-lin-tar-06-Oct-2017:
+rbt: [20;10;pi/3;0]; tar: pos [45;15] u [-0.5;0.5] Q 0.25*eye(2)
+
+PF-outside-fov-lin-sen-moving-lin-tar-06-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [40;30] u [-0.5;0.5] Q 0.25*eye(2)
+
+PF-inside-fov-lin-sen-moving-ped-tar-06-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [12;12;pi/4;1] Q = blkdiag(10^-6*eye(2),0.01*eye(2))
+
+PF-outside-fov-lin-sen-lin-tar-07-Oct-2017:
+rbt: [35;10;pi/2;0]; tar: pos [15;35] u [-0.5;0.5] Q 0.25*eye(2)
+
+PF-outside-fov-lin-sen-static-tar-07-Oct-2017 (2):
+rbt: [10;10;pi/2;0]; tar: pos [40;35] u [0;0] Q 0.0001*eye(2)
+
+PF-outside-fov-lin-sen-moving—ped-tar-09-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [35;15;3*pi/4;0.5] Q = blkdiag(10^-6*eye(2),[0.01,0;0,0.09])
+
+PF-inside-fov-lin-sen-moving-ped-tar-09-Oct-2017:
+rat: [20;5;pi;0]; tar: pos [12;2;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+PF-inside-fov-lin-sen-lin-tar-ent-obj-09-Oct-2017:
+rbt: [20;15;pi/2;0] tar: pos [15;10] u =[0.5;0.5] Q = 0.25*eye(2)
+
+search-using-PF-inside-fov-ran-sen-moving-ped-tar-09-Oct-2017:
+rat: [20;5;pi;0]; tar: pos [12;2;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-inside-fov-ran-sen-moving-ped-tar-ent-only-09-Oct-2017:
+rat: [20;5;pi;0]; tar: pos [12;2;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-outside-fov-lin-sen-moving-ped-tar-ent-only-09-Oct-2017:
+rat: [15;10;pi/2;0]; tar: pos [35;15;3*pi/4;0.5] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-outside-fov-ran-sen-moving-ped-tar-ent-only-09-Oct-2017:
+rat: [20;10;pi/3;0]; tar: pos [45;15;3*pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-outside-fov-lin-sen-moving-ped-tar-ent-only-10-Oct-2017:
+rat: [35;10;pi/2;0]; tar: pos [15;10;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+since Oct-11, all simulations use entropy only:
+search-using-PF-outside-fov-lin-sen-lin-tar-11-Oct-2017:
+rat: [20;10;pi/4;0]; tar: pos [45;15] Q = 0.25*eye(2)
+
+search-using-PF-outside-fov-lin-sen-lin-tar-10-Oct-2017:
+rat: [15;10;pi/2;0]; tar: pos [40;35] u = [-0.5;-0.5] Q = 0.25*eye(2)
+
+search-using-PF-inside-fov-ran-sen-ped-tar-11-Oct-2017:
+rat: [20;3;pi;0]; tar: pos [12;5;pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-inside-fov-lin-sen-ped-tar-11-Oct-2017:
+rat: [38;5;0;0]; tar: pos [45;10;3*pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])
+
+search-using-PF-inside-fov-lin-sen-sin-tar-11-Oct-2017:
+rat: [5;12;pi/2;0]; tar: pos [5;20] u = [-0.5;-0.5] Q = 0.25*eye(2)
+
+search-using-PF-outside-fov-ran-sen-lin-tar-12-Oct-2017:
+rat: [20;10;pi/3;0]; tar: pos [45;15] u = [-0.5;-0.5] Q = 0.25*eye(2)
+
+search-using-PF-outside-fov-ran-sen-lin-tar-12-Oct-2017:
+rat: [20;10;pi/3;0]; tar: pos [45;15] u = [-0.5;-0.5] Q = 0.25*eye(2)
+
+search-using-PF-inside-fov-ran-sen-sin-tar-12-Oct-2017:
+rat: [5;15;pi/3;0]; tar: pos [10;20] u = [0.5;0.5] Q = 0.25*eye(2)
+
+search-using-PF-inside-fov-ran-sen-sin-tar-12-Oct-2017(2):
+rat: [5;25;5*pi/3;0]; tar: pos [10;20] u = [0.5;0.5] Q = 0.25*eye(2)
+
+search-using-PF-outside-fov-lin-sen-static-tar-13-Oct-2017:
+rat: [40;10;pi/2;0]; tar: pos [20;35] Q = 0.0001*eye(2)
+
+search-using-PF-inside-fov-ran-sen-sin-tar-15-Oct-2017:
+rat: [5;25;5*pi/3;0]; tar: pos [10;20] u = [0.5;0.5] Q = 0.25*eye(2)
+
+search-using-PF-outside-fov-lin-sen-ped-tar-16-Oct-2017:
+rbt: [15;10;pi/2;0]; tar: pos [35;15;3*pi/4;0.5] Q = blkdiag(10^-1*eye(2),[0.01,0;0,0.09])
+
+search-using-PF-outside-fov-ran-sen-moving-ped-tar-16-Oct-2017:
+rat: [20;10;pi/3;0]; tar: pos [45;15;3*pi/4;1] Q = blkdiag(10^-1*eye(2),[0.01 0;0 0.09])

@@ -1,4 +1,4 @@
- classdef Robot6
+ classdef Robot7
     properties
         % motion specs
         traj;
@@ -19,8 +19,10 @@
         C; % C matrix of observation
         % nonlinear sensor
         h; % y=h(x)
+        opth; % used in planning
         del_h; % gradient of h
         R; % variance(1-d)/covariance(high-d) for sensor model
+        opt_del_h; %gradient of h. used in planning
         mdim; % dimension of sensor measurement
         
         % sensor modeling
@@ -48,10 +50,12 @@
         sdim; % dimension of state
         
         % filtering
+        % variables that are considered constant in optimization
+        xknown;
         % xKF
-        est_pos; % estimated target position
+        est_state; % estimated target position
         P; % estimation covariance
-        est_pos_hist;
+        est_state_hist;
         P_hist;
         % GMM
         gmm_num; % # of gmm components
@@ -71,14 +75,13 @@
         cfg;
         snum;
         
-        
         % performance metrics
         ml_pos;
         ent_pos;
     end
     
     methods
-        function this = Robot6(inPara)
+        function this = Robot7(inPara)
             this.state = inPara.state;
             this.traj = inPara.state;
             this.a_lb = inPara.a_lb;
@@ -92,7 +95,9 @@
             % sensor specs
             this.R = inPara.R;
             this.h = inPara.h;
+            this.opth = inPara.opth;
             this.del_h = inPara.del_h;
+            this.opt_del_h = inPara.opt_del_h;
             this.C = [];
             this.theta0 = inPara.theta0;
             this.r = inPara.range;
@@ -117,14 +122,14 @@
             % target
             this.target = inPara.target;
             this.A = [];
-            this.sdim = inPara.sdim;  
+%             this.sdim = inPara.sdim;  
             
             % filtering
             this.sensor_type = inPara.sensor_type;
             % xKF
-            this.est_pos = inPara.est_pos;
+            this.est_state = inPara.est_state;
             this.P = inPara.P;
-            this.est_pos_hist = [];
+            this.est_state_hist = [];
             this.P_hist = [];
             % gmm
 %             this.gmm_num = inPara.gmm_num;
@@ -154,7 +159,8 @@
         end
         
         % determine if the target is in sensor FOV
-        function flag = inFOV(this,tar_pos)
+        function flag = inFOV(this,tar_state)
+            tar_pos = tar_state(1:2);
             [a,b] = this.FOV(this.state);
             flag = (a(1,:)*tar_pos-b(1) <= 0) && (a(2,:)*tar_pos-b(2) <= 0)...
                 && (norm(tar_pos-this.state(1:2)) <= this.r);            
@@ -163,29 +169,30 @@
         %% measurement generation
         % generate a random measurement
         function y = sensorGen(this,fld)
-            tar_pos = fld.target.pos;
+            tar = fld.target;
+            tar_state = tar.state;
             
             % draw FOV and target position. for debug purpose
             this.drawFOV(this.state,fld,'cur')
             hold on
-            plot(fld.target.pos(1),fld.target.pos(2),'b','markers',5,'Marker','*');
+            plot(fld.target.state(1),fld.target.state(2),'b','markers',5,'Marker','*');
 
             if strcmp(this.sensor_type,'rb')
                 % range-bearing sensor
-                if this.inFOV(tar_pos)
-                    y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';
+                if this.inFOV(tar_state)
+                    y = this.h(tar_state,this.state(1:2))+(mvnrnd([0;0],this.R))';
                 else
                     y = [-100;-100];
                 end
             elseif strcmp(this.sensor_type,'ran')
-                if this.inFOV(tar_pos)
-                    y = this.h(tar_pos,this.state(1:2))+normrnd(0,this.R);
+                if this.inFOV(tar_state)
+                    y = this.h(tar_state,this.state(1:2))+normrnd(0,this.R);
                 else
                     y = -100;
                 end
             elseif strcmp(this.sensor_type,'lin')
-                if this.inFOV(tar_pos)
-                    y = this.h(tar_pos,this.state(1:2))+(mvnrnd([0;0],this.R))';                    
+                if this.inFOV(tar_state)
+                    y = this.h(tar_state,this.state(1:2))+(mvnrnd([0;0],this.R))';                    
                 else
                     y = [-100;-100];
                 end
@@ -209,7 +216,7 @@
             Q = tar.Q;
 
             % current estimation
-            x = this.est_pos;
+            x = this.est_state;
             P = this.P;
             
             % sensor
@@ -233,9 +240,9 @@
                 P_next = P_pred;
             end
             
-            this.est_pos = x_next;
+            this.est_state = x_next;
             this.P = P_next;
-            this.est_pos_hist = [this.est_pos_hist,x_next];
+            this.est_state_hist = [this.est_state_hist,x_next];
             this.P_hist = [this.P_hist,P_next];
             % this makes KF compatible with cvxPlanner_scp
             this.gmm_num = 1; 
@@ -262,7 +269,7 @@
             for ii = 1:this.gmm_num
                 % current estimation
                 P = this.P{ii};
-                x = this.est_pos(:,ii);
+                x = this.est_state(:,ii);
                 A = del_f(x);
                 % prediction
                 x_pred = f(x); %%% replace this one with new nonlinear model
@@ -283,19 +290,19 @@
                     P_next = P_pred;
                 end
                 
-                this.est_pos(:,ii) = x_next;
+                this.est_state(:,ii) = x_next;
                 this.P{ii} = P_next;
             end
             
             % update gmm component weight
             wt = this.wt.*alp;
             this.wt = wt/sum(wt);
-            tar_mean = this.est_pos*this.wt;
+            tar_mean = this.est_state*this.wt;
             tar_cov = zeros(2,2);
             for jj = 1:this.gmm_num
                 tar_cov = tar_cov+this.wt(jj)*this.P{jj};
             end
-            this.est_pos_hist = [this.est_pos_hist,tar_mean];
+            this.est_state_hist = [this.est_state_hist,tar_mean];
             this.P_hist = [this.P_hist,tar_cov];
         end
         
@@ -305,6 +312,7 @@
             % target
             tar = fld.target;
             f = tar.f;
+            Q = tar.Q;
             % sensor
             h = this.h;
             % measurement
@@ -319,11 +327,98 @@
             w = zeros(np,1);
             
             % state update: since we use the static target, no update is needed
-            pred_par = zeros(2,np); % predicted particle state
-            for ii = 1:np                
-                pred_par(:,ii) = f(particles(:,ii));
+            pred_par = zeros(size(particles)); % predicted particle state
+%             for ii = 1:np                
+%                 pred_par(:,ii) = f(particles(:,ii));
+%             end
+%             pred_par = (mvnrnd(pred_par',tar.Q))';
+            if strcmp(tar.target_model,'ped')
+                % use truncated gaussian to generate theta and spd
+                
+                % here I use a very simple code, utilizing the fact that
+                % noises of states are uncorrelated               
+                % old version
+                %{
+                for ii = 1:np
+                    tmp = f(particles(:,ii));
+                    new_state = zeros(size(tmp));
+                    new_state(tar.pos_idx) = mvnrnd(tmp(tar.pos_idx),Q(tar.pos_idx,tar.pos_idx))';
+                    
+%                     tmp2 = normrnd(tmp(3),sqrt(Q(3,3)));
+%                     new_state(3) = tmp2-2*pi*floor(tmp2/(2*pi));
+                    
+                    % use truncated gaussian to sample 
+                    % shift theta to be within [0,2*pi]
+                    pd = makedist('normal');
+                    
+                    pd.mu = tmp(3);
+                    pd.sigma = sqrt(Q(3,3));
+                    t1 = truncate(pd,tar.theta_bd(1),tar.theta_bd(2));
+                    new_state(3) = random(t1,1,1);                    
+                    
+                    % from range [0,2] for
+                    % spd
+                    
+                    pd.mu = tmp(4);
+                    pd.sigma = sqrt(Q(4,4));
+                    t2 = truncate(pd,tar.v_bd(1),tar.v_bd(2));
+                    new_state(4) = random(t2,1,1);
+                    pred_par(:,ii) = new_state;
+                end
+                %}
+                % new version
+                % temporarily use uniform distribution since variation of 
+                % theta and v is assumed small
+                tmp_par = zeros(size(particles));
+                for ii = 1:np
+                    tmp_par(:,ii) = f(particles(:,ii));
+                end
+                
+%                 new_state = zeros(size(tmp));
+                new_state_xy = mvnrnd(tmp_par(tar.pos_idx,:)',Q(tar.pos_idx,tar.pos_idx))';% make new_state to be 2-by-np                
+                
+                new_state_theta = tar.theta_bd(1)+(tar.theta_bd(2)-tar.theta_bd(1))*rand(1,np);
+                new_state_v = tar.v_bd(1)+(tar.v_bd(2)-tar.v_bd(1))*rand(1,np);
+                pred_par = [new_state_xy;new_state_theta;new_state_v];
+                
+                %}
+                
+                % use package
+%                 tmp = zeros(size(particles));
+%                 for ii = 1:np
+%                     tmp(:,ii) = f(particles(:,ii));
+%                 end
+%                 tmpA = [eye(4);-eye(4)];
+%                 tmpB = [this.fld_cor(2);fld.fld_cor(4);2*pi;3;...
+%                     this.fld_cor(1);this.fld_cor(3);0;0];
+%                 pred_par = rmvnrnd(tmp',tar.Q,np,tmpA,tmpB);
+                
+                % runs forever...
+                %{
+                l = repmat([fld.fld_cor(1);fld.fld_cor(3);...
+                    0;0],np,1)-tmp(:);
+                u = repmat([fld.fld_cor(2);fld.fld_cor(4);2*pi;3],np,1)-tmp(:);
+                augQ = kron(eye(np),Q); %augmented Q for all particles
+                rndval = mvrandn(l,u,augQ,1); % generate truncated mvn with zero mean
+                rndval = reshape(rndval,particles);
+                tar.state = rndval+tmp;
+                %}
+                
+                %{
+                tic
+                for ii = 1:np
+                    tmp = f(particles(:,ii));
+                    l = [fld.fld_cor(1);fld.fld_cor(3);...
+                        0;0]-tmp;
+                    u = [fld.fld_cor(2);fld.fld_cor(4);2*pi;3]-tmp;
+                    tmp2 = mvrandn(l,u,Q,1); % generate truncated mvn with zero mean
+                    tar.state = tmp2+tmp;
+                end
+                toc
+                %}
+            else
+                pred_par = (mvnrnd(pred_par',tar.Q))';
             end
-            pred_par = (mvnrnd(pred_par',fld.target.Q))';
             
             % weight update
             for ii = 1:np
@@ -352,8 +447,8 @@
             
             % (10/4) set particles outside of field to have 0 weight
             for ii = 1:np
-                if any([fld.fld_cor(1);fld.fld_cor(3)] > pred_par(:,ii))||...
-                        any([fld.fld_cor(2);fld.fld_cor(4)] < pred_par(:,ii))
+                if any([fld.fld_cor(1);fld.fld_cor(3)] > pred_par(tar.pos_idx,ii))||...
+                        any([fld.fld_cor(2);fld.fld_cor(4)] < pred_par(tar.pos_idx,ii))
                     w(ii) = 0;
                 end
             end
@@ -385,17 +480,26 @@
                 jj = jj + 1;
             end
             this.particles = new_particles;
+            
+            % (10/8) visualize particles (for debugging purpose only)
+%             scatter (this.particles(1,:),this.particles(2,:))
             %}
+            
+            %% find mean value for xknown variables
+            xknown = mean(this.particles(3:4,:),2);
+            this.xknown = xknown;
             
             %% gmm fitting
             max_gmm_num = this.max_gmm_num; % maximum gmm component number
+            
+            tmp_particles = new_particles(1:2,:); % extract the part that needs to be fit for gmm
             
             gmm_model = cell(max_gmm_num,1);
             opt = statset('MaxIter',1000);
             AIC = zeros(max_gmm_num,1);
             tic;
             for kk = 1:max_gmm_num
-                gmm_model{kk} = fitgmdist(new_particles',kk,'Options',opt,...
+                gmm_model{kk} = fitgmdist(tmp_particles',kk,'Options',opt,...
                     'Regularize',0.001,'CovType','full');
                 AIC(kk)= gmm_model{kk}.AIC;
             end
@@ -458,7 +562,7 @@
             %}
             
             % convert the data form to be compatible with the main code
-            this.est_pos = this.gmm_mu(:);
+            this.est_state = this.gmm_mu(:);
             for ii = 1:this.gmm_num %numComponents
                 %%%%% (10/1) this is a very ugly temporary fix. See details
 %                 %%%%% in oneNote.
@@ -471,13 +575,11 @@
                 end
                 this.P{ii} = this.gmm_sigma(:,:,ii);
             end
+            
         end
         
         %% planning
         
-        % try re-writing the problem using cvx solver. Different from
-        % cvxPlanner below, which formulates the problem as a convex P (turns
-        % out not!), this one formulates the problem as QP each iteration
         function [optz,optu, s, snum,merit, model_merit, new_merit] = cvxPlanner_scp(this,fld,optz,optu,plan_mode) % cvxPlanner(this,fld,init_sol)
             % merit, model_merit, new_merit are the merit function value of
             % x, approx merit value of xp, and merit function value of xp
@@ -494,14 +596,14 @@
             
             % target
             tar = fld.target;
-            f = tar.f;
-            del_f = tar.del_f;
-            Q = tar.Q;
+%             f = tar.f;
+%             del_f = tar.del_f;
+%             Q = tar.Q;
             
             % sensor
-            h = this.h;
-            del_h = this.del_h;
-            R = this.R;
+%             h = this.h;
+%             del_h = this.del_h;
+%             R = this.R;
             alp1 = this.alp1;
             alp2 = this.alp2;
             alp3 = this.alp3;
@@ -581,13 +683,12 @@
             
             gam_iter = 1;
             
-            %(10/9) determine whether est_tar is inside FOV.
-            if sum(this.y == -100) >= 1 % if no measurement is received
-                infovflag = false;
-            else
-                infovflag = true;
+            %(10/9) determine whether est_tar is inside FOV.            
+            if sum(this.y == -100) >= 1 % if no measurement is received                
+                infovflag = false;                
+            else                
+                infovflag = true;                
             end
-            
             %% loop 1: change alpha in \gamma modeling
             while(1)        
                 fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
@@ -630,8 +731,10 @@
                     
                     %%%%% this part may need to be moved to be outside of
                     %%%%% loop 1. I need to try this out later.
-                    % compute linearized A and C matrix
-                    this = this.linParam(s,snum,tar);
+                    % compute parameters that rely on variable values at
+                    % each iteration, including linearized A and C matrix,
+                    % target model for pedestrian. 
+                    this = this.getParam(s,snum,fld);
                     
                     %%% linear equality constraints
                     % belief dynamics (note: this one could be written using
@@ -639,9 +742,9 @@
                     % So I use this form.
                     switch plan_mode
                         case 'lin'
-                            constrLinEq = @(s) this.getLinEqConstr_kf(s,snum,tar);
+                            constrLinEq = @(s) this.getLinEqConstr_kf(s,snum,fld);
                         case 'nl'
-                            constrLinEq = @(s) this.getLinEqConstr(s,snum,tar);
+                            constrLinEq = @(s) this.getLinEqConstr(s,snum,fld);
                     end      
                     
                     %%% nonlinear equality constraint here
@@ -649,7 +752,7 @@
                         case 'lin'
                             objBel = @(s) this.getBelConstr_kf(s,snum,alp1,alp2,alp3); % belief update
                         case 'nl'
-                            objBel = @(s) this.getBelConstr(s,snum,tar,alp1,alp2,alp3); % belief update
+                            objBel = @(s) this.getBelConstr(s,snum,fld,alp1,alp2,alp3); % belief update
                     end
                     
                     objNLeq = @(s) [objKin(s);objBel(s)];
@@ -719,7 +822,7 @@
                 end
                 
                 % update initial solution for next iteration
-                s = this.updOptVar(s,snum,alp1,alp2,alp3);
+                s = this.updOptVar(s,snum,fld,alp1,alp2,alp3);
                 % terminating condition: the actual in/out FOV is
                 % consistent with that of planning
                 if max(tmp_dif) <= cfg.gamma_tol %0.05
@@ -733,7 +836,7 @@
                     cprintf('Magenta',sprintf('  [gamma loop] Robot.m, line %d.  gamma_exact is not close, go to another iteration.\n',MFileLineNr()))
                     alp1 = alp1*alp_inc;
                     alp2 = alp2*alp_inc;
-                    alp3 = alp3*alp_inc;                    
+                    alp3 = alp3*alp_inc;
                 end
                 gam_iter = gam_iter+1;
             end % loop 1 ends
@@ -791,7 +894,7 @@
             % initial solution for approximation
             zref = [];
             x_ol_pred = zeros(2*this.gmm_num,N+1);
-            x_ol_pred(:,1) = this.est_pos(:);
+            x_ol_pred(:,1) = this.est_state(:);
             for ii = 1:N
                 x_ol_pred(:,ii+1) = f(x_ol_pred(:,ii));
             end
@@ -864,7 +967,7 @@
                 % constraints
                 % initial value
                 constr = [[z(:,1) == this.state]:'init_z'];
-                constr = [constr,[x(:,1) == this.est_pos(:)]:'init_x'];
+                constr = [constr,[x(:,1) == this.est_state(:)]:'init_x'];
                 for jj = 1:this.gmm_num
                     constr = [constr,[P(:,:,jj,1) == this.P{jj}]:'init_P'];%[1 0;0 1]];
 %                     constr = [constr,[P(2*jj-1:2*jj,1:2) == this.P{jj}]:'init_P'];%[1 0;0 1]];
@@ -988,14 +1091,18 @@
             N = this.mpc_hor;
             
             tar = fld.target;
-            Q = tar.Q;
-            del_f = tar.del_f;
-            f = tar.f;
+%             Q = tar.Q;
+%             del_f = tar.del_f;
+%             f = tar.f;
+            optf = tar.optf;
+            opt_del_f = tar.opt_del_f;
+            optQ = tar.optQ;
             R = this.R;
-            del_h = this.del_h;
+%             del_h = this.del_h;
+            opt_del_h = this.opt_del_h;
             dt = this.dt;
             
-            sdim = this.sdim;
+%             sdim = this.sdim;
             mdim = this.mdim;
             
             alp1 = this.alp1;
@@ -1004,17 +1111,41 @@
             
             % open-loop prediction of target position. no measurement info 
             % is used
-            % get x, x_pred
-            x_olp = zeros(2 * this.gmm_num,N+1);
-            x_olp(:,1) = this.est_pos(:);
+            % get x, x_pred  
+            
+            
+            x_olp = zeros(2*this.gmm_num,N+1);
+            x_olp(:,1) = this.est_state(:);   
+            % this part uses full kinematic model
+            %{
             for ii = 1:N
                 for jj = 1:this.gmm_num
                     x_olp(2*jj-1:2*jj,ii+1) = f(x_olp(2*(jj-1)+1:2*jj,ii));
                 end
-            end            
+            end
             init_state.x_olp = x_olp;
             init_state.x = x_olp;
             init_state.x_pred = x_olp(:,2:end);                        
+            %}
+            
+            % this part uses kinematic model for optimization
+            %{
+            x_olp = zeros(2*this.gmm_num,N+1);
+            tmpx = reshape(this.est_state(:),4,this.gmm_num);
+            tmpx1 = tmpx(1:2,:);
+            tmpx2 = tmpx(3:4,:);
+            x_olp(:,1) = tmpx1(:);
+            xknown_olp = tmpx2*this.wt; % variales that are considered constant in optimization
+            %}
+
+            for ii = 1:N
+                for jj = 1:this.gmm_num
+                    x_olp(2*jj-1:2*jj,ii+1) = optf(x_olp(2*(jj-1)+1:2*jj,ii),this.xknown);
+                end
+            end
+            init_state.x_olp = x_olp;
+            init_state.x = x_olp;
+            init_state.x_pred = x_olp(:,2:end);
             
             % get z,u
             if isempty(prev_state)
@@ -1022,7 +1153,7 @@
                 % primitives
                 
                 u = [0;0.5]*ones(1,N);
-                z = zeros(sdim,N+1);
+                z = zeros(4,N+1);
                 
                 z(:,1) = this.state;
                 
@@ -1043,17 +1174,7 @@
             end
             init_state.z = z;
             init_state.u = u;
-            
-%             % get theta_bar
-%             theta_bar = zeros(this.gmm_num,N+1);
-%             for ii = 1:N+1
-%                 for jj = 1:this.gmm_num
-%                     tmp_vec = x_olp(2*jj-1:2*jj,ii)-z(1:2,ii);
-%                     theta_bar(jj,ii) = atan2(tmp_vec(2),tmp_vec(1));
-%                 end
-%             end
-%             init_state.theta_bar = theta_bar;
-            
+
             % get P, P_pred, K
             P = zeros(2,2,this.gmm_num,N+1);
             P_pred = zeros(2,2,this.gmm_num,N);
@@ -1065,9 +1186,10 @@
             
             for ii = 1:N                
                 for jj = 1:this.gmm_num
-                    A = del_f(x_olp(2*(jj-1)+1:2*jj,ii+1));
-                    C = del_h(x_olp(2*(jj-1)+1:2*jj,ii+1),z(1:2,ii+1));
-                    P_pred(:,:,jj,ii) = A*P(:,:,jj,ii)*A'+Q;
+                    A = opt_del_f(x_olp(2*(jj-1)+1:2*jj,ii+1),this.xknown);
+%                     C = del_h(x_olp(2*(jj-1)+1:2*jj,ii+1),z(1:2,ii+1));
+                    C = opt_del_h(x_olp(2*(jj-1)+1:2*jj,ii+1),z(1:2,ii+1));
+                    P_pred(:,:,jj,ii) = A*P(:,:,jj,ii)*A'+optQ;
                     T = C*P_pred(:,:,jj,ii)*C'+R;
                     K(:,:,jj,ii)= P_pred(:,:,jj,ii)*C'/T;
 %                     gam = this.inFOV(x_olp(2*jj-1:2*jj,ii));
@@ -1105,7 +1227,7 @@
             % is used
             % get x, x_pred
             x_olp = zeros(2,N+1);
-            x_olp(:,1) = this.est_pos;
+            x_olp(:,1) = this.est_state;
             for ii = 1:N
                 x_olp(:,ii+1) = f(x_olp(:,ii));
             end            
@@ -1185,7 +1307,9 @@
         
         %% robot state updating
         function this = updState(this,u)
-            % update robot state using control input
+            % update robot state using current control input (only one-step
+            % update)
+            
             st = this.state;
             
             if u(1) > this.w_ub
@@ -1242,6 +1366,7 @@
         end               
         
         function z = simState(this,u,z0)
+            % evalute robot state for the whole planning horizon
             if nargin > 2
                 st = z0;
             else
@@ -1509,7 +1634,7 @@
         
         % update optimization variables for another loop using open-loop
         % updating
-        function snew = updOptVar(this,s,snum,alp1,alp2,alp3)  
+        function snew = updOptVar(this,s,snum,fld,alp1,alp2,alp3)  
             
             z_orig = this.convState(s,snum,'z');
             u_orig = this.convState(s,snum,'u');
@@ -1526,11 +1651,15 @@
 %             alp3 = this.alp3;
             
             h = this.h;
-            del_h = this.del_h;
+%             del_h = this.del_h;
+            opt_del_h = this.opt_del_h;
             R = this.R;
-            f = this.target.f;
-            del_f = this.target.del_f;
-            Q = this.target.Q;
+            
+            tar = fld.target;
+            optf = tar.optf;
+            opt_del_f = tar.opt_del_f;
+%             Q = tar.optQ;
+            optQ = tar.optQ;
 
             % z
             z = this.simState(u_orig,z_orig(:,1));
@@ -1591,26 +1720,30 @@
             for ii = 1:N
                 % predicte all variables
                 for jj = 1:this.gmm_num
-                    A = del_f(x(2*jj-1:2*jj,ii+1));                    
-                    xpred(2*jj-1:2*jj,ii) = f(x(2*jj-1:2*jj,ii));
-                    P_pred(:,:,jj,ii) = A*P(:,:,jj,ii)*A'+Q;
+                    A = opt_del_f(x(2*jj-1:2*jj,ii+1),this.xknown);                    
+                    xpred(2*jj-1:2*jj,ii) = optf(x(2*jj-1:2*jj,ii),this.xknown);
+%                     P_pred(:,:,jj,ii) = A*P(:,:,jj,ii)*A'+Q;
+                    P_pred(:,:,jj,ii) = A*P(:,:,jj,ii)*A'+optQ;
                 end
                 
                 % compute variables using measurement
                 for jj = 1:this.gmm_num
-                    C = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
+                    C = opt_del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
                     T = C*P_pred(:,:,jj,ii)*C'+R;
                     K(:,:,jj,ii)= P_pred(:,:,jj,ii)*C'/T;
                     %                 gam = this.inFOV(x_olp(:,ii));
-                                        
-                    gm = zeros(this.gmm_num,1);
+                              
                     tmp = 0;
+                    gm = zeros(this.gmm_num,1);
+                    
                     for ll = 1:this.gmm_num
                         gm(ll) = this.gam(z(1:2,ii+1),z(3,ii+1),xpred(2*ll-1:2*ll,ii),alp1,alp2,alp3);
-                        tmp = tmp+this.wt(ll)*gm(ll)*K(:,:,jj,ii)*...
-                            (h(xpred(2*ll-1:2*ll,ii),z(1:2,ii+1))-h(xpred(2*jj-1:2*jj,ii),z(1:2,ii+1)));
+                        % (10/6) I comment out the following part as it
+                        % seems less necessary
+%                         tmp = tmp+this.wt(ll)*gm(ll)*K(:,:,jj,ii)*...
+%                             (h(xpred(2*ll-1:2*ll,ii),z(1:2,ii+1))-h(xpred(2*jj-1:2*jj,ii),z(1:2,ii+1)));
                     end
-                    x(2*jj-1:2*jj,ii+1) = xpred(2*jj-1:2*jj,ii)+tmp;
+                    x(2*jj-1:2*jj,ii+1) = xpred(2*jj-1:2*jj,ii); %+tmp;
                     P(:,:,jj,ii+1) = P_pred(:,:,jj,ii)-this.wt'*gm*K(:,:,jj,ii)*C*P_pred(:,:,jj,ii);                   
                 end
             end
@@ -1662,9 +1795,9 @@
                end         
                %}
 %                val = val+sum(u(:,ii-1).^2); % penalize on control input
-                if ~infovflag
-                    val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
-                end
+               if ~infovflag
+                   val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+               end
 %                val = val+sum(abs((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2-1));
             end
 %             val = 0.1*val;
@@ -1679,7 +1812,35 @@
         end
     
         %% constraints
-        % for general NGP
+        % for general NGP   
+        
+        % compute models using values at each iteration
+        % generate A, C matrix for Guassian sum filter in the optimization
+        % process.
+        function [this] = getParam(this,s,snum,fld)            
+            x = this.convState(s,snum,'x'); 
+            z = this.convState(s,snum,'z'); 
+            
+            % get A, C
+%             del_f = tar.del_f;
+            tar = fld.target;
+%             del_h = this.del_h;
+            opt_del_h = this.opt_del_h;
+%             optf = @(x) tar.optf_gen(x,this.xknown);
+            opt_del_f = tar.opt_del_f;
+            N = this.mpc_hor;
+            
+            this.A = zeros(2,2,this.gmm_num,N);
+            this.C = zeros(this.mdim,2,this.gmm_num,N);
+            
+            for ii = 1:N
+                for jj = 1:this.gmm_num  
+                    this.A(:,:,jj,ii) = opt_del_f(x(2*jj-1:2*jj,ii),this.xknown);
+                    this.C(:,:,jj,ii) = opt_del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1))';
+                end
+            end
+        end
+             
         function h = getKinConstr(this,s,snum)
             % kinematic constraint (nonlinear equality)
             z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
@@ -1695,7 +1856,7 @@
             end
         end
         
-        function h = getBelConstr(this,s,snum,tar,alp1,alp2,alp3)
+        function h = getBelConstr(this,s,snum,fld,alp1,alp2,alp3)
             % belief update constraint (nonlinear equality)
             z = this.convState(s,snum,'z'); 
             u = this.convState(s,snum,'u'); 
@@ -1714,9 +1875,10 @@
             N = this.mpc_hor;            
             dt = this.dt;
             gam = @this.gam;
-            f = tar.f;
-            h = this.h;
-            del_h = this.del_h;
+            tar = fld.target;
+            f = tar.optf;
+            h = this.opth;
+%             del_h = this.del_h;
             R = this.R;
             
 %             alp1 = this.alp1;
@@ -1730,7 +1892,7 @@
 %                     C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1));
                                         
                     % x_k+1|k = f(x_k)
-                    val4 = [val4;xpred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii))];
+                    val4 = [val4;xpred(2*jj-1:2*jj,ii)-f(x(2*jj-1:2*jj,ii),this.xknown)];
                     
                     % update K
                     % K = P_k+1|k*C_k+1'(C_k+1*P_k+1|k*C_k+1'+R)^-1
@@ -1741,14 +1903,19 @@
                     % mean
                     % x_k+1|k+1=x_k+1|k+\sum
                     % w_ll*gamma_ll*K*(h(x^ll_k+1|k)-h(x_k+1|k))
-                    gm = zeros(this.gmm_num,1);
+                    
                         
                     tmp2 = 0;
+                    % (10/6) I think this part is not that necessary. So 
+                    % comment out for now 
+                    %{
+                    gm = zeros(this.gmm_num,1);
                     for ll = 1:this.gmm_num
                         gm(ll) = this.gam(z(1:2,ii+1),z(3,ii+1),xpred(2*ll-1:2*ll,ii),alp1,alp2,alp3);
                         tmp2 = tmp2+this.wt(ll)*gm(ll)*K(:,:,jj,ii)*...
                             (h(xpred(2*ll-1:2*ll,ii),z(1:2,ii+1))-h(xpred(2*jj-1:2*jj,ii),z(1:2,ii+1)));
                     end
+                    %}
                     val3 = [val3;x(2*jj-1:2*jj,ii+1)-xpred(2*jj-1:2*jj,ii)-tmp2];
                     
                     % covariance
@@ -1791,7 +1958,7 @@
             g = 10*[val1;val2];
         end
         
-        function hlin = getLinEqConstr(this,s,snum,tar)
+        function hlin = getLinEqConstr(this,s,snum,fld)
             % linear equality constraints
             z = this.convState(s,snum,'z'); 
             x = this.convState(s,snum,'x'); 
@@ -1799,10 +1966,14 @@
             P = this.convState(s,snum,'P'); 
             P_pred = this.convState(s,snum,'P_pred'); 
             
-            f = tar.f;
-            del_f = tar.del_f;
-            Q = tar.Q;
-            sdim = this.sdim;
+            tar = fld.target;
+%             f = tar.f;
+%             del_f = tar.del_f;
+%             Q = tar.Q;
+%             f = tar.optf;
+%             del_f = tar.opt_del_f;
+            Q = tar.optQ;
+%             sdim = this.sdim;
             
             
             N = this.mpc_hor;
@@ -1814,12 +1985,12 @@
 
             % initial condition
             % z(:,1) == this.state;
-            % x(:,1) == this.est_pos(:);
+            % x(:,1) == this.est_state(:);
             % for jj = 1:this.gmm_num
               %  triu(P(:,:,jj,1)) == triu(this.P{jj});
             % end
             val = [val;z(:,1)-this.state];
-            val = [val;x(:,1)-this.est_pos(:)];
+            val = [val;x(:,1)-this.est_state(:)];
             for jj = 1:this.gmm_num
 %                tmp = triu(P(:,:,jj,1))-triu(this.P{jj}); %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
                tmp = P(:,:,jj,1)-this.P{jj}; %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
@@ -1869,8 +2040,8 @@
             % linear inequality constraints
             z = this.convState(s,snum,'z');
             u = this.convState(s,snum,'u');
-            P = this.convState(s,snum,'P');
-            P_pred = this.convState(s,snum,'P_pred');
+%             P = this.convState(s,snum,'P');
+%             P_pred = this.convState(s,snum,'P_pred');
             
             N = this.mpc_hor;            
 %             glin = [];
@@ -1925,7 +2096,7 @@
         end        
         
         % for KF        
-        function val = getLinEqConstr_kf(this,s,snum,tar)
+        function val = getLinEqConstr_kf(this,s,snum,fld)
             % linear equality constraints for KF
             z = this.convState(s,snum,'z'); %s(snum(1,1):snum(1,2));
             x = this.convState(s,snum,'x'); %s(snum(3,1):snum(3,2));
@@ -1933,6 +2104,7 @@
             P = this.convState(s,snum,'P'); %s(snum(5,1):snum(5,2));
             P_pred = this.convState(s,snum,'P_pred'); %s(snum(6,1):snum(6,2));            
             
+            tar = fld.tar;
             f = tar.f;
             del_f = tar.del_f;
             Q = tar.Q;
@@ -1944,12 +2116,12 @@
             val3 = [];
             % initial condition
             % z(:,1) == this.state;
-            % x(:,1) == this.est_pos(:);
+            % x(:,1) == this.est_state(:);
             % for jj = 1:this.gmm_num
               %  triu(P(:,:,jj,1)) == triu(this.P{jj});
             % end
             val = [val;z(:,1)-this.state];
-            val = [val;x(:,1)-this.est_pos(:)];
+            val = [val;x(:,1)-this.est_state(:)];
             for jj = 1:this.gmm_num
                tmp = triu(P(:,:,jj,1))-triu(this.P); %%% note: triu here returns a 2*2 matrix, with lower-left item being 0
                val = [val;tmp(:)];
@@ -2217,29 +2389,7 @@
                 grad(:,i) = (yhi - ylo) / eps;
             end            
         end
-        
-        %% linearized model
-        % generate A, C matrix for Guassian sum filter in the optimization
-        % process
-        function this = linParam(this,s,snum,tar)
-            x = this.convState(s,snum,'x'); 
-            z = this.convState(s,snum,'z'); 
-            
-            del_f = tar.del_f;
-            del_h = this.del_h;
-            N = this.mpc_hor;
-            
-            this.A = zeros(2,2,this.gmm_num,N);
-            this.C = zeros(this.mdim,2,this.gmm_num,N);
-            
-            for ii = 1:N
-                for jj = 1:this.gmm_num  
-                    this.A(:,:,jj,ii) = del_f(x(2*jj-1:2*jj,ii));
-                    this.C(:,:,jj,ii) = del_h(x(2*jj-1:2*jj,ii+1),z(1:2,ii+1))';
-                end
-            end
-        end
-        
+                
         %% sensor model approximation
         % exact value of gamma
         function gam_exact = gam(this,z,theta,x0,alp1,alp2,alp3) 
