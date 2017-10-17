@@ -4,7 +4,7 @@
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 60;
+sim_len = 80;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
@@ -15,7 +15,7 @@ solver = 'sqp'; % 'sqp'
 if strcmp(plan_mode,'lin')
     sensor_type = 'lin'; % rb, ran, br, lin
 elseif strcmp(plan_mode,'nl')
-    sensor_type = 'lin'; %rb % rb, ran, br, lin
+    sensor_type = 'ran'; %rb % rb, ran, br, lin
 end
 
 inPara_sim = struct('dt',dt,'sim_len',sim_len,'sensor_type',sensor_type,'plan_mode',plan_mode,'tar_model',tar_model,'solver',solver);
@@ -26,7 +26,7 @@ save_video = true;
 
 %% Set field %%%
 % target info
-target.pos = [5;20];%[15;15];%[30;20]; %[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
+target.pos = [10;20];%[15;15];%[30;20]; %[27;26]; %[25;35]; %[25.5;33.5]; %[25.5;30.5]; %[25.5;25.5];
 % linear model, used for KF
 target.A = eye(2);%[0.99 0;0 0.98];
 target.B = [0;0]; %[0.5;-0.5]; 
@@ -76,7 +76,7 @@ switch tar_model
         target.del_f = @(x) [1 0; -u(2)*sin(x(1)) 1];
 %         target.A = [1 0; -u(2)*sin(x(1)) 1];
         % target.B = [0.5;0.5]; %[0.5;0.5]; %[0.3;-0.3];[0;0];
-        target.Q = 0.09*eye(2); %0.04 % Covariance of process noise model for the target
+        target.Q = 0.25*eye(2); %0.04 % Covariance of process noise model for the target
         %}
 end
 
@@ -98,7 +98,7 @@ fld = Field(inPara_fld);
 % Robot
 inPara_rbt = struct;
 % robot state
-inPara_rbt.state = [5;12;pi/2;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
+inPara_rbt.state = [5;25;5*pi/3;0];%[20;20;pi/2;0];%[22;30;pi/2;0]; %[15;10;pi/2;0]; %[22;33;pi/2;0];%[40;40;pi/2;0];%;static target case:[25;15;pi/2;0];
 inPara_rbt.sdim = length(inPara_rbt.state); %%%%% this is incorrect, in fact, sdim was supposed for target state dim
 % input constraint
 inPara_rbt.a_lb = -3;
