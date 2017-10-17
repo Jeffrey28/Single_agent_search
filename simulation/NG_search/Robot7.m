@@ -683,14 +683,12 @@
             
             gam_iter = 1;
             
-            %(10/9) determine whether est_tar is inside FOV.
-            if sum(this.y == -100) >= 1 % if no measurement is received
-                infovflag = false;
-            else
-                infovflag = true;
+            %(10/9) determine whether est_tar is inside FOV.            
+            if sum(this.y == -100) >= 1 % if no measurement is received                
+                infovflag = false;                
+            else                
+                infovflag = true;                
             end
-
-            
             %% loop 1: change alpha in \gamma modeling
             while(1)        
                 fprintf('  [gamma loop] Robot.m, line %d.\n',MFileLineNr())
@@ -1797,11 +1795,9 @@
                end         
                %}
 %                val = val+sum(u(:,ii-1).^2); % penalize on control input
-                if ~infovflag
-                    val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
-                end
-
-%                val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+               if ~infovflag
+                   val = val+sum((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2); % penalize the distance between sensor and MLE target postion with maximal weight
+               end
 %                val = val+sum(abs((x(2*max_idx-1:2*max_idx,ii)-z(1:2,ii)).^2-1));
             end
 %             val = 0.1*val;

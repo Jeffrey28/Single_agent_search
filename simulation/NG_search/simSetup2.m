@@ -5,7 +5,7 @@ addpath('/Users/changliu/Documents/MATLAB/cvx/functions/vec_') % some issue occu
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 60;
+sim_len = 80;
 dt = 0.5;
 plan_mode = 'nl'; % choose the mode of simulation: linear: use KF. nl: use gmm
 
