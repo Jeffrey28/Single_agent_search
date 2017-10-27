@@ -14,7 +14,7 @@ addpath('C:\Program Files\MATLAB\Ipopt-3.11.8')
 scale = 0.5; % scale the size of the field
 set(0,'DefaultFigureWindowStyle','docked');% docked
 
-sim_len = 50;
+sim_len = 10;
 dt = 0.5;
 
 %%% Set field %%%
@@ -122,6 +122,6 @@ box on
 axis equal
 
 %% save simulation result
-save('test4_offset')
+save('test7_offset')
 
 % run resultAnalysis.m to analyze the simulation results
